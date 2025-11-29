@@ -247,17 +247,18 @@ const EventDetail = () => {
 
   const finalizePDF = (doc: jsPDF, token: string, eventId: string, contentHeight: number) => {
     const pageWidth = 210;
+    const pageHeight = 297;
     
     doc.setTextColor(71, 85, 105);
     doc.setFontSize(10);
-    doc.text('Scan for verification', 105, contentHeight + 78, { align: 'center' });
+    doc.text('Scan for verification', 105, contentHeight + 88, { align: 'center' });
     doc.setFontSize(8);
-    doc.text(`Token: ${token}`, 105, contentHeight + 83, { align: 'center' });
+    doc.text(`Token: ${token}`, 105, contentHeight + 94, { align: 'center' });
     
-    // Footer section with contact info
-    const footerY = contentHeight + 93;
+    // Footer section with contact info - fixed at bottom of page
+    const footerY = pageHeight - 25;
     doc.setFillColor(248, 250, 252); // Slate-50
-    doc.rect(0, footerY, pageWidth, 20, 'F');
+    doc.rect(0, footerY, pageWidth, 25, 'F');
     
     // Footer border
     doc.setDrawColor(20, 184, 166);
@@ -267,13 +268,13 @@ const EventDetail = () => {
     doc.setTextColor(71, 85, 105);
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
-    doc.text('Contact Us:', 105, footerY + 5, { align: 'center' });
+    doc.text('Contact Us:', 105, footerY + 6, { align: 'center' });
     
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.text('Email: contactaidevcommunity@gmail.com', 105, footerY + 9, { align: 'center' });
-    doc.text('Phone: +212 687830201', 105, footerY + 13, { align: 'center' });
-    doc.text('Location: Faculty of Science Ben M\'sik, Casablanca, Morocco', 105, footerY + 17, { align: 'center' });
+    doc.text('Email: contactaidevcommunity@gmail.com', 105, footerY + 11, { align: 'center' });
+    doc.text('Phone: +212 687830201', 105, footerY + 16, { align: 'center' });
+    doc.text('Location: Faculty of Science Ben M\'sik, Casablanca, Morocco', 105, footerY + 21, { align: 'center' });
     
     doc.save(`badge-${eventId}.pdf`);
     toast.success('Badge downloaded successfully!');
