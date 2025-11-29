@@ -175,7 +175,7 @@ export const Navbar = () => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] lg:hidden"
                 onClick={() => setMobileMenuOpen(false)}
               />
               
@@ -185,7 +185,7 @@ export const Navbar = () => {
                 animate={{ x: 0 }}
                 exit={{ x: '-100%' }}
                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-background shadow-2xl z-50 lg:hidden overflow-y-auto"
+                className="fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-background shadow-2xl z-[100] lg:hidden overflow-y-auto"
               >
                 {/* Header */}
                 <div className="relative overflow-hidden">
