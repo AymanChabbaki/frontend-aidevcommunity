@@ -129,97 +129,124 @@ const EventDetail = () => {
   };
 
   const generateBadge = () => {
-    const doc = new jsPDF();
-    const pageWidth = 210;
-    const pageHeight = 297;
-    
-    // White background
-    doc.setFillColor(255, 255, 255);
-    doc.rect(0, 0, pageWidth, pageHeight, 'F');
-    
-    // Header background (gradient effect using multiple rectangles)
-    doc.setFillColor(20, 184, 166); // Primary teal
-    doc.rect(0, 0, pageWidth, 50, 'F');
-    
-    // Header content
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(32);
-    doc.setFont('helvetica', 'bold');
-    doc.text('AI Dev Community', 105, 25, { align: 'center' });
-    
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Event Registration Badge', 105, 38, { align: 'center' });
-    
-    // Main content area - Event Details Card
-    doc.setDrawColor(20, 184, 166);
-    doc.setLineWidth(0.5);
-    doc.roundedRect(20, 70, 170, 100, 3, 3, 'S');
-    
-    // Event Title
-    doc.setTextColor(30, 41, 59); // Slate-800
-    doc.setFontSize(20);
-    doc.setFont('helvetica', 'bold');
-    const eventTitle = displayTitle || event.title;
-    const splitTitle = doc.splitTextToSize(eventTitle, 150);
-    doc.text(splitTitle, 105, 85, { align: 'center' });
-    
-    // Attendee Name
-    doc.setFontSize(16);
-    doc.setTextColor(71, 85, 105); // Slate-600
-    doc.setFont('helvetica', 'normal');
-    doc.text('Attendee:', 30, 115);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(20, 184, 166);
-    doc.text(user?.name || '', 30, 125);
-    
-    // Event Date
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(71, 85, 105);
-    doc.text('Date:', 30, 140);
-    doc.setTextColor(30, 41, 59);
-    doc.text(format(new Date(event.date), 'PPP p'), 30, 150);
-    
-    // Event Location
-    doc.setTextColor(71, 85, 105);
-    doc.text('Location:', 30, 165);
-    doc.setTextColor(30, 41, 59);
-    const splitLocation = doc.splitTextToSize(event.location, 150);
-    doc.text(splitLocation, 30, 175);
-    
-    // QR Code section
-    const qrElement = document.querySelector('.registration-qr canvas');
-    if (qrElement instanceof HTMLCanvasElement) {
-      const qrDataUrl = qrElement.toDataURL('image/png');
-      doc.addImage(qrDataUrl, 'PNG', 75, 195, 60, 60);
+    if (!user?.name) {
+      toast.error('User information not available');
+      return;
     }
-    
-    doc.setTextColor(71, 85, 105);
-    doc.setFontSize(10);
-    doc.text('Scan for verification', 105, 263, { align: 'center' });
-    
-    // Footer section with contact info
-    doc.setFillColor(248, 250, 252); // Slate-50
-    doc.rect(0, 270, pageWidth, 27, 'F');
-    
-    // Footer border
-    doc.setDrawColor(20, 184, 166);
-    doc.setLineWidth(0.3);
-    doc.line(0, 270, pageWidth, 270);
-    
-    doc.setTextColor(71, 85, 105);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Contact Us:', 105, 277, { align: 'center' });
-    
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.text('Email: contactaidevcommunity@gmail.com', 105, 283, { align: 'center' });
-    doc.text('Phone: +212 687830201', 105, 288, { align: 'center' });
-    doc.text('Location: Faculty of Science Ben M\'sik, Casablanca, Morocco', 105, 293, { align: 'center' });
-    
-    doc.save(`badge-${event.id}.pdf`);
-    toast.success('Badge downloaded successfully!');
+
+    if (!badgeToken) {
+      toast.error('Registration token not available');
+      return;
+    }
+
+    // Wait a bit for QR code to render
+    setTimeout(() => {
+      try {
+        const doc = new jsPDF();
+        const pageWidth = 210;
+        const pageHeight = 297;
+        
+        // White background
+        doc.setFillColor(255, 255, 255);
+        doc.rect(0, 0, pageWidth, pageHeight, 'F');
+        
+        // Header background (gradient effect using multiple rectangles)
+        doc.setFillColor(20, 184, 166); // Primary teal
+        doc.rect(0, 0, pageWidth, 50, 'F');
+        
+        // Header content
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(32);
+        doc.setFont('helvetica', 'bold');
+        doc.text('AI Dev Community', 105, 25, { align: 'center' });
+        
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Event Registration Badge', 105, 38, { align: 'center' });
+        
+        // Main content area - Event Details Card
+        doc.setDrawColor(20, 184, 166);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(20, 70, 170, 100, 3, 3, 'S');
+        
+        // Event Title
+        doc.setTextColor(30, 41, 59); // Slate-800
+        doc.setFontSize(20);
+        doc.setFont('helvetica', 'bold');
+        const eventTitle = displayTitle || event.title;
+        const splitTitle = doc.splitTextToSize(eventTitle, 150);
+        doc.text(splitTitle, 105, 85, { align: 'center' });
+        
+        // Attendee Name
+        doc.setFontSize(16);
+        doc.setTextColor(71, 85, 105); // Slate-600
+        doc.setFont('helvetica', 'normal');
+        doc.text('Attendee:', 30, 115);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(20, 184, 166);
+        const attendeeName = user.name || user.email || 'Guest';
+        doc.text(attendeeName, 30, 125);
+        
+        // Event Date
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(71, 85, 105);
+        doc.text('Date:', 30, 140);
+        doc.setTextColor(30, 41, 59);
+        doc.text(format(new Date(event.date), 'PPP p'), 30, 150);
+        
+        // Event Location
+        doc.setTextColor(71, 85, 105);
+        doc.text('Location:', 30, 165);
+        doc.setTextColor(30, 41, 59);
+        const splitLocation = doc.splitTextToSize(event.location, 150);
+        doc.text(splitLocation, 30, 175);
+        
+        // QR Code section
+        const qrElement = document.querySelector('.registration-qr canvas');
+        if (qrElement instanceof HTMLCanvasElement) {
+          try {
+            const qrDataUrl = qrElement.toDataURL('image/png');
+            doc.addImage(qrDataUrl, 'PNG', 75, 195, 60, 60);
+          } catch (error) {
+            console.error('Error adding QR code to PDF:', error);
+          }
+        } else {
+          console.warn('QR code canvas not found');
+        }
+        
+        doc.setTextColor(71, 85, 105);
+        doc.setFontSize(10);
+        doc.text('Scan for verification', 105, 263, { align: 'center' });
+        doc.setFontSize(8);
+        doc.text(`Token: ${badgeToken}`, 105, 268, { align: 'center' });
+        
+        // Footer section with contact info
+        doc.setFillColor(248, 250, 252); // Slate-50
+        doc.rect(0, 270, pageWidth, 27, 'F');
+        
+        // Footer border
+        doc.setDrawColor(20, 184, 166);
+        doc.setLineWidth(0.3);
+        doc.line(0, 270, pageWidth, 270);
+        
+        doc.setTextColor(71, 85, 105);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Contact Us:', 105, 277, { align: 'center' });
+        
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.text('Email: contactaidevcommunity@gmail.com', 105, 283, { align: 'center' });
+        doc.text('Phone: +212 687830201', 105, 288, { align: 'center' });
+        doc.text('Location: Faculty of Science Ben M\'sik, Casablanca, Morocco', 105, 293, { align: 'center' });
+        
+        doc.save(`badge-${event.id}.pdf`);
+        toast.success('Badge downloaded successfully!');
+      } catch (error) {
+        console.error('Error generating badge:', error);
+        toast.error('Failed to generate badge');
+      }
+    }, 100);
   };
 
   return (
