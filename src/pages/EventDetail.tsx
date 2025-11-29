@@ -202,7 +202,7 @@ const EventDetail = () => {
         doc.setLineWidth(0.5);
         doc.roundedRect(20, 60, 170, contentHeight - 50, 3, 3, 'S');
         
-        // QR Code section
+        // QR Code section - with gap from border
         const qrElement = document.querySelector('.registration-qr svg');
         if (qrElement instanceof SVGElement) {
           try {
@@ -221,7 +221,7 @@ const EventDetail = () => {
               img.onload = () => {
                 ctx.drawImage(img, 0, 0);
                 const qrDataUrl = canvas.toDataURL('image/png');
-                doc.addImage(qrDataUrl, 'PNG', 75, contentHeight + 10, 60, 60);
+                doc.addImage(qrDataUrl, 'PNG', 75, contentHeight + 18, 60, 60);
                 URL.revokeObjectURL(url);
                 
                 // Continue with rest of PDF generation
@@ -255,9 +255,9 @@ const EventDetail = () => {
     doc.text(`Token: ${token}`, 105, contentHeight + 83, { align: 'center' });
     
     // Footer section with contact info
-    const footerY = contentHeight + 95;
+    const footerY = contentHeight + 93;
     doc.setFillColor(248, 250, 252); // Slate-50
-    doc.rect(0, footerY, pageWidth, 27, 'F');
+    doc.rect(0, footerY, pageWidth, 20, 'F');
     
     // Footer border
     doc.setDrawColor(20, 184, 166);
@@ -267,13 +267,13 @@ const EventDetail = () => {
     doc.setTextColor(71, 85, 105);
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
-    doc.text('Contact Us:', 105, footerY + 7, { align: 'center' });
+    doc.text('Contact Us:', 105, footerY + 5, { align: 'center' });
     
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.text('Email: contactaidevcommunity@gmail.com', 105, footerY + 13, { align: 'center' });
-    doc.text('Phone: +212 687830201', 105, footerY + 18, { align: 'center' });
-    doc.text('Location: Faculty of Science Ben M\'sik, Casablanca, Morocco', 105, footerY + 23, { align: 'center' });
+    doc.text('Email: contactaidevcommunity@gmail.com', 105, footerY + 9, { align: 'center' });
+    doc.text('Phone: +212 687830201', 105, footerY + 13, { align: 'center' });
+    doc.text('Location: Faculty of Science Ben M\'sik, Casablanca, Morocco', 105, footerY + 17, { align: 'center' });
     
     doc.save(`badge-${eventId}.pdf`);
     toast.success('Badge downloaded successfully!');
