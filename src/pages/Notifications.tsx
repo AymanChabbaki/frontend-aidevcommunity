@@ -93,9 +93,9 @@ const Notifications = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
             <div>
-              <h1 className="text-4xl font-bold">{t.nav.notifications}</h1>
+              <h1 className="text-3xl sm:text-4xl font-bold">{t.nav.notifications}</h1>
               <p className="text-muted-foreground">
                 {unreadCount > 0
                   ? `You have ${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}`
@@ -103,7 +103,7 @@ const Notifications = () => {
               </p>
             </div>
             {unreadCount > 0 && (
-              <Button variant="outline" size="sm" onClick={markAllAsRead}>
+              <Button variant="outline" size="sm" onClick={markAllAsRead} className="w-full sm:w-auto shrink-0">
                 <CheckCheck className="h-4 w-4 mr-2" />
                 Mark all as read
               </Button>
