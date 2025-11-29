@@ -178,6 +178,7 @@ export const Navbar = () => {
             </Button>
           </div>
         </div>
+        </div>
       </nav>
 
       {/* Mobile Menu Overlay - Completely outside nav */}
