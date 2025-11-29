@@ -1,0 +1,28 @@
+[
+  {
+    "id": "notif-001",
+    "type": "event",
+    "title": "New Event: AI Workshop",
+    "titleFr": "Nouvel événement : Atelier IA",
+    "titleAr": "حدث جديد: ورشة عمل الذكاء الاصطناعي",
+    "message": "Check out our upcoming AI & ML workshop",
+    "messageFr": "Découvrez notre prochain atelier IA & ML",
+    "messageAr": "تحقق من ورشة عمل الذكاء الاصطناعي والتعلم الآلي القادمة",
+    "read": false,
+    "createdAt": "2025-11-20T10:00:00",
+    "link": "/events/evt-001"
+  },
+  {
+    "id": "notif-002",
+    "type": "poll",
+    "title": "New Poll Available",
+    "titleFr": "Nouveau sondage disponible",
+    "titleAr": "استطلاع جديد متاح",
+    "message": "Vote for the next technology to learn",
+    "messageFr": "Votez pour la prochaine technologie à apprendre",
+    "messageAr": "صوت للتكنولوجيا التالية لتعلمها",
+    "read": false,
+    "createdAt": "2025-11-18T15:30:00",
+    "link": "/polls"
+  }
+]

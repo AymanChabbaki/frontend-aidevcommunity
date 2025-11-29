@@ -1,0 +1,97 @@
+{
+  "nav": {
+    "home": "الرئيسية",
+    "about": "من نحن",
+    "events": "الفعاليات",
+    "members": "الأعضاء",
+    "contact": "اتصل بنا",
+    "login": "تسجيل الدخول",
+    "register": "التسجيل",
+    "dashboard": "لوحة التحكم",
+    "profile": "الملف الشخصي",
+    "notifications": "الإشعارات",
+    "logout": "تسجيل الخروج"
+  },
+  "hero": {
+    "title": "مجتمع مطوري الذكاء الاصطناعي",
+    "subtitle": "انضم إلى مجتمعنا النابض بالحياة من المطورين والمبتكرين وعشاق التكنولوجيا",
+    "cta": "انضم الآن",
+    "learnMore": "اعرف المزيد"
+  },
+  "events": {
+    "title": "الفعاليات القادمة",
+    "register": "التسجيل",
+    "registered": "مسجل",
+    "capacity": "السعة",
+    "location": "الموقع",
+    "speaker": "المتحدث",
+    "date": "التاريخ",
+    "details": "تفاصيل الحدث",
+    "getTicket": "احصل على شارتك",
+    "checkIn": "تسجيل الحضور"
+  },
+  "auth": {
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "name": "الاسم الكامل",
+    "login": "تسجيل الدخول",
+    "register": "التسجيل",
+    "noAccount": "ليس لديك حساب؟",
+    "hasAccount": "لديك حساب بالفعل؟",
+    "loginSuccess": "تم تسجيل الدخول بنجاح!",
+    "registerSuccess": "تم التسجيل بنجاح!",
+    "error": "بيانات اعتماد غير صالحة"
+  },
+  "dashboard": {
+    "welcome": "مرحباً",
+    "myEvents": "فعالياتي",
+    "myVotes": "أصواتي",
+    "myForms": "نماذجي"
+  },
+  "profile": {
+    "editProfile": "تعديل الملف الشخصي",
+    "publicProfile": "الملف العام",
+    "digitalBadge": "الشارة الرقمية",
+    "bio": "السيرة الذاتية",
+    "skills": "المهارات",
+    "socialLinks": "الروابط الاجتماعية",
+    "save": "حفظ التغييرات"
+  },
+  "forms": {
+    "title": "النماذج",
+    "createForm": "إنشاء نموذج",
+    "fillForm": "ملء النموذج",
+    "submit": "إرسال",
+    "responses": "الردود",
+    "exportCSV": "تصدير CSV"
+  },
+  "polls": {
+    "title": "الاستطلاعات",
+    "vote": "التصويت",
+    "results": "النتائج",
+    "totalVotes": "إجمالي الأصوات",
+    "votedSuccess": "تم تسجيل الصوت بنجاح!"
+  },
+  "admin": {
+    "users": "إدارة المستخدمين",
+    "forms": "إدارة النماذج",
+    "polls": "إدارة الاستطلاعات",
+    "logs": "سجلات النشاط",
+    "createEvent": "إنشاء حدث",
+    "editEvent": "تعديل الحدث",
+    "deleteEvent": "حذف الحدث"
+  },
+  "common": {
+    "loading": "جارٍ التحميل...",
+    "error": "خطأ",
+    "success": "نجاح",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "view": "عرض",
+    "search": "بحث",
+    "filter": "تصفية",
+    "close": "إغلاق"
+  }
+}

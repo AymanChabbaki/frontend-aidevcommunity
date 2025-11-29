@@ -1,0 +1,48 @@
+[
+  {
+    "id": "mem-001",
+    "name": "Sarah Johnson",
+    "role": "President",
+    "bio": "Passionate about AI and community building",
+    "bioFr": "Passionnée par l'IA et la construction de communauté",
+    "bioAr": "شغوفة بالذكاء الاصطناعي وبناء المجتمع",
+    "skills": ["AI", "Leadership", "Public Speaking"],
+    "email": "sarah@aiclub.com",
+    "image": "/members/sarah_president.jpg",
+    "social": {
+      "linkedin": "https://linkedin.com/in/sarahjohnson",
+      "github": "https://github.com/sarahjohnson",
+      "twitter": "https://twitter.com/sarahjohnson"
+    }
+  },
+  {
+    "id": "mem-002",
+    "name": "Ahmed Hassan",
+    "role": "Vice President",
+    "bio": "Full-stack developer and tech enthusiast",
+    "bioFr": "Développeur full-stack et passionné de technologie",
+    "bioAr": "مطور متكامل ومتحمس للتكنولوجيا",
+    "skills": ["Web Development", "DevOps", "Cloud"],
+    "email": "ahmed@aiclub.com",
+    "image": "/members/ahmed_vicepresident.jpg",
+    "social": {
+      "linkedin": "https://linkedin.com/in/ahmedhassan",
+      "github": "https://github.com/ahmedhassan"
+    }
+  },
+  {
+    "id": "mem-003",
+    "name": "Maria Garcia",
+    "role": "Technical Lead",
+    "bio": "Machine learning researcher and educator",
+    "bioFr": "Chercheuse et éducatrice en apprentissage automatique",
+    "bioAr": "باحثة ومعلمة في التعلم الآلي",
+    "skills": ["Machine Learning", "Python", "Research"],
+    "email": "maria@aiclub.com",
+    "image": "/members/maria_technical.jpg",
+    "social": {
+      "linkedin": "https://linkedin.com/in/mariagarcia",
+      "github": "https://github.com/mariagarcia"
+    }
+  }
+]

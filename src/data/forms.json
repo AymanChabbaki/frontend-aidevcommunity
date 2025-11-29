@@ -1,0 +1,38 @@
+[
+  {
+    "id": "form-001",
+    "title": "Event Feedback Form",
+    "titleFr": "Formulaire de Retour d'Événement",
+    "titleAr": "نموذج ملاحظات الحدث",
+    "description": "Share your thoughts about our events",
+    "descriptionFr": "Partagez vos réflexions sur nos événements",
+    "descriptionAr": "شارك أفكارك حول فعالياتنا",
+    "fields": [
+      { "id": "f1", "type": "text", "label": "Event Name", "labelFr": "Nom de l'événement", "labelAr": "اسم الحدث", "required": true },
+      { "id": "f2", "type": "radio", "label": "Overall Rating", "labelFr": "Évaluation générale", "labelAr": "التقييم العام", "required": true, "options": ["Excellent", "Good", "Average", "Poor"] },
+      { "id": "f3", "type": "textarea", "label": "Comments", "labelFr": "Commentaires", "labelAr": "تعليقات", "required": false },
+      { "id": "f4", "type": "checkbox", "label": "Would you recommend this to others?", "labelFr": "Le recommanderiez-vous à d'autres ?", "labelAr": "هل توصي بذلك للآخرين؟", "required": false }
+    ],
+    "status": "active",
+    "createdAt": "2025-11-01T10:00:00",
+    "responses": []
+  },
+  {
+    "id": "form-002",
+    "title": "Membership Application",
+    "titleFr": "Candidature d'Adhésion",
+    "titleAr": "طلب العضوية",
+    "description": "Apply to become a club member",
+    "descriptionFr": "Postulez pour devenir membre du club",
+    "descriptionAr": "قدم طلباً لتصبح عضواً في النادي",
+    "fields": [
+      { "id": "f1", "type": "text", "label": "Full Name", "labelFr": "Nom complet", "labelAr": "الاسم الكامل", "required": true },
+      { "id": "f2", "type": "text", "label": "Email", "labelFr": "Email", "labelAr": "البريد الإلكتروني", "required": true },
+      { "id": "f3", "type": "select", "label": "Area of Interest", "labelFr": "Domaine d'intérêt", "labelAr": "مجال الاهتمام", "required": true, "options": ["AI/ML", "Web Development", "Mobile Development", "Data Science", "Cybersecurity"] },
+      { "id": "f4", "type": "textarea", "label": "Why do you want to join?", "labelFr": "Pourquoi voulez-vous rejoindre ?", "labelAr": "لماذا تريد الانضمام؟", "required": true }
+    ],
+    "status": "active",
+    "createdAt": "2025-10-15T10:00:00",
+    "responses": []
+  }
+]

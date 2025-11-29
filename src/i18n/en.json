@@ -1,0 +1,97 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "events": "Events",
+    "members": "Members",
+    "contact": "Contact",
+    "login": "Login",
+    "register": "Register",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "notifications": "Notifications",
+    "logout": "Logout"
+  },
+  "hero": {
+    "title": "AI Dev Community",
+    "subtitle": "Join our vibrant community of developers, innovators, and tech enthusiasts",
+    "cta": "Join Now",
+    "learnMore": "Learn More"
+  },
+  "events": {
+    "title": "Upcoming Events",
+    "register": "Register",
+    "registered": "Registered",
+    "capacity": "Capacity",
+    "location": "Location",
+    "speaker": "Speaker",
+    "date": "Date",
+    "details": "Event Details",
+    "getTicket": "Get Your Badge",
+    "checkIn": "Check In"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "name": "Full Name",
+    "login": "Login",
+    "register": "Register",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "loginSuccess": "Login successful!",
+    "registerSuccess": "Registration successful!",
+    "error": "Invalid credentials"
+  },
+  "dashboard": {
+    "welcome": "Welcome",
+    "myEvents": "My Events",
+    "myVotes": "My Votes",
+    "myForms": "My Forms"
+  },
+  "profile": {
+    "editProfile": "Edit Profile",
+    "publicProfile": "Public Profile",
+    "digitalBadge": "Digital Badge",
+    "bio": "Bio",
+    "skills": "Skills",
+    "socialLinks": "Social Links",
+    "save": "Save Changes"
+  },
+  "forms": {
+    "title": "Forms",
+    "createForm": "Create Form",
+    "fillForm": "Fill Form",
+    "submit": "Submit",
+    "responses": "Responses",
+    "exportCSV": "Export CSV"
+  },
+  "polls": {
+    "title": "Polls",
+    "vote": "Vote",
+    "results": "Results",
+    "totalVotes": "Total Votes",
+    "votedSuccess": "Vote recorded successfully!"
+  },
+  "admin": {
+    "users": "Manage Users",
+    "forms": "Manage Forms",
+    "polls": "Manage Polls",
+    "logs": "Activity Logs",
+    "createEvent": "Create Event",
+    "editEvent": "Edit Event",
+    "deleteEvent": "Delete Event"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "close": "Close"
+  }
+}

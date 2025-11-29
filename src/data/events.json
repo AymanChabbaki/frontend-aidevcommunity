@@ -1,0 +1,53 @@
+[
+  {
+    "id": "evt-001",
+    "title": "Introduction to AI & Machine Learning",
+    "titleFr": "Introduction à l'IA et l'Apprentissage Automatique",
+    "titleAr": "مقدمة في الذكاء الاصطناعي والتعلم الآلي",
+    "description": "Join us for an exciting introduction to AI and ML fundamentals",
+    "descriptionFr": "Rejoignez-nous pour une introduction passionnante aux fondamentaux de l'IA et du ML",
+    "descriptionAr": "انضم إلينا في مقدمة مثيرة حول أساسيات الذكاء الاصطناعي والتعلم الآلي",
+    "date": "2025-12-15T14:00:00",
+    "location": "Tech Hub Room A",
+    "capacity": 50,
+    "registrations": 23,
+    "image": "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80",
+    "category": "Workshop",
+    "speaker": "Dr. Sarah Johnson",
+    "status": "upcoming"
+  },
+  {
+    "id": "evt-002",
+    "title": "Web Development Bootcamp",
+    "titleFr": "Bootcamp Développement Web",
+    "titleAr": "معسكر تطوير الويب",
+    "description": "Intensive 3-day bootcamp covering React, Node.js, and modern web technologies",
+    "descriptionFr": "Bootcamp intensif de 3 jours couvrant React, Node.js et les technologies web modernes",
+    "descriptionAr": "معسكر مكثف لمدة 3 أيام يغطي React و Node.js والتقنيات الحديثة للويب",
+    "date": "2025-12-20T09:00:00",
+    "location": "Innovation Lab",
+    "capacity": 30,
+    "registrations": 30,
+    "image": "https://images.unsplash.com/photo-1593720213428-28a5b9e94613?w=800&q=80",
+    "category": "Bootcamp",
+    "speaker": "Tech Team",
+    "status": "upcoming"
+  },
+  {
+    "id": "evt-003",
+    "title": "Hackathon 2025",
+    "titleFr": "Hackathon 2025",
+    "titleAr": "هاكاثون 2025",
+    "description": "24-hour coding challenge with amazing prizes",
+    "descriptionFr": "Défi de codage de 24 heures avec des prix incroyables",
+    "descriptionAr": "تحدي برمجة لمدة 24 ساعة مع جوائز مذهلة",
+    "date": "2026-01-10T10:00:00",
+    "location": "Main Campus",
+    "capacity": 100,
+    "registrations": 67,
+    "image": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&q=80",
+    "category": "Competition",
+    "speaker": "Multiple Mentors",
+    "status": "upcoming"
+  }
+]

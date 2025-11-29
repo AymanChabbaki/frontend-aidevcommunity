@@ -1,0 +1,174 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 220 25% 97%;
+    --foreground: 220 15% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 15%;
+
+    --primary: 185 85% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 170 60% 50%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 220 15% 94%;
+    --muted-foreground: 220 10% 45%;
+
+    --accent: 30 95% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 20% 88%;
+    --input: 220 20% 88%;
+    --ring: 185 85% 45%;
+
+    --radius: 0.75rem;
+
+    --success: 142 71% 45%;
+    --warning: 38 92% 50%;
+    --info: 199 89% 48%;
+    
+    --gradient-primary: linear-gradient(135deg, hsl(185 85% 45%), hsl(170 70% 50%));
+    --gradient-accent: linear-gradient(135deg, hsl(185 85% 45%), hsl(30 95% 55%));
+    --gradient-hero: linear-gradient(135deg, hsl(220 25% 10%) 0%, hsl(185 85% 25%) 100%);
+    
+    --shadow-glow: 0 0 40px hsl(185 85% 45% / 0.3);
+    --shadow-card: 0 4px 20px hsl(220 15% 15% / 0.08);
+    
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 220 25% 8%;
+    --foreground: 220 15% 95%;
+
+    --card: 220 25% 12%;
+    --card-foreground: 220 15% 95%;
+
+    --popover: 220 25% 12%;
+    --popover-foreground: 220 15% 95%;
+
+    --primary: 185 85% 55%;
+    --primary-foreground: 220 25% 8%;
+
+    --secondary: 170 60% 50%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 220 20% 16%;
+    --muted-foreground: 220 10% 60%;
+
+    --accent: 30 95% 60%;
+    --accent-foreground: 220 25% 8%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 20% 20%;
+    --input: 220 20% 20%;
+    --ring: 185 85% 55%;
+
+    --success: 142 71% 45%;
+    --warning: 38 92% 50%;
+    --info: 199 89% 48%;
+    
+    --gradient-primary: linear-gradient(135deg, hsl(185 85% 55%), hsl(170 70% 55%));
+    --gradient-accent: linear-gradient(135deg, hsl(185 85% 55%), hsl(30 95% 65%));
+    --gradient-hero: linear-gradient(135deg, hsl(220 25% 8%) 0%, hsl(185 85% 15%) 100%);
+    
+    --shadow-glow: 0 0 40px hsl(185 85% 55% / 0.4);
+    --shadow-card: 0 4px 20px hsl(0 0% 0% / 0.3);
+
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply backdrop-blur-lg bg-card/80 border border-border/50;
+  }
+  
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+  
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+  
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

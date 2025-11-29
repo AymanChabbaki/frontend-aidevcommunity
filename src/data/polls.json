@@ -1,0 +1,32 @@
+[
+  {
+    "id": "poll-001",
+    "question": "What technology would you like to learn next?",
+    "questionFr": "Quelle technologie aimeriez-vous apprendre ensuite ?",
+    "questionAr": "ما هي التقنية التي ترغب في تعلمها بعد ذلك؟",
+    "options": [
+      { "id": "opt-1", "text": "Artificial Intelligence", "textFr": "Intelligence Artificielle", "textAr": "الذكاء الاصطناعي", "votes": 45 },
+      { "id": "opt-2", "text": "Blockchain", "textFr": "Blockchain", "textAr": "بلوك تشين", "votes": 23 },
+      { "id": "opt-3", "text": "Cloud Computing", "textFr": "Cloud Computing", "textAr": "الحوسبة السحابية", "votes": 31 },
+      { "id": "opt-4", "text": "Cybersecurity", "textFr": "Cybersécurité", "textAr": "الأمن السيبراني", "votes": 28 }
+    ],
+    "status": "active",
+    "createdAt": "2025-11-01T10:00:00",
+    "endsAt": "2025-12-31T23:59:59"
+  },
+  {
+    "id": "poll-002",
+    "question": "What's your preferred event format?",
+    "questionFr": "Quel est votre format d'événement préféré ?",
+    "questionAr": "ما هو تنسيق الحدث المفضل لديك؟",
+    "options": [
+      { "id": "opt-1", "text": "Workshops", "textFr": "Ateliers", "textAr": "ورش عمل", "votes": 56 },
+      { "id": "opt-2", "text": "Conferences", "textFr": "Conférences", "textAr": "مؤتمرات", "votes": 34 },
+      { "id": "opt-3", "text": "Hackathons", "textFr": "Hackathons", "textAr": "هاكاثونات", "votes": 42 },
+      { "id": "opt-4", "text": "Networking", "textFr": "Réseautage", "textAr": "التواصل", "votes": 19 }
+    ],
+    "status": "active",
+    "createdAt": "2025-11-15T10:00:00",
+    "endsAt": "2025-12-31T23:59:59"
+  }
+]

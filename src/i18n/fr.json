@@ -1,0 +1,97 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "about": "À propos",
+    "events": "Événements",
+    "members": "Membres",
+    "contact": "Contact",
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "dashboard": "Tableau de bord",
+    "profile": "Profil",
+    "notifications": "Notifications",
+    "logout": "Déconnexion"
+  },
+  "hero": {
+    "title": "Communauté Dev IA",
+    "subtitle": "Rejoignez notre communauté dynamique de développeurs, innovateurs et passionnés de technologie",
+    "cta": "Rejoindre",
+    "learnMore": "En savoir plus"
+  },
+  "events": {
+    "title": "Événements à venir",
+    "register": "S'inscrire",
+    "registered": "Inscrit",
+    "capacity": "Capacité",
+    "location": "Lieu",
+    "speaker": "Intervenant",
+    "date": "Date",
+    "details": "Détails de l'événement",
+    "getTicket": "Obtenir votre badge",
+    "checkIn": "Enregistrement"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Mot de passe",
+    "name": "Nom complet",
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "noAccount": "Pas de compte ?",
+    "hasAccount": "Déjà un compte ?",
+    "loginSuccess": "Connexion réussie !",
+    "registerSuccess": "Inscription réussie !",
+    "error": "Identifiants invalides"
+  },
+  "dashboard": {
+    "welcome": "Bienvenue",
+    "myEvents": "Mes événements",
+    "myVotes": "Mes votes",
+    "myForms": "Mes formulaires"
+  },
+  "profile": {
+    "editProfile": "Modifier le profil",
+    "publicProfile": "Profil public",
+    "digitalBadge": "Badge numérique",
+    "bio": "Bio",
+    "skills": "Compétences",
+    "socialLinks": "Liens sociaux",
+    "save": "Enregistrer"
+  },
+  "forms": {
+    "title": "Formulaires",
+    "createForm": "Créer un formulaire",
+    "fillForm": "Remplir le formulaire",
+    "submit": "Soumettre",
+    "responses": "Réponses",
+    "exportCSV": "Exporter CSV"
+  },
+  "polls": {
+    "title": "Sondages",
+    "vote": "Voter",
+    "results": "Résultats",
+    "totalVotes": "Total des votes",
+    "votedSuccess": "Vote enregistré avec succès !"
+  },
+  "admin": {
+    "users": "Gérer les utilisateurs",
+    "forms": "Gérer les formulaires",
+    "polls": "Gérer les sondages",
+    "logs": "Journaux d'activité",
+    "createEvent": "Créer un événement",
+    "editEvent": "Modifier l'événement",
+    "deleteEvent": "Supprimer l'événement"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "view": "Voir",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "close": "Fermer"
+  }
+}
