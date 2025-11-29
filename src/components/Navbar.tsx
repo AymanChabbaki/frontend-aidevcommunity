@@ -177,29 +177,30 @@ export const Navbar = () => {
             </Button>
           </div>
         </div>
+      </div>
 
-        {/* Mobile Menu Overlay */}
-        <AnimatePresence>
-          {mobileMenuOpen && (
-            <>
-              {/* Backdrop */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] lg:hidden"
-                onClick={() => setMobileMenuOpen(false)}
-              />
-              
-              {/* Slide Menu */}
-              <motion.div
-                initial={{ x: '-100%' }}
-                animate={{ x: 0 }}
-                exit={{ x: '-100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-background shadow-2xl z-[100] lg:hidden overflow-y-auto"
-              >
+      {/* Mobile Menu Overlay - Outside container */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] lg:hidden"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            
+            {/* Slide Menu */}
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-background shadow-2xl z-[100] lg:hidden overflow-y-auto"
+            >
                 {/* Header */}
                 <div className="relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary via-secondary to-accent opacity-90"></div>
@@ -335,7 +336,6 @@ export const Navbar = () => {
             </>
           )}
         </AnimatePresence>
-      </div>
     </nav>
   );
 };
