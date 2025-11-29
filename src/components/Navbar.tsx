@@ -165,56 +165,161 @@ export const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu Overlay */}
         <AnimatePresence>
           {mobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden border-t"
-            >
-              <div className="py-4 space-y-2">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block px-4 py-2 text-sm font-medium hover:bg-muted rounded-md"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-                {userLinks.map((link) => (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block px-4 py-2 text-sm font-medium hover:bg-muted rounded-md"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-                {!isAuthenticated && (
-                  <>
-                    <Link
-                      to="/login"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="block px-4 py-2 text-sm font-medium hover:bg-muted rounded-md"
-                    >
-                      {t.nav.login}
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+                onClick={() => setMobileMenuOpen(false)}
+              />
+              
+              {/* Slide Menu */}
+              <motion.div
+                initial={{ x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '-100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-background shadow-2xl z-50 lg:hidden overflow-y-auto"
+              >
+                {/* Header */}
+                <div className="relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary via-secondary to-accent opacity-90"></div>
+                  <div className="relative px-6 py-8">
+                    <Link to="/" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3">
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-white rounded-xl blur-md opacity-30"></div>
+                        <img 
+                          src="/logo.png" 
+                          alt="AI Dev Community" 
+                          className="h-14 w-14 relative z-10" 
+                          onError={(e) => {
+                            e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="white" width="100" height="100" rx="20"/><text x="50" y="50" font-size="50" font-weight="bold" text-anchor="middle" dy=".35em" fill="%2314b8a6">AI</text></svg>';
+                          }} 
+                        />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xl font-bold text-white">
+                          AI Dev Community
+                        </span>
+                        <span className="text-xs text-white/80">Learn • Build • Connect</span>
+                      </div>
                     </Link>
-                    <Link
-                      to="/register"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="block px-4 py-2 text-sm font-medium hover:bg-muted rounded-md"
-                    >
-                      {t.nav.register}
-                    </Link>
-                  </>
-                )}
-              </div>
-            </motion.div>
+                    
+                    {isAuthenticated && user && (
+                      <div className="mt-6 pt-6 border-t border-white/20">
+                        <div className="flex items-center gap-3">
+                          <div className="h-12 w-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                            <User className="h-6 w-6 text-white" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-white truncate">{user.displayName}</p>
+                            <p className="text-xs text-white/70 truncate">{user.email}</p>
+                            <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-white/20 text-white rounded-full">
+                              {user.role}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Navigation Links */}
+                <div className="px-4 py-6">
+                  <div className="space-y-1">
+                    {navLinks.map((link, index) => (
+                      <motion.div
+                        key={link.to}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                      >
+                        <Link
+                          to={link.to}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="flex items-center gap-3 px-4 py-3 text-base font-medium hover:bg-primary/10 hover:text-primary rounded-lg transition-all duration-200 group"
+                        >
+                          <div className="h-1.5 w-1.5 rounded-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                          {link.label}
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {userLinks.length > 0 && (
+                    <>
+                      <div className="my-4 border-t border-border"></div>
+                      <div className="space-y-1">
+                        <p className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                          Your Account
+                        </p>
+                        {userLinks.map((link, index) => (
+                          <motion.div
+                            key={link.to}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: (navLinks.length + index) * 0.05 }}
+                          >
+                            <Link
+                              to={link.to}
+                              onClick={() => setMobileMenuOpen(false)}
+                              className="flex items-center gap-3 px-4 py-3 text-base font-medium hover:bg-primary/10 hover:text-primary rounded-lg transition-all duration-200 group"
+                            >
+                              <div className="h-1.5 w-1.5 rounded-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                              {link.label}
+                            </Link>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {!isAuthenticated && (
+                    <>
+                      <div className="my-4 border-t border-border"></div>
+                      <div className="space-y-2 px-4">
+                        <Link
+                          to="/login"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block w-full px-4 py-3 text-center text-base font-medium border border-primary text-primary rounded-lg hover:bg-primary/10 transition-all duration-200"
+                        >
+                          {t.nav.login}
+                        </Link>
+                        <Link
+                          to="/register"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block w-full px-4 py-3 text-center text-base font-medium gradient-primary text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                        >
+                          {t.nav.register}
+                        </Link>
+                      </div>
+                    </>
+                  )}
+
+                  {isAuthenticated && (
+                    <>
+                      <div className="my-4 border-t border-border"></div>
+                      <button
+                        onClick={() => {
+                          logout();
+                          setMobileMenuOpen(false);
+                        }}
+                        className="flex items-center gap-3 w-full px-4 py-3 text-base font-medium text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-200"
+                      >
+                        <LogOut className="h-5 w-5" />
+                        {t.nav.logout}
+                      </button>
+                    </>
+                  )}
+                </div>
+              </motion.div>
+            </>
           )}
         </AnimatePresence>
       </div>
