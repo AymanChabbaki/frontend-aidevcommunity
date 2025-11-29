@@ -129,7 +129,7 @@ const EventDetail = () => {
   };
 
   const generateBadge = () => {
-    if (!user?.name) {
+    if (!user?.displayName && !user?.email) {
       toast.error('User information not available');
       return;
     }
@@ -184,7 +184,7 @@ const EventDetail = () => {
         doc.text('Attendee:', 30, 115);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(20, 184, 166);
-        const attendeeName = user.name || user.email || 'Guest';
+        const attendeeName = user.displayName || user.email || 'Guest';
         doc.text(attendeeName, 30, 125);
         
         // Event Date
