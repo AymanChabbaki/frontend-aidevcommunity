@@ -175,23 +175,33 @@ const Dashboard = () => {
         >
           <Card className="p-6 shadow-card">
             <h2 className="text-2xl font-bold mb-4">Quick Actions</h2>
-            <div className="grid md:grid-cols-3 gap-4">
-              <Button asChild variant="outline" className="h-auto py-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Button asChild variant="outline" className="h-auto py-6 hover:bg-primary/10 hover:border-primary transition-all">
+                <Link to="/my-registrations" className="flex flex-col items-center gap-2">
+                  <Calendar className="h-8 w-8 text-primary" />
+                  <span className="font-semibold">My Registrations</span>
+                  <span className="text-xs text-muted-foreground">{myEvents.length} events</span>
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="h-auto py-6 hover:bg-secondary/10 hover:border-secondary transition-all">
                 <Link to="/events" className="flex flex-col items-center gap-2">
-                  <Calendar className="h-8 w-8" />
-                  <span>Browse Events</span>
+                  <Calendar className="h-8 w-8 text-secondary" />
+                  <span className="font-semibold">Browse Events</span>
+                  <span className="text-xs text-muted-foreground">Discover new</span>
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="h-auto py-6">
+              <Button asChild variant="outline" className="h-auto py-6 hover:bg-accent/10 hover:border-accent transition-all">
                 <Link to="/polls" className="flex flex-col items-center gap-2">
-                  <Vote className="h-8 w-8" />
-                  <span>Vote on Polls</span>
+                  <Vote className="h-8 w-8 text-accent" />
+                  <span className="font-semibold">Vote on Polls</span>
+                  <span className="text-xs text-muted-foreground">{myVotes.length} voted</span>
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="h-auto py-6">
+              <Button asChild variant="outline" className="h-auto py-6 hover:bg-warning/10 hover:border-warning transition-all">
                 <Link to="/profile" className="flex flex-col items-center gap-2">
-                  <Award className="h-8 w-8" />
-                  <span>Edit Profile</span>
+                  <Award className="h-8 w-8 text-warning" />
+                  <span className="font-semibold">Edit Profile</span>
+                  <span className="text-xs text-muted-foreground">Update info</span>
                 </Link>
               </Button>
             </div>
