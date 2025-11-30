@@ -39,9 +39,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/hooks/use-toast';
 import { eventService } from '@/services/event.service';
-import { Calendar, MapPin, Users, Edit, Trash2, Search, Plus, Download, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, MapPin, Users, Edit, Trash2, Search, Plus, Download, Eye, ChevronLeft, ChevronRight, Shield, X } from 'lucide-react';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
 
@@ -77,6 +78,9 @@ const AdminManageEvents = () => {
     speaker: '',
     imageUrl: '',
     tags: '',
+    requiresApproval: false,
+    eligibleLevels: [] as string[],
+    eligiblePrograms: [] as string[],
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -113,6 +117,9 @@ const AdminManageEvents = () => {
       speaker: event.speaker || '',
       imageUrl: event.imageUrl || '',
       tags: event.tags?.join(', ') || '',
+      requiresApproval: event.requiresApproval || false,
+      eligibleLevels: event.eligibleLevels || [],
+      eligiblePrograms: event.eligiblePrograms || [],
     });
     setEditDialog({ open: true, event });
   };
@@ -134,6 +141,9 @@ const AdminManageEvents = () => {
         speaker: editFormData.speaker || undefined,
         imageUrl: editFormData.imageUrl || undefined,
         tags: editFormData.tags ? editFormData.tags.split(',').map(tag => tag.trim()) : [],
+        requiresApproval: editFormData.requiresApproval,
+        eligibleLevels: editFormData.requiresApproval ? editFormData.eligibleLevels : undefined,
+        eligiblePrograms: editFormData.requiresApproval ? editFormData.eligiblePrograms : undefined,
       };
 
       await eventService.updateEvent(editDialog.event.id, eventData);
@@ -544,6 +554,94 @@ const AdminManageEvents = () => {
                 onChange={(e) => setEditFormData({ ...editFormData, tags: e.target.value })}
                 placeholder="Comma separated"
               />
+            </div>
+
+            {/* Eligibility & Approval Section */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold">Eligibility & Approval</h3>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="edit-requiresApproval"
+                  checked={editFormData.requiresApproval}
+                  onCheckedChange={(checked) => setEditFormData({ 
+                    ...editFormData, 
+                    requiresApproval: checked as boolean,
+                    eligibleLevels: checked ? editFormData.eligibleLevels : [],
+                    eligiblePrograms: checked ? editFormData.eligiblePrograms : []
+                  })}
+                />
+                <Label htmlFor="edit-requiresApproval" className="cursor-pointer">
+                  Require approval for registrations
+                </Label>
+              </div>
+
+              {editFormData.requiresApproval && (
+                <div className="space-y-4 pl-6 border-l-2 border-primary/20">
+                  <p className="text-sm text-muted-foreground">
+                    Select which study levels and programs are eligible to register for this event.
+                  </p>
+
+                  {/* Eligible Study Levels */}
+                  <div className="space-y-2">
+                    <Label>Eligible Study Levels</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {['BACHELOR', 'MASTER', 'DOCTORATE'].map((level) => (
+                        <Badge
+                          key={level}
+                          variant={editFormData.eligibleLevels.includes(level) ? 'default' : 'outline'}
+                          className="cursor-pointer"
+                          onClick={() => {
+                            const newLevels = editFormData.eligibleLevels.includes(level)
+                              ? editFormData.eligibleLevels.filter(l => l !== level)
+                              : [...editFormData.eligibleLevels, level];
+                            setEditFormData({ ...editFormData, eligibleLevels: newLevels });
+                          }}
+                        >
+                          {level === 'BACHELOR' ? 'Bachelor' : level === 'MASTER' ? 'Master' : 'Doctorate'}
+                          {editFormData.eligibleLevels.includes(level) && (
+                            <X className="ml-1 h-3 w-3" />
+                          )}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Eligible Study Programs */}
+                  <div className="space-y-2">
+                    <Label>Eligible Study Programs</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'M1', 'M2', 'Y1', 'Y2', 'Y3', 'Y4'].map((program) => (
+                        <Badge
+                          key={program}
+                          variant={editFormData.eligiblePrograms.includes(program) ? 'default' : 'outline'}
+                          className="cursor-pointer"
+                          onClick={() => {
+                            const newPrograms = editFormData.eligiblePrograms.includes(program)
+                              ? editFormData.eligiblePrograms.filter(p => p !== program)
+                              : [...editFormData.eligiblePrograms, program];
+                            setEditFormData({ ...editFormData, eligiblePrograms: newPrograms });
+                          }}
+                        >
+                          {program}
+                          {editFormData.eligiblePrograms.includes(program) && (
+                            <X className="ml-1 h-3 w-3" />
+                          )}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  {editFormData.eligibleLevels.length === 0 && editFormData.eligiblePrograms.length === 0 && (
+                    <p className="text-sm text-amber-600">
+                      ⚠️ No eligibility criteria selected. All users will be eligible.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>

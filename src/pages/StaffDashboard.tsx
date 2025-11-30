@@ -21,6 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { 
   Calendar, 
   QrCode, 
@@ -28,6 +30,8 @@ import {
   Users,
   Home,
   LogOut,
+  Shield,
+  X,
   ChevronLeft,
   ChevronRight,
   Plus,
@@ -44,8 +48,6 @@ import AdminManagePolls from './AdminManagePolls';
 import AdminManageForms from './AdminManageForms';
 import QRScanner from './QRScanner';
 import StaffProfile from './StaffProfile';
-import { Checkbox } from '@/components/ui/checkbox';
-import { X } from 'lucide-react';
 
 const StaffDashboard = () => {
   const { user, logout } = useAuth();
@@ -69,7 +71,10 @@ const StaffDashboard = () => {
     location: '',
     capacity: '',
     category: '',
-    status: 'UPCOMING'
+    status: 'UPCOMING',
+    requiresApproval: false,
+    eligibleLevels: [] as string[],
+    eligiblePrograms: [] as string[]
   });
 
   // Poll Form State
@@ -596,6 +601,94 @@ const StaffDashboard = () => {
                 </Select>
               </div>
             </div>
+
+            {/* Eligibility & Approval Section */}
+            <div className="border rounded-lg p-4 space-y-4 mt-4">
+              <div className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold">Eligibility & Approval</h3>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="requiresApproval"
+                  checked={eventFormData.requiresApproval}
+                  onCheckedChange={(checked) => setEventFormData({ 
+                    ...eventFormData, 
+                    requiresApproval: checked as boolean,
+                    eligibleLevels: checked ? eventFormData.eligibleLevels : [],
+                    eligiblePrograms: checked ? eventFormData.eligiblePrograms : []
+                  })}
+                />
+                <Label htmlFor="requiresApproval" className="cursor-pointer">
+                  Require approval for registrations
+                </Label>
+              </div>
+
+              {eventFormData.requiresApproval && (
+                <div className="space-y-4 pl-6 border-l-2 border-primary/20">
+                  <p className="text-sm text-muted-foreground">
+                    Select which study levels and programs are eligible to register for this event.
+                  </p>
+
+                  {/* Eligible Study Levels */}
+                  <div className="space-y-2">
+                    <Label>Eligible Study Levels</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {['BACHELOR', 'MASTER', 'DOCTORATE'].map((level) => (
+                        <Badge
+                          key={level}
+                          variant={eventFormData.eligibleLevels.includes(level) ? 'default' : 'outline'}
+                          className="cursor-pointer"
+                          onClick={() => {
+                            const newLevels = eventFormData.eligibleLevels.includes(level)
+                              ? eventFormData.eligibleLevels.filter((l: string) => l !== level)
+                              : [...eventFormData.eligibleLevels, level];
+                            setEventFormData({ ...eventFormData, eligibleLevels: newLevels });
+                          }}
+                        >
+                          {level === 'BACHELOR' ? 'Bachelor' : level === 'MASTER' ? 'Master' : 'Doctorate'}
+                          {eventFormData.eligibleLevels.includes(level) && (
+                            <X className="ml-1 h-3 w-3" />
+                          )}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Eligible Study Programs */}
+                  <div className="space-y-2">
+                    <Label>Eligible Study Programs</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'M1', 'M2', 'Y1', 'Y2', 'Y3', 'Y4'].map((program) => (
+                        <Badge
+                          key={program}
+                          variant={eventFormData.eligiblePrograms.includes(program) ? 'default' : 'outline'}
+                          className="cursor-pointer"
+                          onClick={() => {
+                            const newPrograms = eventFormData.eligiblePrograms.includes(program)
+                              ? eventFormData.eligiblePrograms.filter((p: string) => p !== program)
+                              : [...eventFormData.eligiblePrograms, program];
+                            setEventFormData({ ...eventFormData, eligiblePrograms: newPrograms });
+                          }}
+                        >
+                          {program}
+                          {eventFormData.eligiblePrograms.includes(program) && (
+                            <X className="ml-1 h-3 w-3" />
+                          )}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  {eventFormData.eligibleLevels.length === 0 && eventFormData.eligiblePrograms.length === 0 && (
+                    <p className="text-sm text-amber-600">
+                      ⚠️ No eligibility criteria selected. All users will be eligible.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateEventDialog(false)} disabled={submitting}>
@@ -612,7 +705,9 @@ const StaffDashboard = () => {
                 setSubmitting(true);
                 await eventService.createEvent({
                   ...eventFormData,
-                  capacity: parseInt(eventFormData.capacity)
+                  capacity: parseInt(eventFormData.capacity),
+                  eligibleLevels: eventFormData.requiresApproval ? eventFormData.eligibleLevels : undefined,
+                  eligiblePrograms: eventFormData.requiresApproval ? eventFormData.eligiblePrograms : undefined
                 });
                 toast.success('Event created successfully');
                 setCreateEventDialog(false);
@@ -624,7 +719,10 @@ const StaffDashboard = () => {
                   location: '',
                   capacity: '',
                   category: '',
-                  status: 'UPCOMING'
+                  status: 'UPCOMING',
+                  requiresApproval: false,
+                  eligibleLevels: [],
+                  eligiblePrograms: []
                 });
                 // Refresh events if on events page
                 if (location.pathname === '/staff/events') {
