@@ -15,7 +15,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { 
   User, Github, Linkedin, Twitter, Loader2, Camera, 
   Mail, Calendar, Shield, Globe, Sparkles, CheckCircle,
-  Edit2, Save, X
+  Edit2, Save, X, Key
 } from 'lucide-react';
 import { userService } from '@/services/user.service';
 import { format } from 'date-fns';
@@ -27,6 +27,12 @@ const Profile = () => {
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
   const [user, setUser] = useState<any>(null);
   const [formData, setFormData] = useState({
     displayName: '',
@@ -85,6 +91,7 @@ const Profile = () => {
       const response = await userService.updateProfile(updateData);
       setUser(response.data);
       await refreshUser();
+      await fetchUserData(); // Refetch to ensure all data is up to date
       setEditing(false);
       
       toast.success('Profile updated successfully');
@@ -92,6 +99,35 @@ const Profile = () => {
       toast.error(error.response?.data?.error || 'Failed to update profile');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters long');
+      return;
+    }
+
+    try {
+      setChangingPassword(true);
+      await userService.changePassword(passwordData.currentPassword, passwordData.newPassword);
+      toast.success('Password changed successfully');
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to change password');
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -117,6 +153,7 @@ const Profile = () => {
       // Update only the photoUrl in the user state
       setUser({ ...user, photoUrl: response.data.photoUrl });
       await refreshUser();
+      await fetchUserData(); // Refetch to ensure photo is displayed
       
       toast.success('Profile photo updated successfully');
     } catch (error: any) {
@@ -496,6 +533,74 @@ const Profile = () => {
                       Cancel
                     </Button>
                   </div>
+                </form>
+              </Card>
+
+              {/* Password Change Section */}
+              <Card className="p-8 shadow-card mt-8">
+                <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                  <Key className="h-6 w-6 text-primary" />
+                  Change Password
+                </h2>
+
+                <form onSubmit={handlePasswordChange} className="space-y-6">
+                  <div>
+                    <Label htmlFor="currentPassword">Current Password *</Label>
+                    <Input
+                      id="currentPassword"
+                      type="password"
+                      value={passwordData.currentPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                      placeholder="Enter current password"
+                      required
+                      className="mt-2"
+                    />
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <Label htmlFor="newPassword">New Password *</Label>
+                      <Input
+                        id="newPassword"
+                        type="password"
+                        value={passwordData.newPassword}
+                        onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                        placeholder="Enter new password"
+                        required
+                        className="mt-2"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        At least 6 characters
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="confirmPassword">Confirm New Password *</Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        value={passwordData.confirmPassword}
+                        onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                        placeholder="Confirm new password"
+                        required
+                        className="mt-2"
+                      />
+                    </div>
+                  </div>
+
+                  <Button type="submit" className="gradient-primary h-12" disabled={changingPassword}>
+                    {changingPassword ? (
+                      <>
+                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                        Changing Password...
+                      </>
+                    ) : (
+                      <>
+                        <Key className="h-5 w-5 mr-2" />
+                        Change Password
+                      </>
+                    )}
+                  </Button>
                 </form>
               </Card>
             </motion.div>

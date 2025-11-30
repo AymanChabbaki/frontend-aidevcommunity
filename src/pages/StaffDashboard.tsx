@@ -309,19 +309,19 @@ const StaffDashboard = () => {
           />
           <span className="font-semibold">Staff Panel</span>
         </div>
-        <div className="flex items-center gap-2">
+        <Link to="/staff/profile" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           {user?.photoUrl ? (
             <img 
               src={user.photoUrl.startsWith('http') ? user.photoUrl : `${import.meta.env.VITE_API_URL?.replace('/api', '')}${user.photoUrl}`}
               alt={user.displayName}
-              className="h-8 w-8 rounded-full object-cover"
+              className="h-8 w-8 rounded-full object-cover ring-2 ring-primary"
             />
           ) : (
-            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-sm font-semibold">
+            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-sm font-semibold ring-2 ring-primary">
               {user?.displayName?.charAt(0).toUpperCase()}
             </div>
           )}
-        </div>
+        </Link>
       </div>
 
       {/* Main Content */}
@@ -465,33 +465,41 @@ const StaffDashboard = () => {
 
       {/* Mobile Bottom Navigation */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-10">
-        <div className="flex justify-around items-center py-2">
-          {menuItems.slice(0, 5).map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.path);
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  'flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors',
-                  active
-                    ? 'text-primary'
-                    : 'text-gray-400'
-                )}
-              >
-                <Icon className="h-5 w-5" />
-                <span className="text-xs">{item.title.split(' ')[0]}</span>
-              </Link>
-            );
-          })}
-          <button
-            onClick={logout}
-            className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors text-gray-400 hover:text-red-400"
-          >
-            <LogOut className="h-5 w-5" />
-            <span className="text-xs">Logout</span>
-          </button>
+        <div className="flex">
+          {/* Scrollable menu items */}
+          <div className="flex-1 overflow-x-auto">
+            <div className="flex items-center py-2 px-2 min-w-max">
+              {menuItems.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.path);
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={cn(
+                      'flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[70px]',
+                      active
+                        ? 'text-primary'
+                        : 'text-gray-400'
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span className="text-xs whitespace-nowrap">{item.title.split(' ')[0]}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+          {/* Fixed logout button */}
+          <div className="border-l border-gray-800 flex items-center">
+            <button
+              onClick={logout}
+              className="flex flex-col items-center gap-1 px-4 py-2 transition-colors text-gray-400 hover:text-red-400"
+            >
+              <LogOut className="h-5 w-5" />
+              <span className="text-xs">Logout</span>
+            </button>
+          </div>
         </div>
       </nav>
 

@@ -26,4 +26,12 @@ export const userService = {
     });
     return response.data;
   },
+
+  async changePassword(currentPassword: string, newPassword: string) {
+    const response = await api.put('/users/me/password', {
+      currentPassword,
+      newPassword,
+    });
+    return response.data;
+  },
 };

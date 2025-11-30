@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { 
   User, Github, Linkedin, Twitter, Loader2, Camera, 
   Mail, Calendar, Shield, Sparkles, CheckCircle,
-  Edit2, Save, X, Award, Briefcase
+  Edit2, Save, X, Award, Briefcase, Key
 } from 'lucide-react';
 import { userService } from '@/services/user.service';
 import { format } from 'date-fns';
@@ -24,7 +24,13 @@ const StaffProfile = () => {
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
   const [formData, setFormData] = useState({
     displayName: '',
     staffRole: '',
@@ -85,6 +91,7 @@ const StaffProfile = () => {
       const response = await userService.updateProfile(updateData);
       setUser(response.data);
       await refreshUser();
+      await fetchUserData(); // Refetch to ensure all data is up to date
       setEditing(false);
       
       toast.success('Profile updated successfully');
@@ -92,6 +99,35 @@ const StaffProfile = () => {
       toast.error(error.response?.data?.error || 'Failed to update profile');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters long');
+      return;
+    }
+
+    try {
+      setChangingPassword(true);
+      await userService.changePassword(passwordData.currentPassword, passwordData.newPassword);
+      toast.success('Password changed successfully');
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to change password');
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -114,6 +150,7 @@ const StaffProfile = () => {
       const response = await userService.uploadPhoto(file);
       setUser({ ...user, photoUrl: response.data.photoUrl });
       await refreshUser();
+      await fetchUserData(); // Refetch to ensure photo is displayed
       
       toast.success('Profile photo updated successfully');
     } catch (error: any) {
@@ -501,6 +538,71 @@ const StaffProfile = () => {
                   </div>
                 </div>
               )}
+            </Card>
+
+            {/* Password Change Section */}
+            <Card className="p-6 mt-6">
+              <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                <Key className="h-5 w-5" />
+                Change Password
+              </h3>
+
+              <form onSubmit={handlePasswordChange} className="space-y-6">
+                <div>
+                  <Label htmlFor="currentPassword">Current Password *</Label>
+                  <Input
+                    id="currentPassword"
+                    type="password"
+                    value={passwordData.currentPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                    placeholder="Enter current password"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="newPassword">New Password *</Label>
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      value={passwordData.newPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                      placeholder="Enter new password"
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      At least 6 characters
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="confirmPassword">Confirm New Password *</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                      placeholder="Confirm new password"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <Button type="submit" disabled={changingPassword}>
+                  {changingPassword ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Changing Password...
+                    </>
+                  ) : (
+                    <>
+                      <Key className="h-4 w-4 mr-2" />
+                      Change Password
+                    </>
+                  )}
+                </Button>
+              </form>
             </Card>
           </motion.div>
         </div>
