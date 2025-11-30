@@ -43,7 +43,7 @@ import OrganizerEvents from './OrganizerEvents';
 import AdminManagePolls from './AdminManagePolls';
 import AdminManageForms from './AdminManageForms';
 import QRScanner from './QRScanner';
-import Profile from './Profile';
+import StaffProfile from './StaffProfile';
 import { Checkbox } from '@/components/ui/checkbox';
 import { X } from 'lucide-react';
 
@@ -194,11 +194,11 @@ const StaffDashboard = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
+    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
+      {/* Sidebar - Hidden on mobile, visible on desktop */}
       <aside
         className={cn(
-          'bg-gray-900 text-white transition-all duration-300 flex flex-col',
+          'hidden lg:flex bg-gray-900 text-white transition-all duration-300 flex-col',
           sidebarCollapsed ? 'w-16' : 'w-64'
         )}
       >
@@ -296,9 +296,37 @@ const StaffDashboard = () => {
         </div>
       </aside>
 
+      {/* Mobile Top Bar */}
+      <div className="lg:hidden bg-gray-900 text-white p-4 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-2">
+          <img 
+            src="/logo.png" 
+            alt="logo" 
+            className="h-8 w-8 rounded" 
+            onError={(e) => {
+              e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%2314b8a6" width="100" height="100"/><text x="50" y="50" font-size="60" text-anchor="middle" dy=".3em" fill="white">AI</text></svg>';
+            }}
+          />
+          <span className="font-semibold">Staff Panel</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {user?.photoUrl ? (
+            <img 
+              src={user.photoUrl.startsWith('http') ? user.photoUrl : `${import.meta.env.VITE_API_URL?.replace('/api', '')}${user.photoUrl}`}
+              alt={user.displayName}
+              className="h-8 w-8 rounded-full object-cover"
+            />
+          ) : (
+            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-sm font-semibold">
+              {user?.displayName?.charAt(0).toUpperCase()}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="p-8">
+      <main className="flex-1 overflow-y-auto pb-20 lg:pb-0">
+        <div className="p-4 lg:p-8">
           <Routes>
             <Route path="/dashboard" element={
               <>
@@ -430,10 +458,42 @@ const StaffDashboard = () => {
             <Route path="/polls" element={<AdminManagePolls onCreatePoll={() => setCreatePollDialog(true)} />} />
             <Route path="/forms" element={<AdminManageForms onCreateForm={() => setCreateFormDialog(true)} />} />
             <Route path="/qr-scanner" element={<QRScanner />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/profile" element={<StaffProfile />} />
           </Routes>
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-10">
+        <div className="flex justify-around items-center py-2">
+          {menuItems.slice(0, 5).map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  'flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors',
+                  active
+                    ? 'text-primary'
+                    : 'text-gray-400'
+                )}
+              >
+                <Icon className="h-5 w-5" />
+                <span className="text-xs">{item.title.split(' ')[0]}</span>
+              </Link>
+            );
+          })}
+          <button
+            onClick={logout}
+            className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors text-gray-400 hover:text-red-400"
+          >
+            <LogOut className="h-5 w-5" />
+            <span className="text-xs">Logout</span>
+          </button>
+        </div>
+      </nav>
 
       {/* Create Event Dialog */}
       <Dialog open={createEventDialog} onOpenChange={setCreateEventDialog}>
