@@ -116,11 +116,19 @@ const EventDetail = () => {
         const userProgram = user?.studyProgram;
         
         let isEligible = true;
+        
+        // Check study level if specified
         if (eligibleLevels.length > 0) {
-          isEligible = isEligible && userLevel && eligibleLevels.includes(userLevel);
+          if (!userLevel || !eligibleLevels.includes(userLevel)) {
+            isEligible = false;
+          }
         }
+        
+        // Check study program if specified
         if (eligiblePrograms.length > 0) {
-          isEligible = isEligible && userProgram && eligiblePrograms.includes(userProgram);
+          if (!userProgram || !eligiblePrograms.includes(userProgram)) {
+            isEligible = false;
+          }
         }
         
         if (!isEligible) {
