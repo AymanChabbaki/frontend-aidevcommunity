@@ -28,6 +28,7 @@ import Profile from "./pages/Profile";
 import Notifications from "./pages/Notifications";
 import Polls from "./pages/Polls";
 import Forms from "./pages/Forms";
+import UserDashboard from "./pages/UserDashboard";
 
 // Staff Pages
 import OrganizerEvents from "./pages/OrganizerEvents";
@@ -99,6 +100,16 @@ const App = () => (
                   <MainLayout>
                     <ProtectedRoute allowedRoles={['USER']}>
                       <Dashboard />
+                    </ProtectedRoute>
+                  </MainLayout>
+                }
+              />
+              <Route
+                path="/my-registrations"
+                element={
+                  <MainLayout>
+                    <ProtectedRoute allowedRoles={['USER']}>
+                      <UserDashboard />
                     </ProtectedRoute>
                   </MainLayout>
                 }

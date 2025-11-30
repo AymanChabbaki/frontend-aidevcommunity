@@ -136,6 +136,11 @@ export const Navbar = () => {
                     <DropdownMenuItem asChild>
                       <Link to="/dashboard">{t.nav.dashboard}</Link>
                     </DropdownMenuItem>
+                    {user?.role === 'USER' && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/my-registrations">My Registrations</Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem asChild>
                       <Link to="/profile">{t.nav.profile}</Link>
                     </DropdownMenuItem>

@@ -29,7 +29,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Plus, Edit, Trash2, Users, Calendar, MapPin, Search, Eye, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, Calendar, MapPin, Search, Eye, Download, ChevronLeft, ChevronRight, Check, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { eventService } from '@/services/event.service';
@@ -101,6 +101,43 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
       });
     } catch (error: any) {
       toast.error('Failed to fetch registrations');
+    }
+  };
+
+  const handleApproveRegistration = async (registrationId: string) => {
+    try {
+      await eventService.approveRegistration(registrationId);
+      toast.success('Registration approved successfully');
+      if (registrationsDialog.event) {
+        handleViewRegistrations(registrationsDialog.event);
+      }
+    } catch (error: any) {
+      toast.error('Failed to approve registration');
+    }
+  };
+
+  const handleRejectRegistration = async (registrationId: string) => {
+    try {
+      await eventService.rejectRegistration(registrationId);
+      toast.success('Registration rejected');
+      if (registrationsDialog.event) {
+        handleViewRegistrations(registrationsDialog.event);
+      }
+    } catch (error: any) {
+      toast.error('Failed to reject registration');
+    }
+  };
+
+  const handleRejectRegistration = async (registrationId: string) => {
+    try {
+      await eventService.rejectRegistration(registrationId);
+      toast.success('Registration rejected');
+      // Refresh registrations
+      if (registrationsDialog.event) {
+        handleViewRegistrations(registrationsDialog.event);
+      }
+    } catch (error: any) {
+      toast.error('Failed to reject registration');
     }
   };
 
@@ -349,12 +386,13 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
                   <TableHead>Status</TableHead>
                   <TableHead>Registration Date</TableHead>
                   <TableHead>Checked In</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {registrationsDialog.registrations.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center">
+                    <TableCell colSpan={6} className="text-center">
                       No registrations found
                     </TableCell>
                   </TableRow>
@@ -364,7 +402,7 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
                       <TableCell className="font-medium">{reg.user?.displayName || reg.user?.name || 'Unknown'}</TableCell>
                       <TableCell>{reg.user?.email || 'N/A'}</TableCell>
                       <TableCell>
-                        <Badge variant={reg.status === 'CONFIRMED' ? 'default' : reg.status === 'PENDING' ? 'secondary' : 'outline'}>
+                        <Badge variant={reg.status === 'CONFIRMED' || reg.status === 'REGISTERED' ? 'default' : reg.status === 'PENDING' ? 'secondary' : 'destructive'}>
                           {reg.status}
                         </Badge>
                       </TableCell>
@@ -376,6 +414,36 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
                           </Badge>
                         ) : (
                           <span className="text-muted-foreground">Not checked in</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {reg.status === 'PENDING' && (
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleApproveRegistration(reg.id)}
+                              className="text-green-600 hover:text-green-700"
+                              title="Approve"
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRejectRegistration(reg.id)}
+                              className="text-red-600 hover:text-red-700"
+                              title="Reject"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                        {(reg.status === 'CONFIRMED' || reg.status === 'REGISTERED') && (
+                          <Badge variant="default" className="bg-green-500">Approved</Badge>
+                        )}
+                        {reg.status === 'REJECTED' && (
+                          <Badge variant="destructive">Rejected</Badge>
                         )}
                       </TableCell>
                     </TableRow>
