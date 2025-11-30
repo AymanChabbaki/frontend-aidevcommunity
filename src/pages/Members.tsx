@@ -474,7 +474,6 @@ const Members = () => {
             </Card>
           </motion.div>
         )}
-        </div>
       </section>
 
       <Footer />
