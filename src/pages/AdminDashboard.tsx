@@ -403,8 +403,11 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-50 overflow-x-auto">
-        <div className="flex gap-1 p-2 min-w-max">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-50">
+        <div className="flex">
+          {/* Scrollable menu items */}
+          <div className="flex-1 overflow-x-auto">
+            <div className="flex gap-1 p-2 min-w-max">
           <Link
             to="/admin/dashboard"
             className={cn(
@@ -501,6 +504,18 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
             <Settings className="h-5 w-5" />
             <span className="text-xs mt-1">Settings</span>
           </Link>
+            </div>
+          </div>
+          {/* Fixed logout button */}
+          <div className="border-l border-gray-800 flex items-center">
+            <button
+              onClick={logout}
+              className="flex flex-col items-center gap-1 px-4 py-2 transition-colors text-gray-300 hover:text-red-400"
+            >
+              <LogOut className="h-5 w-5" />
+              <span className="text-xs">Logout</span>
+            </button>
+          </div>
         </div>
       </nav>
     </div>

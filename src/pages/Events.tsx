@@ -44,7 +44,7 @@ const Events = () => {
   const fetchUserRegistrations = async () => {
     try {
       const response = await eventService.getMyRegistrations();
-      const registeredEventIds = new Set(
+      const registeredEventIds = new Set<string>(
         response.data.map((reg: any) => reg.eventId)
       );
       setUserRegistrations(registeredEventIds);

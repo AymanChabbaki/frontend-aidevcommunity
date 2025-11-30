@@ -129,7 +129,7 @@ export default function AdminHomeContent() {
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Home className="h-8 w-8" />
@@ -139,11 +139,12 @@ export default function AdminHomeContent() {
             Manage the hero section, featured events, and statistics on the home page
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full lg:w-auto">
           <Button
             variant="outline"
             onClick={handleInitialize}
             disabled={initializing}
+            className="flex-1 lg:flex-initial"
           >
             {initializing ? (
               <>
@@ -157,7 +158,7 @@ export default function AdminHomeContent() {
               </>
             )}
           </Button>
-          <Button onClick={handleSave} disabled={saving}>
+          <Button onClick={handleSave} disabled={saving} className="flex-1 lg:flex-initial">
             {saving ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
