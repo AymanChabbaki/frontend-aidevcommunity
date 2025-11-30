@@ -249,6 +249,28 @@ const AdminManageEvents = () => {
     }
   };
 
+  const handleStatusChange = async (eventId: string, newStatus: string) => {
+    try {
+      const event = events.find(e => e.id === eventId);
+      if (!event) return;
+
+      await eventService.updateEvent(eventId, { status: newStatus });
+      
+      toast({
+        title: 'Success',
+        description: `Event status changed to ${newStatus}`,
+      });
+      
+      fetchEvents();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.error || 'Failed to change event status',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleApproveRegistration = async (registrationId: string) => {
     try {
       await eventService.approveRegistration(registrationId);
@@ -430,9 +452,24 @@ const AdminManageEvents = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge className={getStatusColor(event.status)}>
-                        {event.status}
-                      </Badge>
+                      <Select
+                        value={event.status}
+                        onValueChange={(value) => handleStatusChange(event.id, value)}
+                      >
+                        <SelectTrigger className="w-[140px]">
+                          <SelectValue>
+                            <Badge className={getStatusColor(event.status)}>
+                              {event.status}
+                            </Badge>
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="UPCOMING">UPCOMING</SelectItem>
+                          <SelectItem value="ONGOING">ONGOING</SelectItem>
+                          <SelectItem value="COMPLETED">COMPLETED</SelectItem>
+                          <SelectItem value="CANCELLED">CANCELLED</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">

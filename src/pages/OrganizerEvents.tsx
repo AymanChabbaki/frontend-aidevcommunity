@@ -29,6 +29,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Plus, Edit, Trash2, Users, Calendar, MapPin, Search, Eye, Download, ChevronLeft, ChevronRight, Check, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -101,6 +108,21 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
       });
     } catch (error: any) {
       toast.error('Failed to fetch registrations');
+    }
+  };
+
+  const handleStatusChange = async (eventId: string, newStatus: string) => {
+    try {
+      const event = events.find(e => e.id === eventId);
+      if (!event) return;
+
+      await eventService.updateEvent(eventId, { status: newStatus });
+      
+      toast.success(`Event status changed to ${newStatus}`);
+      
+      fetchEvents();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to change event status');
     }
   };
 
@@ -263,7 +285,24 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
                         <span className="text-sm">{event._count?.registrations || 0}/{event.capacity}</span>
                       </div>
                     </TableCell>
-                    <TableCell>{getStatusBadge(event.status)}</TableCell>
+                    <TableCell>
+                      <Select
+                        value={event.status}
+                        onValueChange={(value) => handleStatusChange(event.id, value)}
+                      >
+                        <SelectTrigger className="w-[140px]">
+                          <SelectValue>
+                            {getStatusBadge(event.status)}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="UPCOMING">UPCOMING</SelectItem>
+                          <SelectItem value="ONGOING">ONGOING</SelectItem>
+                          <SelectItem value="COMPLETED">COMPLETED</SelectItem>
+                          <SelectItem value="CANCELLED">CANCELLED</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
