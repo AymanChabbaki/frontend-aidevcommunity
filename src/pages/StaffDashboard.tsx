@@ -978,11 +978,10 @@ const StaffDashboard = () => {
                 setCreatePollDialog(false);
                 setPollFormData({ question: '', visibility: 'PUBLIC', startAt: '', endAt: '' });
                 setPollOptions(['', '']);
-                // Refresh polls if on polls page
-                if (location.pathname === '/staff/polls') {
-                  window.location.reload();
-                }
+                // Navigate to polls page to see the new poll
+                navigate('/staff/polls');
               } catch (error: any) {
+                console.error('Poll creation error:', error);
                 toast.error(error.response?.data?.error || 'Failed to create poll');
               } finally {
                 setSubmitting(false);
@@ -1173,11 +1172,10 @@ const StaffDashboard = () => {
                 setCreateFormDialog(false);
                 setFormBuilderData({ title: '', description: '' });
                 setFormFields([{ id: 'field1', type: 'text', label: '', required: false }]);
-                // Refresh forms if on forms page
-                if (location.pathname === '/staff/forms') {
-                  window.location.reload();
-                }
+                // Navigate to forms page to see the new form
+                navigate('/staff/forms');
               } catch (error: any) {
+                console.error('Form creation error:', error);
                 toast.error(error.response?.data?.error || 'Failed to create form');
               } finally {
                 setSubmitting(false);
