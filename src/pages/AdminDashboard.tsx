@@ -132,11 +132,11 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
   }, [location.pathname]);
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
+    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
+      {/* Sidebar - Desktop only */}
       <aside
         className={cn(
-          'bg-gray-900 text-white transition-all duration-300 flex flex-col',
+          'hidden lg:flex bg-gray-900 text-white transition-all duration-300 flex-col',
           sidebarCollapsed ? 'w-16' : 'w-64'
         )}
       >
@@ -220,9 +220,27 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
         </div>
       </aside>
 
+      {/* Mobile Top Bar */}
+      <div className="lg:hidden sticky top-0 z-50 bg-gray-900 text-white p-4 flex items-center justify-between shadow-lg">
+        <div className="flex items-center gap-2">
+          <img 
+            src="/logo.png" 
+            alt="logo" 
+            className="h-8 w-8 rounded" 
+            onError={(e) => {
+              e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%2314b8a6" width="100" height="100"/><text x="50" y="50" font-size="60" text-anchor="middle" dy=".3em" fill="white">AI</text></svg>';
+            }}
+          />
+          <span className="font-semibold">Admin Panel</span>
+        </div>
+        <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center font-semibold text-sm">
+          {user?.displayName?.charAt(0).toUpperCase()}
+        </div>
+      </div>
+
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
-        <div className="p-8">
+        <div className="p-4 lg:p-8 pb-20 lg:pb-0">
           {/* Dashboard Overview - Only show on main dashboard route */}
           {location.pathname === '/admin/dashboard' && (
             <>
@@ -383,6 +401,72 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
           {children}
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-50">
+        <div className="grid grid-cols-5 gap-1 p-2">
+          <Link
+            to="/admin/dashboard"
+            className={cn(
+              'flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors',
+              isActive('/admin/dashboard')
+                ? 'bg-primary text-white'
+                : 'text-gray-300 hover:bg-gray-800'
+            )}
+          >
+            <Home className="h-5 w-5" />
+            <span className="text-xs mt-1">Home</span>
+          </Link>
+          <Link
+            to="/admin/users"
+            className={cn(
+              'flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors',
+              isActive('/admin/users')
+                ? 'bg-primary text-white'
+                : 'text-gray-300 hover:bg-gray-800'
+            )}
+          >
+            <Users className="h-5 w-5" />
+            <span className="text-xs mt-1">Users</span>
+          </Link>
+          <Link
+            to="/admin/manage-events"
+            className={cn(
+              'flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors',
+              isActive('/admin/manage-events')
+                ? 'bg-primary text-white'
+                : 'text-gray-300 hover:bg-gray-800'
+            )}
+          >
+            <Calendar className="h-5 w-5" />
+            <span className="text-xs mt-1">Events</span>
+          </Link>
+          <Link
+            to="/admin/manage-polls"
+            className={cn(
+              'flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors',
+              isActive('/admin/manage-polls')
+                ? 'bg-primary text-white'
+                : 'text-gray-300 hover:bg-gray-800'
+            )}
+          >
+            <BarChart3 className="h-5 w-5" />
+            <span className="text-xs mt-1">Polls</span>
+          </Link>
+          <Link
+            to="/admin/manage-forms"
+            className={cn(
+              'flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors',
+              isActive('/admin/manage-forms')
+                ? 'bg-primary text-white'
+                : 'text-gray-300 hover:bg-gray-800'
+            )}
+          >
+            <FileText className="h-5 w-5" />
+            <span className="text-xs mt-1">Forms</span>
+          </Link>
+        </div>
+      </nav>
     </div>
   );
 };

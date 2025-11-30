@@ -104,7 +104,7 @@ const StaffDashboard = () => {
       path: '/staff/dashboard',
     },
     {
-      title: 'My Events',
+      title: 'Events',
       icon: Calendar,
       path: '/staff/events',
     },
@@ -114,17 +114,17 @@ const StaffDashboard = () => {
       path: '/staff/qr-scanner',
     },
     {
-      title: 'Manage Polls',
+      title: 'Polls',
       icon: BarChart3,
       path: '/staff/polls',
     },
     {
-      title: 'Manage Forms',
+      title: 'Forms',
       icon: FileText,
       path: '/staff/forms',
     },
     {
-      title: 'My Profile',
+      title: 'Profile',
       icon: User,
       path: '/staff/profile',
     },
