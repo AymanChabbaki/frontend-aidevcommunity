@@ -126,7 +126,15 @@ const Forms = () => {
 
     // Validate required fields
     const missingFields = form.fields
-      .filter(field => field.required && !formValues[field.id])
+      .filter(field => {
+        if (!field.required) return false;
+        const value = formValues[field.id];
+        // Check if value is empty, undefined, null, or empty array
+        if (!value) return true;
+        if (Array.isArray(value) && value.length === 0) return true;
+        if (typeof value === 'string' && value.trim() === '') return true;
+        return false;
+      })
       .map(field => field.label);
 
     if (missingFields.length > 0) {
@@ -169,6 +177,7 @@ const Forms = () => {
   const renderField = (field: FormField) => {
     const displayLabel = language === 'fr' ? field.labelFr : language === 'ar' ? field.labelAr : field.label;
     const label = displayLabel || field.label;
+    const placeholder = (field as any).placeholder || '';
 
     switch (field.type) {
       case 'text':
@@ -179,8 +188,28 @@ const Forms = () => {
             </Label>
             <Input
               id={field.id}
+              type="text"
               value={formValues[field.id] || ''}
               onChange={(e) => handleFieldChange(field.id, e.target.value)}
+              placeholder={placeholder}
+              className="h-12"
+              required={field.required}
+            />
+          </div>
+        );
+
+      case 'email':
+        return (
+          <div className="space-y-2">
+            <Label htmlFor={field.id} className="text-base">
+              {label} {field.required && <span className="text-red-500">*</span>}
+            </Label>
+            <Input
+              id={field.id}
+              type="email"
+              value={formValues[field.id] || ''}
+              onChange={(e) => handleFieldChange(field.id, e.target.value)}
+              placeholder={placeholder}
               className="h-12"
               required={field.required}
             />
@@ -197,6 +226,7 @@ const Forms = () => {
               id={field.id}
               value={formValues[field.id] || ''}
               onChange={(e) => handleFieldChange(field.id, e.target.value)}
+              placeholder={placeholder}
               rows={4}
               required={field.required}
             />
@@ -226,18 +256,51 @@ const Forms = () => {
         );
 
       case 'checkbox':
-        return (
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id={field.id}
-              checked={formValues[field.id] || false}
-              onCheckedChange={(checked) => handleFieldChange(field.id, checked)}
-            />
-            <Label htmlFor={field.id} className="cursor-pointer">
-              {label} {field.required && <span className="text-red-500">*</span>}
-            </Label>
-          </div>
-        );
+        // If field has options, render as checkbox group; otherwise single checkbox
+        if (field.options && field.options.length > 0) {
+          return (
+            <div className="space-y-3">
+              <Label className="text-base">
+                {label} {field.required && <span className="text-red-500">*</span>}
+              </Label>
+              <div className="space-y-2">
+                {field.options.map((option, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`${field.id}-${index}`}
+                      checked={formValues[field.id]?.includes(option) || false}
+                      onCheckedChange={(checked) => {
+                        const currentValues = formValues[field.id] || [];
+                        if (checked) {
+                          handleFieldChange(field.id, [...currentValues, option]);
+                        } else {
+                          handleFieldChange(field.id, currentValues.filter((v: string) => v !== option));
+                        }
+                      }}
+                    />
+                    <Label htmlFor={`${field.id}-${index}`} className="cursor-pointer">
+                      {option}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        } else {
+          // Single checkbox
+          return (
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id={field.id}
+                checked={formValues[field.id] || false}
+                onCheckedChange={(checked) => handleFieldChange(field.id, checked)}
+              />
+              <Label htmlFor={field.id} className="cursor-pointer">
+                {label} {field.required && <span className="text-red-500">*</span>}
+              </Label>
+            </div>
+          );
+        }
 
       case 'select':
         return (
@@ -250,7 +313,7 @@ const Forms = () => {
               onValueChange={(value) => handleFieldChange(field.id, value)}
             >
               <SelectTrigger className="h-12">
-                <SelectValue placeholder="Select an option" />
+                <SelectValue placeholder={placeholder || "Select an option"} />
               </SelectTrigger>
               <SelectContent>
                 {field.options?.map((option, index) => (

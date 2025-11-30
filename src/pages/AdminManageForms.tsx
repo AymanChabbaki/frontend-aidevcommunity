@@ -368,9 +368,14 @@ const AdminManageForms = ({ onCreateForm }: AdminManageFormsProps = {}) => {
                   <h3 className="font-semibold mb-4">Form Fields</h3>
                   <div className="space-y-3">
                     {viewDialog.form.fields?.map((field: any, index: number) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-secondary rounded-lg">
+                      <div key={index} className="flex items-start justify-between p-3 bg-secondary rounded-lg">
                         <div className="flex-1">
                           <p className="font-medium">{field.label}</p>
+                          {field.placeholder && (
+                            <p className="text-xs text-muted-foreground mt-1 italic">
+                              Placeholder: {field.placeholder}
+                            </p>
+                          )}
                           {field.options && field.options.length > 0 && (
                             <p className="text-sm text-muted-foreground mt-1">
                               Options: {field.options.join(', ')}
