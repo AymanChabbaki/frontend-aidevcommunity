@@ -201,11 +201,11 @@ const Members = () => {
               className="flex justify-center gap-6 text-white"
             >
               <div className="text-center">
-                <div className="text-4xl font-bold">{members.length}+</div>
+                <div className="text-4xl font-bold">{members.filter(m => m.displayName !== 'Admin User').length}+</div>
                 <div className="text-sm text-white/70">Members</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-bold">{members.filter(m => m.role === 'ADMIN' || m.role === 'STAFF').length}</div>
+                <div className="text-4xl font-bold">{members.filter(m => (m.role === 'ADMIN' || m.role === 'STAFF') && m.displayName !== 'Admin User').length}</div>
                 <div className="text-sm text-white/70">Leaders</div>
               </div>
               <div className="text-center">
@@ -247,7 +247,7 @@ const Members = () => {
             </motion.div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-              {members.filter(m => m.role === 'ADMIN' || m.role === 'STAFF').map((member, index) => (
+              {members.filter(m => (m.role === 'ADMIN' || m.role === 'STAFF') && m.displayName !== 'Admin User').map((member, index) => (
                 <motion.div
                   key={member.id}
                   initial={{ opacity: 0, y: 30 }}
@@ -412,7 +412,7 @@ const Members = () => {
               </motion.div>
 
               <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-                {members.filter(m => m.role === 'USER').map((member, index) => (
+                {members.filter(m => m.role === 'USER' && m.displayName !== 'Admin User').map((member, index) => (
                   <motion.div
                     key={member.id}
                     initial={{ opacity: 0, scale: 0.9 }}
