@@ -95,7 +95,16 @@ const Contact = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative gradient-hero py-32 md:py-40 overflow-hidden">
+      <section className="relative py-32 md:py-40 overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://res.cloudinary.com/dmznisgxq/image/upload/v1764464539/0a4a2c55-d369-44ac-82d2-fccbe56b451f_gexk5l.jpg" 
+            alt="" 
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-secondary/80 to-accent/90" />
+        </div>
         {/* Animated Background Elements */}
         <motion.div style={{ y: y1, opacity }} className="absolute inset-0 pointer-events-none">
           <div className="absolute top-20 left-10 opacity-20">

@@ -82,7 +82,16 @@ const Index = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative gradient-hero py-32 md:py-40 overflow-hidden -mt-20">
+      <section className="relative py-32 md:py-40 overflow-hidden -mt-20">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://res.cloudinary.com/dmznisgxq/image/upload/v1764464065/ebaa0d7d-edec-4e5d-9bcb-d5202154e802_rurmmh.jpg" 
+            alt="" 
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-secondary/80 to-accent/90" />
+        </div>
         {/* Animated Background Elements */}
         <motion.div style={{ y: y1, opacity }} className="absolute inset-0 pointer-events-none">
           <div className="absolute top-20 left-10 opacity-20">

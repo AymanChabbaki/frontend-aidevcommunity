@@ -128,7 +128,16 @@ const Polls = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative gradient-hero py-20 -mt-20 overflow-hidden">
+      <section className="relative py-20 -mt-20 overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://res.cloudinary.com/dmznisgxq/image/upload/v1764464389/d5af05c4-f5d8-44f5-bb25-9874e13f57e6_e0nn6v.jpg" 
+            alt="" 
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-secondary/80 to-accent/90" />
+        </div>
         {/* Animated Background Elements */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <motion.div
