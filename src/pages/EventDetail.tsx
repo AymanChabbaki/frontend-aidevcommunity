@@ -106,6 +106,32 @@ const EventDetail = () => {
       return;
     }
 
+    // Check eligibility on frontend before sending request
+    if (event.requiresApproval) {
+      const eligibleLevels = event.eligibleLevels || [];
+      const eligiblePrograms = event.eligiblePrograms || [];
+      
+      if (eligibleLevels.length > 0 || eligiblePrograms.length > 0) {
+        const userLevel = user?.studyLevel;
+        const userProgram = user?.studyProgram;
+        
+        let isEligible = true;
+        if (eligibleLevels.length > 0) {
+          isEligible = isEligible && userLevel && eligibleLevels.includes(userLevel);
+        }
+        if (eligiblePrograms.length > 0) {
+          isEligible = isEligible && userProgram && eligiblePrograms.includes(userProgram);
+        }
+        
+        if (!isEligible) {
+          toast.error('You are not eligible for this event', {
+            description: 'Please check the eligibility requirements below',
+          });
+          return;
+        }
+      }
+    }
+
     try {
       const response = await eventService.registerForEvent(event.id);
       
@@ -352,6 +378,29 @@ const EventDetail = () => {
                   </div>
                 </div>
               </div>
+
+              {event.requiresApproval && (event.eligibleLevels?.length > 0 || event.eligiblePrograms?.length > 0) && (
+                <Alert className="mb-6">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <strong>Eligibility Requirements:</strong>
+                    <div className="mt-2 space-y-1">
+                      {event.eligibleLevels?.length > 0 && (
+                        <div>
+                          <span className="text-sm font-medium">Study Levels: </span>
+                          <span className="text-sm">{event.eligibleLevels.join(', ')}</span>
+                        </div>
+                      )}
+                      {event.eligiblePrograms?.length > 0 && (
+                        <div>
+                          <span className="text-sm font-medium">Study Programs: </span>
+                          <span className="text-sm">{event.eligiblePrograms.join(', ')}</span>
+                        </div>
+                      )}
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
 
               {isRegistered ? (
                 <div className="space-y-4">

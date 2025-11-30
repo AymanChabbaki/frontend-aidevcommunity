@@ -22,6 +22,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Plus, Edit, Trash2, Users, Calendar, MapPin, Search, Eye, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -45,6 +52,11 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; eventId: string | null }>({
     open: false,
     eventId: null,
+  });
+  const [registrationsDialog, setRegistrationsDialog] = useState<{ open: boolean; event: any | null; registrations: any[] }>({
+    open: false,
+    event: null,
+    registrations: [],
   });
 
   useEffect(() => {
@@ -76,6 +88,19 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
       toast.error('Failed to delete event');
     } finally {
       setDeleteDialog({ open: false, eventId: null });
+    }
+  };
+
+  const handleViewRegistrations = async (event: any) => {
+    try {
+      const response = await eventService.getEventRegistrations(event.id);
+      setRegistrationsDialog({
+        open: true,
+        event,
+        registrations: response.data || [],
+      });
+    } catch (error: any) {
+      toast.error('Failed to fetch registrations');
     }
   };
 
@@ -220,8 +245,8 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => navigate(`/events/${event.id}`)}
-                          title="View details"
+                          onClick={() => handleViewRegistrations(event)}
+                          title="View Registrations"
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -309,6 +334,69 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={registrationsDialog.open} onOpenChange={(open) => setRegistrationsDialog({ open, event: null, registrations: [] })}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Event Registrations - {registrationsDialog.event?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Registration Date</TableHead>
+                  <TableHead>Checked In</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {registrationsDialog.registrations.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center">
+                      No registrations found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  registrationsDialog.registrations.map((reg: any) => (
+                    <TableRow key={reg.id}>
+                      <TableCell className="font-medium">{reg.user?.displayName || reg.user?.name || 'Unknown'}</TableCell>
+                      <TableCell>{reg.user?.email || 'N/A'}</TableCell>
+                      <TableCell>
+                        <Badge variant={reg.status === 'CONFIRMED' ? 'default' : reg.status === 'PENDING' ? 'secondary' : 'outline'}>
+                          {reg.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{format(new Date(reg.createdAt), 'MMM dd, yyyy HH:mm')}</TableCell>
+                      <TableCell>
+                        {reg.checkedInAt ? (
+                          <Badge variant="default" className="bg-green-500">
+                            {format(new Date(reg.checkedInAt), 'MMM dd, yyyy HH:mm')}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground">Not checked in</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRegistrationsDialog({ open: false, event: null, registrations: [] })}>
+              Close
+            </Button>
+            {registrationsDialog.event && (
+              <Button onClick={() => handleExportRegistrations(registrationsDialog.event!.id, registrationsDialog.event!.title)}>
+                <Download className="mr-2 h-4 w-4" />
+                Export to Excel
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
