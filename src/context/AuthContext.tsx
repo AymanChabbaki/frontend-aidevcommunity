@@ -117,9 +117,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (displayName: string, email: string, password: string): Promise<boolean> => {
-    try {
-      const response = await authService.register({ email, password, displayName });
+  const register = async (
+    displayName: string, 
+    email: string, 
+    password: string,
+    studyLevel?: string,
+    studyProgram?: string
+  ): Promise<boolean> => {
+    try:
+      const response = await authService.register({ 
+        email, 
+        password, 
+        displayName,
+        studyLevel,
+        studyProgram
+      });
       
       if (response.success) {
         const { user, accessToken, refreshToken } = response.data;

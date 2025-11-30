@@ -14,7 +14,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
-  Mail
+  Mail,
+  CheckCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { adminService } from '@/services/admin.service';
@@ -69,6 +70,11 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
       title: 'Contact Messages',
       icon: Mail,
       path: '/admin/contact-messages',
+    },
+    {
+      title: 'Approve Registrations',
+      icon: CheckCircle,
+      path: '/admin/approve-registrations',
     },
     {
       title: 'Settings',

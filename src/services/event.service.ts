@@ -72,4 +72,19 @@ export const eventService = {
     const response = await api.get('/events/user/registrations');
     return response.data;
   },
+
+  async getPendingRegistrations() {
+    const response = await api.get('/events/registrations/pending');
+    return response.data;
+  },
+
+  async approveRegistration(id: string, comment?: string) {
+    const response = await api.put(`/events/registrations/${id}/approve`, { comment });
+    return response.data;
+  },
+
+  async rejectRegistration(id: string, reason?: string) {
+    const response = await api.put(`/events/registrations/${id}/reject`, { reason });
+    return response.data;
+  },
 };

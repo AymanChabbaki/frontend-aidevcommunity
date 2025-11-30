@@ -20,6 +20,8 @@ interface Member {
   linkedin?: string | null;
   twitter?: string | null;
   email: string;
+  studyLevel?: string | null;
+  studyProgram?: string | null;
   createdAt: string;
 }
 
@@ -299,8 +301,14 @@ const Members = () => {
                             {member.displayName}
                           </h3>
                           {member.staffRole && (
-                            <p className="text-sm font-medium text-primary-foreground/90 mb-3 drop-shadow">
+                            <p className="text-sm font-medium text-primary-foreground/90 mb-2 drop-shadow">
                               {member.staffRole}
+                            </p>
+                          )}
+                          {member.studyLevel && (
+                            <p className="text-xs text-primary-foreground/80 mb-3 drop-shadow">
+                              {member.studyLevel.charAt(0) + member.studyLevel.slice(1).toLowerCase()}
+                              {member.studyProgram && ` - ${member.studyProgram.replace(/_/g, ' ')}`}
                             </p>
                           )}
                           <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">

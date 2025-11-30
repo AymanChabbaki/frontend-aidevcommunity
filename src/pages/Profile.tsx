@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { toast } from 'sonner';
@@ -43,6 +44,8 @@ const Profile = () => {
     github: '',
     twitter: '',
     locale: 'en',
+    studyLevel: '',
+    studyProgram: '',
   });
 
   useEffect(() => {
@@ -64,6 +67,8 @@ const Profile = () => {
         github: userData.github || '',
         twitter: userData.twitter || '',
         locale: userData.locale || 'en',
+        studyLevel: userData.studyLevel || '',
+        studyProgram: userData.studyProgram || '',
       });
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to load profile');
@@ -86,6 +91,8 @@ const Profile = () => {
         github: formData.github,
         twitter: formData.twitter,
         locale: formData.locale,
+        studyLevel: formData.studyLevel || undefined,
+        studyProgram: formData.studyProgram || undefined,
       };
 
       const response = await userService.updateProfile(updateData);
@@ -420,6 +427,65 @@ const Profile = () => {
                         <option value="ar">العربية</option>
                       </select>
                     </div>
+
+                    <div>
+                      <Label htmlFor="studyLevel">Study Level</Label>
+                      <Select 
+                        value={formData.studyLevel} 
+                        onValueChange={(value) => {
+                          setFormData({ ...formData, studyLevel: value, studyProgram: '' });
+                        }}
+                      >
+                        <SelectTrigger className="mt-2">
+                          <SelectValue placeholder="Select your study level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="BACHELOR">Bachelor</SelectItem>
+                          <SelectItem value="MASTER">Master</SelectItem>
+                          <SelectItem value="DOCTORATE">Doctorate</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {formData.studyLevel && (
+                      <div>
+                        <Label htmlFor="studyProgram">Study Program</Label>
+                        <Select 
+                          value={formData.studyProgram} 
+                          onValueChange={(value) => setFormData({ ...formData, studyProgram: value })}
+                        >
+                          <SelectTrigger className="mt-2">
+                            <SelectValue placeholder="Select your program" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {formData.studyLevel === 'BACHELOR' && (
+                              <>
+                                <SelectItem value="BACHELOR_S1">Semester 1</SelectItem>
+                                <SelectItem value="BACHELOR_S2">Semester 2</SelectItem>
+                                <SelectItem value="BACHELOR_S3">Semester 3</SelectItem>
+                                <SelectItem value="BACHELOR_S4">Semester 4</SelectItem>
+                                <SelectItem value="BACHELOR_S5">Semester 5</SelectItem>
+                                <SelectItem value="BACHELOR_S6">Semester 6</SelectItem>
+                              </>
+                            )}
+                            {formData.studyLevel === 'MASTER' && (
+                              <>
+                                <SelectItem value="MASTER_M1">Master 1</SelectItem>
+                                <SelectItem value="MASTER_M2">Master 2</SelectItem>
+                              </>
+                            )}
+                            {formData.studyLevel === 'DOCTORATE' && (
+                              <>
+                                <SelectItem value="DOCTORATE_Y1">Year 1</SelectItem>
+                                <SelectItem value="DOCTORATE_Y2">Year 2</SelectItem>
+                                <SelectItem value="DOCTORATE_Y3">Year 3</SelectItem>
+                                <SelectItem value="DOCTORATE_Y4">Year 4</SelectItem>
+                              </>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </div>
 
                   <div>

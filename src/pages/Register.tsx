@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { toast } from 'sonner';
@@ -15,17 +16,45 @@ const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [studyLevel, setStudyLevel] = useState('');
+  const [studyProgram, setStudyProgram] = useState('');
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
+
+  const studyProgramsByLevel = {
+    BACHELOR: [
+      { value: 'BACHELOR_S1', label: 'Semester 1' },
+      { value: 'BACHELOR_S2', label: 'Semester 2' },
+      { value: 'BACHELOR_S3', label: 'Semester 3' },
+      { value: 'BACHELOR_S4', label: 'Semester 4' },
+      { value: 'BACHELOR_S5', label: 'Semester 5' },
+      { value: 'BACHELOR_S6', label: 'Semester 6' }
+    ],
+    MASTER: [
+      { value: 'MASTER_M1', label: 'Master 1' },
+      { value: 'MASTER_M2', label: 'Master 2' }
+    ],
+    DOCTORATE: [
+      { value: 'DOCTORATE_Y1', label: 'Year 1' },
+      { value: 'DOCTORATE_Y2', label: 'Year 2' },
+      { value: 'DOCTORATE_Y3', label: 'Year 3' },
+      { value: 'DOCTORATE_Y4', label: 'Year 4' }
+    ]
+  };
+
+  const handleStudyLevelChange = (value: string) => {
+    setStudyLevel(value);
+    setStudyProgram(''); // Reset program when level changes
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const success = await register(name, email, password);
+      const success = await register(name, email, password, studyLevel, studyProgram);
       if (success) {
         toast.success(t.auth.registerSuccess);
         
@@ -217,6 +246,38 @@ const Register = () => {
                   Must be at least 6 characters long
                 </p>
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="studyLevel" className="text-base">Study Level</Label>
+                <Select value={studyLevel} onValueChange={handleStudyLevelChange}>
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Select your study level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="BACHELOR">Bachelor</SelectItem>
+                    <SelectItem value="MASTER">Master</SelectItem>
+                    <SelectItem value="DOCTORATE">Doctorate</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {studyLevel && (
+                <div className="space-y-2">
+                  <Label htmlFor="studyProgram" className="text-base">Study Program</Label>
+                  <Select value={studyProgram} onValueChange={setStudyProgram}>
+                    <SelectTrigger className="h-12">
+                      <SelectValue placeholder="Select your program/year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {studyProgramsByLevel[studyLevel as keyof typeof studyProgramsByLevel]?.map((program) => (
+                        <SelectItem key={program.value} value={program.value}>
+                          {program.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <Button 
                 type="submit" 
