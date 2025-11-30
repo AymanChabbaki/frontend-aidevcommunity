@@ -110,10 +110,11 @@ const Events = () => {
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://res.cloudinary.com/dmznisgxq/image/upload/v1764464454/bb7ba696-d1d6-43b0-a138-5f428b51a391_wrnuvd.jpg" 
+            src="https://res.cloudinary.com/dmznisgxq/image/upload/v1764464496/1c6aed91-81c6-4798-a892-5022bbf99bf0_mh4ek1.jpg" 
             alt="" 
             className="w-full h-full object-cover"
           />
+          <div className="absolute inset-0 bg-black/30" />
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/15 to-accent/20" />
         </div>
         {/* Animated Background Elements */}

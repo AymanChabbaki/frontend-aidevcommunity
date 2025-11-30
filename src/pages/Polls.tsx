@@ -136,6 +136,7 @@ const Polls = () => {
             alt="" 
             className="w-full h-full object-cover"
           />
+          <div className="absolute inset-0 bg-black/30" />
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/15 to-accent/20" />
         </div>
         {/* Animated Background Elements */}
