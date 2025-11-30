@@ -67,13 +67,15 @@ const StaffDashboard = () => {
   const [eventFormData, setEventFormData] = useState({
     title: '',
     description: '',
-    date: '',
-    time: '',
-    location: '',
+    locationType: 'PHYSICAL',
+    locationText: '',
+    startAt: '',
+    endAt: '',
     capacity: '',
     category: '',
-    status: 'UPCOMING',
     imageUrl: '',
+    speaker: '',
+    tags: '',
     requiresApproval: false,
     eligibleLevels: [] as string[],
     eligiblePrograms: [] as string[]
@@ -569,34 +571,53 @@ const StaffDashboard = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="date">Date *</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={eventFormData.date}
-                  onChange={(e) => setEventFormData({ ...eventFormData, date: e.target.value })}
-                />
+                <Label htmlFor="locationType">Location Type *</Label>
+                <Select
+                  value={eventFormData.locationType}
+                  onValueChange={(value) => setEventFormData({ ...eventFormData, locationType: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PHYSICAL">Physical</SelectItem>
+                    <SelectItem value="VIRTUAL">Virtual</SelectItem>
+                    <SelectItem value="HYBRID">Hybrid</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="time">Time *</Label>
+                <Label htmlFor="locationText">Location Details *</Label>
                 <Input
-                  id="time"
-                  type="time"
-                  value={eventFormData.time}
-                  onChange={(e) => setEventFormData({ ...eventFormData, time: e.target.value })}
+                  id="locationText"
+                  value={eventFormData.locationText}
+                  onChange={(e) => setEventFormData({ ...eventFormData, locationText: e.target.value })}
+                  placeholder="Room A, Zoom link, etc."
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="location">Location *</Label>
-              <Input
-                id="location"
-                value={eventFormData.location}
-                onChange={(e) => setEventFormData({ ...eventFormData, location: e.target.value })}
-                placeholder="Event location"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="startAt">Start Date & Time *</Label>
+                <Input
+                  id="startAt"
+                  type="datetime-local"
+                  value={eventFormData.startAt}
+                  onChange={(e) => setEventFormData({ ...eventFormData, startAt: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="endAt">End Date & Time *</Label>
+                <Input
+                  id="endAt"
+                  type="datetime-local"
+                  value={eventFormData.endAt}
+                  onChange={(e) => setEventFormData({ ...eventFormData, endAt: e.target.value })}
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -629,6 +650,28 @@ const StaffDashboard = () => {
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="speaker">Speaker/Organizer</Label>
+                <Input
+                  id="speaker"
+                  value={eventFormData.speaker}
+                  onChange={(e) => setEventFormData({ ...eventFormData, speaker: e.target.value })}
+                  placeholder="Speaker name"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="tags">Tags</Label>
+                <Input
+                  id="tags"
+                  value={eventFormData.tags}
+                  onChange={(e) => setEventFormData({ ...eventFormData, tags: e.target.value })}
+                  placeholder="AI, Workshop, Beginner"
+                />
               </div>
             </div>
 
@@ -749,8 +792,8 @@ const StaffDashboard = () => {
               Cancel
             </Button>
             <Button onClick={async () => {
-              if (!eventFormData.title || !eventFormData.description || !eventFormData.date || 
-                  !eventFormData.time || !eventFormData.location || !eventFormData.capacity || !eventFormData.category) {
+              if (!eventFormData.title || !eventFormData.description || !eventFormData.startAt || 
+                  !eventFormData.endAt || !eventFormData.locationText || !eventFormData.capacity || !eventFormData.category) {
                 toast.error('Please fill in all required fields');
                 return;
               }
@@ -758,22 +801,18 @@ const StaffDashboard = () => {
               try {
                 setSubmitting(true);
                 
-                // Combine date and time into ISO datetime strings
-                const startDateTime = new Date(`${eventFormData.date}T${eventFormData.time}`);
-                const endDateTime = new Date(startDateTime.getTime() + 2 * 60 * 60 * 1000); // Add 2 hours default duration
-                
                 await eventService.createEvent({
                   title: eventFormData.title,
                   description: eventFormData.description,
-                  locationType: 'PHYSICAL',
-                  locationText: eventFormData.location,
-                  startAt: startDateTime.toISOString(),
-                  endAt: endDateTime.toISOString(),
+                  locationType: eventFormData.locationType,
+                  locationText: eventFormData.locationText,
+                  startAt: new Date(eventFormData.startAt).toISOString(),
+                  endAt: new Date(eventFormData.endAt).toISOString(),
                   capacity: parseInt(eventFormData.capacity),
                   category: eventFormData.category,
                   imageUrl: eventFormData.imageUrl || undefined,
-                  tags: [],
-                  speaker: undefined,
+                  speaker: eventFormData.speaker || undefined,
+                  tags: eventFormData.tags.split(',').map(t => t.trim()).filter(Boolean),
                   requiresApproval: eventFormData.requiresApproval,
                   eligibleLevels: eventFormData.requiresApproval ? eventFormData.eligibleLevels : undefined,
                   eligiblePrograms: eventFormData.requiresApproval ? eventFormData.eligiblePrograms : undefined
@@ -783,13 +822,15 @@ const StaffDashboard = () => {
                 setEventFormData({
                   title: '',
                   description: '',
-                  date: '',
-                  time: '',
-                  location: '',
+                  locationType: 'PHYSICAL',
+                  locationText: '',
+                  startAt: '',
+                  endAt: '',
                   capacity: '',
                   category: '',
-                  status: 'UPCOMING',
                   imageUrl: '',
+                  speaker: '',
+                  tags: '',
                   requiresApproval: false,
                   eligibleLevels: [],
                   eligiblePrograms: []
