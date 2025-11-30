@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,7 @@ interface AdminManageFormsProps {
 
 const AdminManageForms = ({ onCreateForm }: AdminManageFormsProps = {}) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [forms, setForms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,7 +80,7 @@ const AdminManageForms = ({ onCreateForm }: AdminManageFormsProps = {}) => {
 
   useEffect(() => {
     fetchForms();
-  }, []);
+  }, [location.pathname, user?.id]);
 
   const handleViewForm = async (formId: string) => {
     try {
