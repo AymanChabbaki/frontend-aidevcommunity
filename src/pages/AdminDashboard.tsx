@@ -408,102 +408,102 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
           {/* Scrollable menu items */}
           <div className="flex-1 overflow-x-auto">
             <div className="flex gap-1 p-2 min-w-max">
-          <Link
-            to="/admin/dashboard"
-            className={cn(
-              'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
-              isActive('/admin/dashboard')
-                ? 'bg-primary text-white'
-                : 'text-gray-300 hover:bg-gray-800'
-            )}
-          >
-            <Home className="h-5 w-5" />
-            <span className="text-xs mt-1">Home</span>
-          </Link>
-          <Link
-            to="/admin/users"
-            className={cn(
-              'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
-              isActive('/admin/users')
-                ? 'bg-primary text-white'
-                : 'text-gray-300 hover:bg-gray-800'
-            )}
-          >
-            <Users className="h-5 w-5" />
-            <span className="text-xs mt-1">Users</span>
-          </Link>
-          <Link
-            to="/admin/manage-events"
-            className={cn(
-              'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
-              isActive('/admin/manage-events')
-                ? 'bg-primary text-white'
-                : 'text-gray-300 hover:bg-gray-800'
-            )}
-          >
-            <Calendar className="h-5 w-5" />
-            <span className="text-xs mt-1">Events</span>
-          </Link>
-          <Link
-            to="/admin/manage-polls"
-            className={cn(
-              'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
-              isActive('/admin/manage-polls')
-                ? 'bg-primary text-white'
-                : 'text-gray-300 hover:bg-gray-800'
-            )}
-          >
-            <BarChart3 className="h-5 w-5" />
-            <span className="text-xs mt-1">Polls</span>
-          </Link>
-          <Link
-            to="/admin/manage-forms"
-            className={cn(
-              'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
-              isActive('/admin/manage-forms')
-                ? 'bg-primary text-white'
-                : 'text-gray-300 hover:bg-gray-800'
-            )}
-          >
-            <FileText className="h-5 w-5" />
-            <span className="text-xs mt-1">Forms</span>
-          </Link>
-          <Link
-            to="/admin/home-content"
-            className={cn(
-              'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
-              isActive('/admin/home-content')
-                ? 'bg-primary text-white'
-                : 'text-gray-300 hover:bg-gray-800'
-            )}
-          >
-            <Home className="h-5 w-5" />
-            <span className="text-xs mt-1">Content</span>
-          </Link>
-          <Link
-            to="/admin/contact-messages"
-            className={cn(
-              'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
-              isActive('/admin/contact-messages')
-                ? 'bg-primary text-white'
-                : 'text-gray-300 hover:bg-gray-800'
-            )}
-          >
-            <Mail className="h-5 w-5" />
-            <span className="text-xs mt-1">Messages</span>
-          </Link>
-          <Link
-            to="/admin/settings"
-            className={cn(
-              'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
-              isActive('/admin/settings')
-                ? 'bg-primary text-white'
-                : 'text-gray-300 hover:bg-gray-800'
-            )}
-          >
-            <Settings className="h-5 w-5" />
-            <span className="text-xs mt-1">Settings</span>
-          </Link>
+                  <Link
+                to="/admin/dashboard"
+                className={cn(
+                  'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
+                  isActive('/admin/dashboard')
+                    ? 'bg-primary text-white'
+                    : 'text-gray-300 hover:bg-gray-800'
+                )}
+              >
+                <Home className="h-5 w-5" />
+                <span className="text-xs mt-1">Home</span>
+              </Link>
+              <Link
+                to="/admin/users"
+                className={cn(
+                  'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
+                  isActive('/admin/users')
+                    ? 'bg-primary text-white'
+                    : 'text-gray-300 hover:bg-gray-800'
+                )}
+              >
+                <Users className="h-5 w-5" />
+                <span className="text-xs mt-1">Users</span>
+              </Link>
+              <Link
+                to="/admin/manage-events"
+                className={cn(
+                  'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
+                  isActive('/admin/manage-events')
+                    ? 'bg-primary text-white'
+                    : 'text-gray-300 hover:bg-gray-800'
+                )}
+              >
+                <Calendar className="h-5 w-5" />
+                <span className="text-xs mt-1">Events</span>
+              </Link>
+              <Link
+                to="/admin/manage-polls"
+                className={cn(
+                  'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
+                  isActive('/admin/manage-polls')
+                    ? 'bg-primary text-white'
+                    : 'text-gray-300 hover:bg-gray-800'
+                )}
+              >
+                <BarChart3 className="h-5 w-5" />
+                <span className="text-xs mt-1">Polls</span>
+              </Link>
+              <Link
+                to="/admin/manage-forms"
+                className={cn(
+                  'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
+                  isActive('/admin/manage-forms')
+                    ? 'bg-primary text-white'
+                    : 'text-gray-300 hover:bg-gray-800'
+                )}
+              >
+                <FileText className="h-5 w-5" />
+                <span className="text-xs mt-1">Forms</span>
+              </Link>
+              <Link
+                to="/admin/home-content"
+                className={cn(
+                  'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
+                  isActive('/admin/home-content')
+                    ? 'bg-primary text-white'
+                    : 'text-gray-300 hover:bg-gray-800'
+                )}
+              >
+                <Home className="h-5 w-5" />
+                <span className="text-xs mt-1">Content</span>
+              </Link>
+              <Link
+                to="/admin/contact-messages"
+                className={cn(
+                  'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
+                  isActive('/admin/contact-messages')
+                    ? 'bg-primary text-white'
+                    : 'text-gray-300 hover:bg-gray-800'
+                )}
+              >
+                <Mail className="h-5 w-5" />
+                <span className="text-xs mt-1">Messages</span>
+              </Link>
+              <Link
+                to="/admin/settings"
+                className={cn(
+                  'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
+                  isActive('/admin/settings')
+                    ? 'bg-primary text-white'
+                    : 'text-gray-300 hover:bg-gray-800'
+                )}
+              >
+                <Settings className="h-5 w-5" />
+                <span className="text-xs mt-1">Settings</span>
+              </Link>
             </div>
           </div>
           {/* Fixed logout button */}
