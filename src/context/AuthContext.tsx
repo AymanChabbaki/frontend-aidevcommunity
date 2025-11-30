@@ -15,6 +15,8 @@ export interface User {
   linkedin?: string;
   twitter?: string;
   publicProfile?: boolean;
+  studyLevel?: string;
+  studyProgram?: string;
 }
 
 interface AuthContextType {
@@ -88,7 +90,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           github: user.github,
           linkedin: user.linkedin,
           twitter: user.twitter,
-          publicProfile: user.publicProfile
+          publicProfile: user.publicProfile,
+          studyLevel: user.studyLevel,
+          studyProgram: user.studyProgram
         };
 
         setUser(mappedUser);
@@ -124,7 +128,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     studyLevel?: string,
     studyProgram?: string
   ): Promise<boolean> => {
-    try:
+    try {
       const response = await authService.register({ 
         email, 
         password, 
@@ -147,7 +151,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           github: user.github,
           linkedin: user.linkedin,
           twitter: user.twitter,
-          publicProfile: user.publicProfile
+          publicProfile: user.publicProfile,
+          studyLevel: user.studyLevel,
+          studyProgram: user.studyProgram
         };
 
         setUser(mappedUser);

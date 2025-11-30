@@ -9,6 +9,8 @@ export interface RegisterData {
   email: string;
   password: string;
   displayName: string;
+  studyLevel?: string;
+  studyProgram?: string;
 }
 
 export interface AuthResponse {
