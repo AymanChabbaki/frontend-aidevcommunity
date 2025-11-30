@@ -757,9 +757,24 @@ const StaffDashboard = () => {
 
               try {
                 setSubmitting(true);
+                
+                // Combine date and time into ISO datetime strings
+                const startDateTime = new Date(`${eventFormData.date}T${eventFormData.time}`);
+                const endDateTime = new Date(startDateTime.getTime() + 2 * 60 * 60 * 1000); // Add 2 hours default duration
+                
                 await eventService.createEvent({
-                  ...eventFormData,
+                  title: eventFormData.title,
+                  description: eventFormData.description,
+                  locationType: 'PHYSICAL',
+                  locationText: eventFormData.location,
+                  startAt: startDateTime.toISOString(),
+                  endAt: endDateTime.toISOString(),
                   capacity: parseInt(eventFormData.capacity),
+                  category: eventFormData.category,
+                  imageUrl: eventFormData.imageUrl || undefined,
+                  tags: [],
+                  speaker: undefined,
+                  requiresApproval: eventFormData.requiresApproval,
                   eligibleLevels: eventFormData.requiresApproval ? eventFormData.eligibleLevels : undefined,
                   eligiblePrograms: eventFormData.requiresApproval ? eventFormData.eligiblePrograms : undefined
                 });
