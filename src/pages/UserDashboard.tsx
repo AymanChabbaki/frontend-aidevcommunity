@@ -54,10 +54,10 @@ const UserDashboard = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { variant: any; icon: any; label: string }> = {
-      CONFIRMED: { 
+      APPROVED: { 
         variant: 'default', 
         icon: CheckCircle, 
-        label: 'Confirmed' 
+        label: 'Approved' 
       },
       PENDING: { 
         variant: 'secondary', 
@@ -154,11 +154,11 @@ const UserDashboard = () => {
   };
 
   const handleViewQR = (registration: any) => {
-    if (registration.status === 'CONFIRMED' || registration.status === 'REGISTERED') {
+    if (registration.status === 'APPROVED' || registration.status === 'REGISTERED') {
       setSelectedRegistration(registration);
       setQrDialog(true);
     } else {
-      toast.error('QR code is only available for confirmed registrations');
+      toast.error('QR code is only available for approved registrations');
     }
   };
 
@@ -170,7 +170,7 @@ const UserDashboard = () => {
 
   const stats = {
     total: registrations.length,
-    confirmed: registrations.filter(r => r.status === 'CONFIRMED' || r.status === 'REGISTERED').length,
+    confirmed: registrations.filter(r => r.status === 'APPROVED' || r.status === 'REGISTERED').length,
     pending: registrations.filter(r => r.status === 'PENDING').length,
     rejected: registrations.filter(r => r.status === 'REJECTED').length,
   };
@@ -301,10 +301,10 @@ const UserDashboard = () => {
                     All
                   </Button>
                   <Button
-                    variant={filterStatus === 'CONFIRMED' ? 'default' : 'outline'}
-                    onClick={() => setFilterStatus('CONFIRMED')}
+                    variant={filterStatus === 'APPROVED' ? 'default' : 'outline'}
+                    onClick={() => setFilterStatus('APPROVED')}
                   >
-                    Confirmed
+                    Approved
                   </Button>
                   <Button
                     variant={filterStatus === 'PENDING' ? 'default' : 'outline'}
@@ -398,7 +398,7 @@ const UserDashboard = () => {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
-                              {(registration.status === 'CONFIRMED' || registration.status === 'REGISTERED') && (
+                              {(registration.status === 'APPROVED' || registration.status === 'REGISTERED') && (
                                 <>
                                   <Button
                                     variant="outline"

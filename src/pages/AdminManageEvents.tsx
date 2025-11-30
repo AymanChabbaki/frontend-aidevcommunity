@@ -805,7 +805,7 @@ const AdminManageEvents = () => {
                       <TableCell className="font-medium">{reg.user?.displayName || reg.user?.name || 'Unknown'}</TableCell>
                       <TableCell>{reg.user?.email || 'N/A'}</TableCell>
                       <TableCell>
-                        <Badge variant={reg.status === 'CONFIRMED' || reg.status === 'REGISTERED' ? 'default' : reg.status === 'PENDING' ? 'secondary' : 'destructive'}>
+                        <Badge variant={reg.status === 'APPROVED' || reg.status === 'REGISTERED' ? 'default' : reg.status === 'PENDING' ? 'secondary' : 'destructive'}>
                           {reg.status}
                         </Badge>
                       </TableCell>
@@ -842,7 +842,7 @@ const AdminManageEvents = () => {
                             </Button>
                           </div>
                         )}
-                        {(reg.status === 'CONFIRMED' || reg.status === 'REGISTERED') && (
+                        {(reg.status === 'APPROVED' || reg.status === 'REGISTERED') && (
                           <Badge variant="default" className="bg-green-500">Approved</Badge>
                         )}
                         {reg.status === 'REJECTED' && (
