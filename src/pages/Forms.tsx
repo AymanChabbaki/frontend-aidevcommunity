@@ -275,7 +275,7 @@ const Forms = () => {
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://res.cloudinary.com/dmznisgxq/image/upload/v1764464389/d5af05c4-f5d8-44f5-bb25-9874e13f57e6_e0nn6v.jpg" 
+            src="https://res.cloudinary.com/dmznisgxq/image/upload/v1764465520/3fa4678d-fed4-461d-ad92-0dd76ac30826_kb2ybv.jpg" 
             alt="" 
             className="w-full h-full object-cover"
           />
@@ -349,7 +349,7 @@ const Forms = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.4 + index * 0.1 }}
                 whileHover={{ scale: 1.05, y: -5 }}
-                className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20"
+                className="bg-white/10 rounded-2xl p-6 border border-white/20"
               >
                 <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${stat.color} mb-4`}>
                   <stat.icon className="h-6 w-6 text-white" />

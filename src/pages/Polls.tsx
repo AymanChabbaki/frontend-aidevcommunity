@@ -206,7 +206,7 @@ const Polls = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.4 + index * 0.1 }}
                 whileHover={{ scale: 1.05, y: -5 }}
-                className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20"
+                className="bg-white/10 rounded-2xl p-6 border border-white/20"
               >
                 <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${stat.color} mb-4`}>
                   <stat.icon className="h-6 w-6 text-white" />
