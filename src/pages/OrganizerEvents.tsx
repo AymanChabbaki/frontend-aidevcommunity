@@ -128,19 +128,6 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
     }
   };
 
-  const handleRejectRegistration = async (registrationId: string) => {
-    try {
-      await eventService.rejectRegistration(registrationId);
-      toast.success('Registration rejected');
-      // Refresh registrations
-      if (registrationsDialog.event) {
-        handleViewRegistrations(registrationsDialog.event);
-      }
-    } catch (error: any) {
-      toast.error('Failed to reject registration');
-    }
-  };
-
   const handleExportRegistrations = async (eventId: string, eventTitle: string) => {
     try {
       const response = await eventService.getEventRegistrations(eventId);
