@@ -38,8 +38,6 @@ const EventDetail = () => {
         // Map to expected format
         const mappedEvent = {
           ...foundEvent,
-          date: foundEvent.startAt,
-          location: foundEvent.locationText,
           image: foundEvent.imageUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87',
           registrations: foundEvent._count?.registrations || 0,
         };
@@ -187,13 +185,13 @@ const EventDetail = () => {
         doc.setTextColor(71, 85, 105);
         doc.text('Date:', 30, 120);
         doc.setTextColor(30, 41, 59);
-        doc.text(format(new Date(event.date), 'PPP p'), 30, 130);
+        doc.text(format(new Date(event.startAt), 'PPP p'), 30, 130);
         
         // Event Location
         doc.setTextColor(71, 85, 105);
         doc.text('Location:', 30, 145);
         doc.setTextColor(30, 41, 59);
-        const splitLocation = doc.splitTextToSize(event.location, 150);
+        const splitLocation = doc.splitTextToSize(event.locationText || event.location || 'TBA', 150);
         doc.text(splitLocation, 30, 155);
         
         // Main content area - Event Details Card (draw border after content to calculate proper height)
@@ -323,14 +321,14 @@ const EventDetail = () => {
                     <Calendar className="h-5 w-5 text-primary" />
                     <div>
                       <p className="text-sm text-muted-foreground">{t.events.date}</p>
-                      <p className="font-medium">{format(new Date(event.date), 'PPP p')}</p>
+                      <p className="font-medium">{format(new Date(event.startAt), 'PPP p')}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <MapPin className="h-5 w-5 text-primary" />
                     <div>
                       <p className="text-sm text-muted-foreground">{t.events.location}</p>
-                      <p className="font-medium">{event.location}</p>
+                      <p className="font-medium">{event.locationText || event.location || 'TBA'}</p>
                     </div>
                   </div>
                 </div>

@@ -80,14 +80,14 @@ const Events = () => {
     const matchesSearch = 
       event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      event.location?.toLowerCase().includes(searchTerm.toLowerCase());
+      (event.locationText || event.location || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesCategory = 
       selectedCategory === 'all' || 
       event.category?.toLowerCase() === selectedCategory.toLowerCase();
     
     const now = new Date();
-    const eventDate = new Date(event.date);
+    const eventDate = new Date(event.startAt || event.date);
     const matchesFilter = 
       (activeFilter === 'upcoming' && eventDate >= now) ||
       (activeFilter === 'past' && eventDate < now) ||
@@ -98,7 +98,7 @@ const Events = () => {
 
   const stats = [
     { label: 'Total Events', value: events.length, icon: Calendar },
-    { label: 'Upcoming', value: events.filter(e => new Date(e.date) >= new Date()).length, icon: TrendingUp },
+    { label: 'Upcoming', value: events.filter(e => new Date(e.startAt || e.date) >= new Date()).length, icon: TrendingUp },
     { label: 'Categories', value: new Set(events.map(e => e.category).filter(Boolean)).size, icon: Tag },
     { label: 'Total Registrations', value: events.reduce((acc, e) => acc + (e.registrations || 0), 0), icon: Users },
   ];

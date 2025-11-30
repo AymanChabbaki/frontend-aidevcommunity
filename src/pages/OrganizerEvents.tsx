@@ -105,7 +105,7 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
 
   const filteredEvents = events.filter(event =>
     event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    event.location.toLowerCase().includes(searchQuery.toLowerCase())
+    (event.locationText || event.location || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Pagination logic
@@ -198,15 +198,14 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <div className="text-sm">
-                          <div>{format(new Date(event.date), 'MMM dd, yyyy')}</div>
-                          <div className="text-muted-foreground">{event.time}</div>
+                          <div>{format(new Date(event.startAt || event.date), 'MMM dd, yyyy p')}</div>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{event.location}</span>
+                        <span className="text-sm">{event.locationText || event.location || 'TBA'}</span>
                       </div>
                     </TableCell>
                     <TableCell>
