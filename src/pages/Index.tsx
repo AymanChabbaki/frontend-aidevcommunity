@@ -54,7 +54,7 @@ const Index = () => {
         date: event.startAt,
         location: event.locationText,
         image: event.imageUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87',
-        registrations: event.registrations?.length || 0
+        registrations: event._count?.registrations || 0
       }));
       
       const now = new Date();
