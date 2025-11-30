@@ -403,12 +403,12 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-50">
-        <div className="grid grid-cols-5 gap-1 p-2">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-50 overflow-x-auto">
+        <div className="flex gap-1 p-2 min-w-max">
           <Link
             to="/admin/dashboard"
             className={cn(
-              'flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors',
+              'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
               isActive('/admin/dashboard')
                 ? 'bg-primary text-white'
                 : 'text-gray-300 hover:bg-gray-800'
@@ -420,7 +420,7 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
           <Link
             to="/admin/users"
             className={cn(
-              'flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors',
+              'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
               isActive('/admin/users')
                 ? 'bg-primary text-white'
                 : 'text-gray-300 hover:bg-gray-800'
@@ -432,7 +432,7 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
           <Link
             to="/admin/manage-events"
             className={cn(
-              'flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors',
+              'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
               isActive('/admin/manage-events')
                 ? 'bg-primary text-white'
                 : 'text-gray-300 hover:bg-gray-800'
@@ -444,7 +444,7 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
           <Link
             to="/admin/manage-polls"
             className={cn(
-              'flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors',
+              'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
               isActive('/admin/manage-polls')
                 ? 'bg-primary text-white'
                 : 'text-gray-300 hover:bg-gray-800'
@@ -456,7 +456,7 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
           <Link
             to="/admin/manage-forms"
             className={cn(
-              'flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors',
+              'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
               isActive('/admin/manage-forms')
                 ? 'bg-primary text-white'
                 : 'text-gray-300 hover:bg-gray-800'
@@ -464,6 +464,42 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
           >
             <FileText className="h-5 w-5" />
             <span className="text-xs mt-1">Forms</span>
+          </Link>
+          <Link
+            to="/admin/home-content"
+            className={cn(
+              'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
+              isActive('/admin/home-content')
+                ? 'bg-primary text-white'
+                : 'text-gray-300 hover:bg-gray-800'
+            )}
+          >
+            <Home className="h-5 w-5" />
+            <span className="text-xs mt-1">Content</span>
+          </Link>
+          <Link
+            to="/admin/contact-messages"
+            className={cn(
+              'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
+              isActive('/admin/contact-messages')
+                ? 'bg-primary text-white'
+                : 'text-gray-300 hover:bg-gray-800'
+            )}
+          >
+            <Mail className="h-5 w-5" />
+            <span className="text-xs mt-1">Messages</span>
+          </Link>
+          <Link
+            to="/admin/settings"
+            className={cn(
+              'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
+              isActive('/admin/settings')
+                ? 'bg-primary text-white'
+                : 'text-gray-300 hover:bg-gray-800'
+            )}
+          >
+            <Settings className="h-5 w-5" />
+            <span className="text-xs mt-1">Settings</span>
           </Link>
         </div>
       </nav>

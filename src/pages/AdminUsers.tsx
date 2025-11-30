@@ -150,6 +150,25 @@ const AdminUsers = () => {
     }
   };
 
+  const getImageUrl = (photoUrl: string | null | undefined) => {
+    if (!photoUrl) return null;
+    if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+      return photoUrl;
+    }
+    const API_URL = import.meta.env.VITE_API_URL || 'https://backend-aidevcommunity.vercel.app/api';
+    const baseUrl = API_URL.replace('/api', '');
+    return `${baseUrl}${photoUrl}`;
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      ?.split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) || 'U';
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -225,16 +244,28 @@ const AdminUsers = () => {
                   <TableRow key={user.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                          <span className="font-semibold text-primary">
-                            {user.displayName?.charAt(0).toUpperCase()}
+                        {user.photoUrl && getImageUrl(user.photoUrl) ? (
+                          <img
+                            src={getImageUrl(user.photoUrl) || ''}
+                            alt={user.displayName}
+                            className="h-10 w-10 rounded-full object-cover ring-2 ring-primary/20"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                        ) : null}
+                        <div
+                          className={`h-10 w-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center ${
+                            user.photoUrl && getImageUrl(user.photoUrl) ? 'hidden' : ''
+                          }`}
+                        >
+                          <span className="font-semibold text-white text-sm">
+                            {getInitials(user.displayName)}
                           </span>
                         </div>
                         <div>
                           <p className="font-medium">{user.displayName}</p>
-                          {user.photoUrl && (
-                            <p className="text-xs text-muted-foreground">Has profile photo</p>
-                          )}
                         </div>
                       </div>
                     </TableCell>
