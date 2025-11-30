@@ -81,7 +81,7 @@ const AdminManagePolls = ({ onCreatePoll }: AdminManagePollsProps = {}) => {
 
   useEffect(() => {
     fetchPolls();
-  }, [location.pathname, user?.id]);
+  }, [location.pathname, location.state, user?.id]);
 
   const handleViewPoll = async (pollId: string) => {
     try {

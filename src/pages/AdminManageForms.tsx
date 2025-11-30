@@ -80,7 +80,7 @@ const AdminManageForms = ({ onCreateForm }: AdminManageFormsProps = {}) => {
 
   useEffect(() => {
     fetchForms();
-  }, [location.pathname, user?.id]);
+  }, [location.pathname, location.state, user?.id]);
 
   const handleViewForm = async (formId: string) => {
     try {
