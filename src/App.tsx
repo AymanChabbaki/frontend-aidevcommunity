@@ -19,6 +19,8 @@ import Members from "./pages/Members";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 
@@ -90,6 +92,8 @@ const App = () => (
               <Route path="/terms" element={<MainLayout><TermsOfService /></MainLayout>} />
               <Route path="/login" element={<MainLayout><Login /></MainLayout>} />
               <Route path="/register" element={<MainLayout><Register /></MainLayout>} />
+              <Route path="/forgot-password" element={<MainLayout><ForgotPassword /></MainLayout>} />
+              <Route path="/reset-password" element={<MainLayout><ResetPassword /></MainLayout>} />
               <Route path="/polls" element={<MainLayout><Polls /></MainLayout>} />
               <Route path="/forms" element={<MainLayout><Forms /></MainLayout>} />
 
