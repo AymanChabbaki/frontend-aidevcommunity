@@ -97,14 +97,16 @@ const StaffDashboard = () => {
     label: string;
     required: boolean;
     options?: string[];
+    placeholder?: string;
   }
   const [formBuilderData, setFormBuilderData] = useState({
     title: '',
     description: ''
   });
   const [formFields, setFormFields] = useState<FormField[]>([
-    { id: 'field1', type: 'text', label: '', required: false }
+    { id: 'field1', type: 'text', label: '', required: false, placeholder: '' }
   ]);
+  const [editingOptions, setEditingOptions] = useState<{[key: string]: string}>({});
 
   const menuItems = [
     {
@@ -1034,7 +1036,9 @@ const StaffDashboard = () => {
                       id: `field${formFields.length + 1}`,
                       type: 'text',
                       label: '',
-                      required: false
+                      required: false,
+                      placeholder: '',
+                      options: []
                     }]);
                   }}
                 >
@@ -1069,7 +1073,11 @@ const StaffDashboard = () => {
                           value={field.type}
                           onValueChange={(value) => {
                             const newFields = [...formFields];
-                            newFields[index] = { ...newFields[index], type: value };
+                            newFields[index] = { 
+                              ...newFields[index], 
+                              type: value,
+                              options: (value === 'select' || value === 'checkbox') ? [''] : []
+                            };
                             setFormFields(newFields);
                           }}
                         >
@@ -1101,26 +1109,75 @@ const StaffDashboard = () => {
                       </div>
                     </div>
 
-                    {field.type === 'select' && (
+                    {!['checkbox'].includes(field.type) && (
                       <div className="space-y-1">
-                        <Label className="text-xs">Options (comma-separated)</Label>
+                        <Label className="text-xs">Placeholder Text (Optional)</Label>
                         <Input
-                          value={field.options?.join(', ') || ''}
+                          value={field.placeholder || ''}
                           onChange={(e) => {
                             const newFields = [...formFields];
-                            newFields[index] = {
-                              ...newFields[index],
-                              options: e.target.value.split(',').map(o => o.trim()).filter(Boolean)
-                            };
+                            newFields[index] = { ...newFields[index], placeholder: e.target.value };
                             setFormFields(newFields);
                           }}
-                          placeholder="Option 1, Option 2, Option 3"
+                          placeholder="Enter placeholder text"
                           className="h-9"
                         />
                       </div>
                     )}
 
-                    <div className="flex items-center space-x-2">
+                    {(field.type === 'select' || field.type === 'checkbox') && (
+                      <div className="space-y-2">
+                        <Label className="text-xs">Options</Label>
+                        <div className="space-y-2 border rounded-md p-3 bg-gray-50">
+                          {(field.options || []).map((option, optIndex) => (
+                            <div key={optIndex} className="flex gap-2">
+                              <Input
+                                value={option}
+                                onChange={(e) => {
+                                  const newFields = [...formFields];
+                                  const newOptions = [...(field.options || [])];
+                                  newOptions[optIndex] = e.target.value;
+                                  newFields[index] = { ...newFields[index], options: newOptions };
+                                  setFormFields(newFields);
+                                }}
+                                placeholder={`Option ${optIndex + 1}`}
+                                className="h-9"
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  const newFields = [...formFields];
+                                  const newOptions = (field.options || []).filter((_, i) => i !== optIndex);
+                                  newFields[index] = { ...newFields[index], options: newOptions };
+                                  setFormFields(newFields);
+                                }}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => {
+                              const newFields = [...formFields];
+                              const newOptions = [...(field.options || []), ''];
+                              newFields[index] = { ...newFields[index], options: newOptions };
+                              setFormFields(newFields);
+                            }}
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Add Option
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center space-x-2 pt-2">
                       <Checkbox
                         id={`required-${field.id}`}
                         checked={field.required}
@@ -1130,7 +1187,9 @@ const StaffDashboard = () => {
                           setFormFields(newFields);
                         }}
                       />
-                      <Label htmlFor={`required-${field.id}`} className="text-xs">Required field</Label>
+                      <Label htmlFor={`required-${field.id}`} className="text-sm font-medium cursor-pointer">
+                        Required field
+                      </Label>
                     </div>
                   </div>
                 </Card>
@@ -1142,7 +1201,7 @@ const StaffDashboard = () => {
               Cancel
             </Button>
             <Button onClick={async () => {
-              if (!formBuilderData.title) {
+              if (!formBuilderData.title.trim()) {
                 toast.error('Please enter a form title');
                 return;
               }
@@ -1153,25 +1212,51 @@ const StaffDashboard = () => {
                 return;
               }
 
+              // Validate select and checkbox fields have at least one non-empty option
+              for (const field of formFields) {
+                if (field.type === 'select' || field.type === 'checkbox') {
+                  const validOptions = (field.options || []).filter(opt => opt.trim() !== '');
+                  if (validOptions.length === 0) {
+                    toast.error(`${field.type === 'select' ? 'Select' : 'Checkbox'} field "${field.label}" must have at least one option`);
+                    return;
+                  }
+                }
+              }
+
               try {
                 setSubmitting(true);
                 const formPayload = {
-                  title: formBuilderData.title,
-                  description: formBuilderData.description,
-                  fields: formFields.map(field => ({
-                    id: field.id,
-                    type: field.type,
-                    label: field.label,
-                    required: field.required,
-                    ...(field.options && field.options.length > 0 ? { options: field.options } : {})
-                  }))
+                  title: formBuilderData.title.trim(),
+                  description: formBuilderData.description.trim(),
+                  fields: formFields.map(field => {
+                    const baseField: any = {
+                      id: field.id,
+                      type: field.type,
+                      label: field.label.trim(),
+                      required: field.required
+                    };
+                    
+                    if (field.placeholder && field.placeholder.trim()) {
+                      baseField.placeholder = field.placeholder.trim();
+                    }
+                    
+                    if (field.options && field.options.length > 0) {
+                      const validOptions = field.options.filter(opt => opt.trim() !== '').map(opt => opt.trim());
+                      if (validOptions.length > 0) {
+                        baseField.options = validOptions;
+                      }
+                    }
+                    
+                    return baseField;
+                  })
                 };
 
                 await formService.createForm(formPayload);
                 toast.success('Form created successfully');
                 setCreateFormDialog(false);
                 setFormBuilderData({ title: '', description: '' });
-                setFormFields([{ id: 'field1', type: 'text', label: '', required: false }]);
+                setFormFields([{ id: 'field1', type: 'text', label: '', required: false, placeholder: '', options: [] }]);
+                setEditingOptions({});
                 // Navigate to forms page and force refresh
                 navigate('/staff/forms', { state: { refresh: Date.now() } });
               } catch (error: any) {
