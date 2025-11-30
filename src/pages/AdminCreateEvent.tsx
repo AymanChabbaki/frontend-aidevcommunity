@@ -15,6 +15,7 @@ import { Calendar, MapPin, Users, Image, Shield, X } from 'lucide-react';
 const AdminCreateEvent = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -31,6 +32,51 @@ const AdminCreateEvent = () => {
     eligibleLevels: [] as string[],
     eligiblePrograms: [] as string[],
   });
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Error',
+        description: 'Please select an image file',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'Error',
+        description: 'Image size must be less than 5MB',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const response = await eventService.uploadEventImage(file);
+      if (response.success) {
+        setFormData({ ...formData, imageUrl: response.data.imageUrl });
+        toast({
+          title: 'Success',
+          description: 'Image uploaded successfully',
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.error || 'Failed to upload image',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -194,7 +240,35 @@ const AdminCreateEvent = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="imageUrl">Image URL</Label>
+              <Label htmlFor="imageUrl">Event Image</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={uploadingImage}
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={uploadingImage}
+                >
+                  {uploadingImage ? 'Uploading...' : 'Upload'}
+                </Button>
+              </div>
+              {formData.imageUrl && (
+                <div className="mt-2">
+                  <img
+                    src={formData.imageUrl}
+                    alt="Event preview"
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground">
+                Or paste image URL below (Max 5MB)
+              </p>
               <Input
                 id="imageUrl"
                 value={formData.imageUrl}

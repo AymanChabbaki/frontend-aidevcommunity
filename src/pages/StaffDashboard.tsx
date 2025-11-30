@@ -63,6 +63,7 @@ const StaffDashboard = () => {
   const [createPollDialog, setCreatePollDialog] = useState(false);
   const [createFormDialog, setCreateFormDialog] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [eventFormData, setEventFormData] = useState({
     title: '',
     description: '',
@@ -72,6 +73,7 @@ const StaffDashboard = () => {
     capacity: '',
     category: '',
     status: 'UPCOMING',
+    imageUrl: '',
     requiresApproval: false,
     eligibleLevels: [] as string[],
     eligiblePrograms: [] as string[]
@@ -166,6 +168,34 @@ const StaffDashboard = () => {
       fetchStats();
     }
   }, [location.pathname, user?.id]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB');
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const response = await eventService.uploadEventImage(file);
+      if (response.success) {
+        setEventFormData({ ...eventFormData, imageUrl: response.data.imageUrl });
+        toast.success('Image uploaded successfully');
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const staffCards = [
     {
@@ -602,6 +632,30 @@ const StaffDashboard = () => {
               </div>
             </div>
 
+            {/* Event Image Upload */}
+            <div className="space-y-2">
+              <Label htmlFor="eventImage">Event Image</Label>
+              <Input
+                id="eventImage"
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={uploadingImage}
+              />
+              {eventFormData.imageUrl && (
+                <div className="mt-2">
+                  <img
+                    src={eventFormData.imageUrl}
+                    alt="Event preview"
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground">
+                {uploadingImage ? 'Uploading image...' : 'Upload an event image (Max 5MB)'}
+              </p>
+            </div>
+
             {/* Eligibility & Approval Section */}
             <div className="border rounded-lg p-4 space-y-4 mt-4">
               <div className="flex items-center gap-2">
@@ -720,6 +774,7 @@ const StaffDashboard = () => {
                   capacity: '',
                   category: '',
                   status: 'UPCOMING',
+                  imageUrl: '',
                   requiresApproval: false,
                   eligibleLevels: [],
                   eligiblePrograms: []

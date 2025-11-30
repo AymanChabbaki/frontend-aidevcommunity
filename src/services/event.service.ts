@@ -87,4 +87,15 @@ export const eventService = {
     const response = await api.put(`/events/registrations/${id}/reject`, { reason });
     return response.data;
   },
+
+  async uploadEventImage(file: File) {
+    const formData = new FormData();
+    formData.append('image', file);
+    const response = await api.post('/events/upload-image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
 };

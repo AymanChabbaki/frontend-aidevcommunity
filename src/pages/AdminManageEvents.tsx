@@ -83,6 +83,50 @@ const AdminManageEvents = () => {
     eligiblePrograms: [] as string[],
   });
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Error',
+        description: 'Please select an image file',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'Error',
+        description: 'Image size must be less than 5MB',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const response = await eventService.uploadEventImage(file);
+      if (response.success) {
+        setEditFormData({ ...editFormData, imageUrl: response.data.imageUrl });
+        toast({
+          title: 'Success',
+          description: 'Image uploaded successfully',
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.error || 'Failed to upload image',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const fetchEvents = async () => {
     try {
@@ -537,12 +581,31 @@ const AdminManageEvents = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-imageUrl">Image URL</Label>
+              <Label htmlFor="edit-imageUrl">Event Image</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={uploadingImage}
+              />
+              {editFormData.imageUrl && (
+                <div className="mt-2">
+                  <img
+                    src={editFormData.imageUrl}
+                    alt="Event preview"
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground">
+                {uploadingImage ? 'Uploading image...' : 'Or paste image URL below (Max 5MB)'}
+              </p>
               <Input
                 id="edit-imageUrl"
                 type="url"
                 value={editFormData.imageUrl}
                 onChange={(e) => setEditFormData({ ...editFormData, imageUrl: e.target.value })}
+                placeholder="https://example.com/image.jpg"
               />
             </div>
 
