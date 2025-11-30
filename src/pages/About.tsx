@@ -201,7 +201,7 @@ const About = () => {
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="secondary" className="text-lg">
+              <Button asChild size="lg" variant="secondary" className="text-lg gradient-accent/20 group">
                 <Link to="/events">Explore Events</Link>
               </Button>
             </motion.div>
