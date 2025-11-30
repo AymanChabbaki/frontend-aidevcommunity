@@ -126,8 +126,20 @@ const EventDetail = () => {
         
         // Check study program if specified
         if (eligiblePrograms.length > 0) {
-          if (!userProgram || !eligiblePrograms.includes(userProgram)) {
+          if (!userProgram) {
             isEligible = false;
+          } else {
+            // Check if user's program matches any eligible program
+            // Handle both full format (MASTER_M2) and short format (M2)
+            const userProgramMatches = eligiblePrograms.some((eligibleProg: string) => {
+              return userProgram === eligibleProg || 
+                     userProgram.endsWith('_' + eligibleProg) ||
+                     userProgram.includes(eligibleProg);
+            });
+            
+            if (!userProgramMatches) {
+              isEligible = false;
+            }
           }
         }
         
