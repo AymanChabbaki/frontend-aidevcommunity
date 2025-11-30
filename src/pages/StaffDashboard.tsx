@@ -31,7 +31,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
-  BarChart3
+  BarChart3,
+  User
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { eventService } from '@/services/event.service';
@@ -42,6 +43,7 @@ import OrganizerEvents from './OrganizerEvents';
 import AdminManagePolls from './AdminManagePolls';
 import AdminManageForms from './AdminManageForms';
 import QRScanner from './QRScanner';
+import Profile from './Profile';
 import { Checkbox } from '@/components/ui/checkbox';
 import { X } from 'lucide-react';
 
@@ -120,6 +122,11 @@ const StaffDashboard = () => {
       title: 'Manage Forms',
       icon: FileText,
       path: '/staff/forms',
+    },
+    {
+      title: 'My Profile',
+      icon: User,
+      path: '/staff/profile',
     },
   ];
 
@@ -223,7 +230,21 @@ const StaffDashboard = () => {
         {/* User Info */}
         <div className="p-4 border-b border-gray-800">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center font-semibold">
+            {user?.photoUrl ? (
+              <img 
+                src={user.photoUrl.startsWith('http') ? user.photoUrl : `${import.meta.env.VITE_API_URL?.replace('/api', '')}${user.photoUrl}`}
+                alt={user.displayName}
+                className="h-10 w-10 rounded-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <div className={cn(
+              "h-10 w-10 rounded-full bg-primary flex items-center justify-center font-semibold",
+              user?.photoUrl && "hidden"
+            )}>
               {user?.displayName?.charAt(0).toUpperCase()}
             </div>
             {!sidebarCollapsed && (
@@ -409,6 +430,7 @@ const StaffDashboard = () => {
             <Route path="/polls" element={<AdminManagePolls onCreatePoll={() => setCreatePollDialog(true)} />} />
             <Route path="/forms" element={<AdminManageForms onCreateForm={() => setCreateFormDialog(true)} />} />
             <Route path="/qr-scanner" element={<QRScanner />} />
+            <Route path="/profile" element={<Profile />} />
           </Routes>
         </div>
       </main>

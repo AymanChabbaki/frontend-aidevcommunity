@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,6 +41,7 @@ interface AdminManageFormsProps {
 
 const AdminManageForms = ({ onCreateForm }: AdminManageFormsProps = {}) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [forms, setForms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,7 +61,11 @@ const AdminManageForms = ({ onCreateForm }: AdminManageFormsProps = {}) => {
     try {
       setLoading(true);
       const response = await formService.getAllForms();
-      setForms(response.data || []);
+      // ADMIN sees all forms, STAFF sees only their own
+      const filteredData = user?.role === 'ADMIN' 
+        ? response.data || [] 
+        : (response.data || []).filter((form: any) => form.createdBy === user?.id);
+      setForms(filteredData);
     } catch (error: any) {
       toast({
         title: 'Error',

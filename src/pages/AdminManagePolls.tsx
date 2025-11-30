@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,6 +42,7 @@ interface AdminManagePollsProps {
 
 const AdminManagePolls = ({ onCreatePoll }: AdminManagePollsProps = {}) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [polls, setPolls] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -60,7 +62,11 @@ const AdminManagePolls = ({ onCreatePoll }: AdminManagePollsProps = {}) => {
     try {
       setLoading(true);
       const response = await pollService.getAllPolls();
-      setPolls(response.data || []);
+      // ADMIN sees all polls, STAFF sees only their own
+      const filteredData = user?.role === 'ADMIN' 
+        ? response.data || [] 
+        : (response.data || []).filter((poll: any) => poll.createdBy === user?.id);
+      setPolls(filteredData);
     } catch (error: any) {
       toast({
         title: 'Error',
