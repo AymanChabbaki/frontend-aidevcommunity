@@ -36,8 +36,9 @@ export const formService = {
     return response.data;
   },
 
-  async exportResponses(id: string) {
+  async exportResponses(id: string, format: 'csv' | 'xlsx' = 'csv') {
     const response = await api.get(`/forms/${id}/responses/export`, {
+      params: { format },
       responseType: 'blob',
     });
     return response;

@@ -30,9 +30,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { toast } from '@/hooks/use-toast';
 import { formService } from '@/services/form.service';
-import { FileText, Search, Plus, Eye, Trash2, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { FileText, Search, Plus, Eye, Trash2, Download, ChevronLeft, ChevronRight, FileSpreadsheet } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface AdminManageFormsProps {
@@ -130,12 +136,12 @@ const AdminManageForms = ({ onCreateForm }: AdminManageFormsProps = {}) => {
     }
   };
 
-  const handleExport = async (formId: string) => {
+  const handleExport = async (formId: string, format: 'csv' | 'xlsx' = 'csv') => {
     try {
-      const response = await formService.exportResponses(formId);
+      const response = await formService.exportResponses(formId, format);
       
       // Get filename from Content-Disposition header or use default
-      let filename = `form-responses-${formId}.csv`;
+      let filename = `form-responses-${formId}.${format}`;
       const contentDisposition = response.headers['content-disposition'];
       if (contentDisposition) {
         const filenameMatch = contentDisposition.match(/filename="?(.+?)"?$/i);
@@ -144,8 +150,12 @@ const AdminManageForms = ({ onCreateForm }: AdminManageFormsProps = {}) => {
         }
       }
       
-      // Create a blob and download
-      const blob = new Blob([response.data], { type: 'text/csv; charset=utf-8' });
+      // Create appropriate blob type based on format
+      const contentType = format === 'xlsx' 
+        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        : 'text/csv; charset=utf-8';
+      
+      const blob = new Blob([response.data], { type: contentType });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -155,7 +165,7 @@ const AdminManageForms = ({ onCreateForm }: AdminManageFormsProps = {}) => {
       
       toast({
         title: 'Success',
-        description: 'Form responses exported successfully',
+        description: `Form responses exported as ${format.toUpperCase()} successfully`,
       });
     } catch (error: any) {
       toast({
@@ -269,14 +279,27 @@ const AdminManageForms = ({ onCreateForm }: AdminManageFormsProps = {}) => {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleExport(form.id)}
-                          disabled={!form._count?.responses}
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={!form._count?.responses}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleExport(form.id, 'csv')}>
+                              <FileText className="h-4 w-4 mr-2" />
+                              Export as CSV
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExport(form.id, 'xlsx')}>
+                              <FileSpreadsheet className="h-4 w-4 mr-2" />
+                              Export as XLSX
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                         <Button
                           variant="outline"
                           size="sm"
@@ -345,10 +368,24 @@ const AdminManageForms = ({ onCreateForm }: AdminManageFormsProps = {}) => {
                       <DialogDescription className="text-base">{viewDialog.form.description}</DialogDescription>
                     )}
                   </div>
-                  <Button onClick={() => handleExport(viewDialog.form.id)} disabled={!viewDialog.form._count?.responses} size="sm">
-                    <Download className="h-4 w-4 mr-2" />
-                    Export
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button disabled={!viewDialog.form._count?.responses} size="sm">
+                        <Download className="h-4 w-4 mr-2" />
+                        Export
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleExport(viewDialog.form.id, 'csv')}>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Export as CSV
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleExport(viewDialog.form.id, 'xlsx')}>
+                        <FileSpreadsheet className="h-4 w-4 mr-2" />
+                        Export as XLSX
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </DialogHeader>
               <div className="space-y-6">
