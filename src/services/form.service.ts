@@ -40,7 +40,7 @@ export const formService = {
     const response = await api.get(`/forms/${id}/responses/export`, {
       responseType: 'blob',
     });
-    return response.data;
+    return response;
   },
 
   async deleteForm(id: string) {

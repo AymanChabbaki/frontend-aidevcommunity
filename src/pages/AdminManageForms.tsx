@@ -133,12 +133,23 @@ const AdminManageForms = ({ onCreateForm }: AdminManageFormsProps = {}) => {
   const handleExport = async (formId: string) => {
     try {
       const response = await formService.exportResponses(formId);
+      
+      // Get filename from Content-Disposition header or use default
+      let filename = `form-responses-${formId}.csv`;
+      const contentDisposition = response.headers['content-disposition'];
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?(.+?)"?$/i);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+      
       // Create a blob and download
-      const blob = new Blob([response.data], { type: 'text/csv' });
+      const blob = new Blob([response.data], { type: 'text/csv; charset=utf-8' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `form-responses-${formId}.csv`;
+      a.download = filename;
       a.click();
       window.URL.revokeObjectURL(url);
       
