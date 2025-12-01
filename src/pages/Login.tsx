@@ -98,7 +98,7 @@ const Login = () => {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password" className="text-base">{t.auth.password}</Label>
                   <Link to="/forgot-password" className="text-sm text-primary hover:underline">
-                    Forgot?
+                    Forgot Password?
                   </Link>
                 </div>
                 <Input
