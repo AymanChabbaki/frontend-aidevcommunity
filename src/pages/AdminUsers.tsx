@@ -303,7 +303,12 @@ const AdminUsers = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setViewDialog({ open: true, user })}
+                          onClick={() => {
+                            console.log('User data:', user);
+                            console.log('Study Level:', user.studyLevel);
+                            console.log('Study Program:', user.studyProgram);
+                            setViewDialog({ open: true, user });
+                          }}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -546,28 +551,26 @@ const AdminUsers = () => {
               )}
 
               {/* Academic Information */}
-              {(viewDialog.user.studyLevel || viewDialog.user.studyProgram) && (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <GraduationCap className="h-5 w-5 text-primary" />
-                    <h4 className="text-lg font-semibold">Academic Information</h4>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <GraduationCap className="h-5 w-5 text-primary" />
+                  <h4 className="text-lg font-semibold">Academic Information</h4>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-secondary/50 rounded-lg border-l-4 border-blue-500">
+                    <p className="text-xs text-muted-foreground mb-2">Study Level</p>
+                    <p className="text-base font-semibold">
+                      {viewDialog.user.studyLevel ? viewDialog.user.studyLevel.replace('_', ' ') : 'Not set'}
+                    </p>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {viewDialog.user.studyLevel && (
-                      <div className="p-4 bg-secondary/50 rounded-lg border-l-4 border-blue-500">
-                        <p className="text-xs text-muted-foreground mb-2">Study Level</p>
-                        <p className="text-base font-semibold">{viewDialog.user.studyLevel.replace('_', ' ')}</p>
-                      </div>
-                    )}
-                    {viewDialog.user.studyProgram && (
-                      <div className="p-4 bg-secondary/50 rounded-lg border-l-4 border-purple-500">
-                        <p className="text-xs text-muted-foreground mb-2">Study Program / Year</p>
-                        <p className="text-base font-semibold">{viewDialog.user.studyProgram.replace(/_/g, ' ')}</p>
-                      </div>
-                    )}
+                  <div className="p-4 bg-secondary/50 rounded-lg border-l-4 border-purple-500">
+                    <p className="text-xs text-muted-foreground mb-2">Study Program / Year</p>
+                    <p className="text-base font-semibold">
+                      {viewDialog.user.studyProgram ? viewDialog.user.studyProgram.replace(/_/g, ' ') : 'Not set'}
+                    </p>
                   </div>
                 </div>
-              )}
+              </div>
 
               {/* Social Links */}
               {(viewDialog.user.github || viewDialog.user.linkedin || viewDialog.user.twitter) && (
