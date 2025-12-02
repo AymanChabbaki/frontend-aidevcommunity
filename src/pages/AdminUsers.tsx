@@ -304,9 +304,6 @@ const AdminUsers = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            console.log('User data:', user);
-                            console.log('Study Level:', user.studyLevel);
-                            console.log('Study Program:', user.studyProgram);
                             setViewDialog({ open: true, user });
                           }}
                         >
@@ -437,7 +434,7 @@ const AdminUsers = () => {
                     <p className="text-sm text-muted-foreground truncate">{viewDialog.user.email}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Badge className={getRoleBadgeColor(viewDialog.user.role)} className="text-sm px-3 py-1">
+                    <Badge className={`${getRoleBadgeColor(viewDialog.user.role)} text-sm px-3 py-1`}>
                       <Shield className="h-3 w-3 mr-1" />
                       {viewDialog.user.role}
                     </Badge>
