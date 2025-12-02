@@ -28,6 +28,15 @@ interface Member {
 const Members = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Helper function to format social media URLs
+  const formatUrl = (url: string | null | undefined): string => {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    return `https://${url}`;
+  };
   const { toast } = useToast();
 
   useEffect(() => {
@@ -350,7 +359,7 @@ const Members = () => {
                       <div className="flex items-center gap-2 pt-4 border-t">
                         {member.linkedin && (
                           <a
-                            href={member.linkedin}
+                            href={formatUrl(member.linkedin)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="p-2 rounded-lg hover:bg-primary hover:text-white transition-all"
@@ -360,7 +369,7 @@ const Members = () => {
                         )}
                         {member.github && (
                           <a
-                            href={member.github}
+                            href={formatUrl(member.github)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="p-2 rounded-lg hover:bg-primary hover:text-white transition-all"
@@ -370,7 +379,7 @@ const Members = () => {
                         )}
                         {member.twitter && (
                           <a
-                            href={member.twitter}
+                            href={formatUrl(member.twitter)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="p-2 rounded-lg hover:bg-primary hover:text-white transition-all"
@@ -451,12 +460,12 @@ const Members = () => {
                         </p>
                         <div className="flex gap-2">
                           {member.linkedin && (
-                            <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded hover:bg-primary hover:text-white transition-all">
+                            <a href={formatUrl(member.linkedin)} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded hover:bg-primary hover:text-white transition-all">
                               <Linkedin className="h-3.5 w-3.5" />
                             </a>
                           )}
                           {member.github && (
-                            <a href={member.github} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded hover:bg-primary hover:text-white transition-all">
+                            <a href={formatUrl(member.github)} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded hover:bg-primary hover:text-white transition-all">
                               <Github className="h-3.5 w-3.5" />
                             </a>
                           )}
