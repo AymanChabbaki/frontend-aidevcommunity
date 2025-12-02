@@ -49,14 +49,14 @@ export const Navbar = () => {
     if (role === 'ADMIN') {
       return [
         { to: '/admin/dashboard', label: 'Admin Dashboard' },
-        { to: '/organizer/events', label: 'Manage Events' },
+        { to: '/admin/events', label: 'Manage Events' },
         { to: '/admin/users', label: 'Manage Users' },
       ];
     } else if (role === 'STAFF') {
       return [
         { to: '/staff/dashboard', label: 'Staff Dashboard' },
-        { to: '/organizer/events', label: 'Manage Events' },
-        { to: '/organizer/qr-scanner', label: 'QR Scanner' },
+        { to: '/staff/events', label: 'Manage Events' },
+        { to: '/staff/qr-scanner', label: 'QR Scanner' },
       ];
     } else {
       return [
@@ -172,7 +172,7 @@ export const Navbar = () => {
                     )}
                     {user?.role === 'STAFF' && (
                       <DropdownMenuItem asChild>
-                        <Link to="/organizer/events">Organizer</Link>
+                        <Link to="/staff/events">Organizer</Link>
                       </DropdownMenuItem>
                     )}
                     {user?.role === 'ADMIN' && (
