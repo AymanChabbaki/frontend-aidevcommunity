@@ -171,6 +171,24 @@ const Profile = () => {
   };
 
   const profileUrl = `${window.location.origin}/profile/${user?.id}`;
+  
+  // Digital badge data containing comprehensive user information
+  const digitalBadgeData = JSON.stringify({
+    id: user?.id,
+    name: user?.displayName,
+    email: user?.email,
+    role: user?.role,
+    staffRole: user?.staffRole,
+    organization: 'AI Dev Community',
+    profileUrl: profileUrl,
+    joinDate: user?.createdAt,
+    verified: user?.emailVerified || false,
+    skills: user?.skills || [],
+    studyLevel: user?.studyLevel,
+    studyProgram: user?.studyProgram,
+    issuedAt: new Date().toISOString(),
+    type: 'MEMBER_BADGE'
+  });
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
@@ -347,11 +365,11 @@ const Profile = () => {
                       </div>
                     </div>
 
-                    {/* QR Code Section */}
+                    {/* QR Code Section - Digital Badge */}
                     <div className="p-6 flex flex-col items-center">
                       <div className="bg-white p-3 rounded-xl shadow-lg mb-3">
                         <QRCodeSVG 
-                          value={profileUrl} 
+                          value={digitalBadgeData} 
                           size={120}
                           level="H"
                           includeMargin={false}
@@ -364,6 +382,9 @@ const Profile = () => {
                           {user?.role}
                         </Badge>
                       </div>
+                      <p className="text-white/60 text-xs text-center px-4">
+                        Scan this QR code to view digital member badge with verified credentials
+                      </p>
                     </div>
 
                     {/* Contact Info Footer */}

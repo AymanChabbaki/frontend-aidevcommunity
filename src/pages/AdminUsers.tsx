@@ -39,7 +39,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
 import { adminService } from '@/services/admin.service';
-import { Search, Shield, User as UserIcon, Edit, Trash2, Mail, Calendar } from 'lucide-react';
+import { Search, Shield, User as UserIcon, Edit, Trash2, Mail, Calendar, Eye, Github, Linkedin, Twitter, BookOpen, GraduationCap } from 'lucide-react';
 import { format } from 'date-fns';
 
 const AdminUsers = () => {
@@ -54,6 +54,10 @@ const AdminUsers = () => {
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; userId: string | null }>({
     open: false,
     userId: null,
+  });
+  const [viewDialog, setViewDialog] = useState<{ open: boolean; user: any | null }>({
+    open: false,
+    user: null,
   });
   const [editRole, setEditRole] = useState('');
   const [editStaffRole, setEditStaffRole] = useState('');
@@ -299,6 +303,13 @@ const AdminUsers = () => {
                         <Button
                           variant="outline"
                           size="sm"
+                          onClick={() => setViewDialog({ open: true, user })}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => handleEditUser(user)}
                         >
                           <Edit className="h-4 w-4" />
@@ -375,6 +386,168 @@ const AdminUsers = () => {
             </Button>
             <Button onClick={handleUpdateRole} disabled={submitting}>
               {submitting ? 'Updating...' : 'Update Role'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={viewDialog.open} onOpenChange={(open) => setViewDialog({ open, user: null })}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>User Details</DialogTitle>
+            <DialogDescription>
+              Complete information for {viewDialog.user?.displayName}
+            </DialogDescription>
+          </DialogHeader>
+          {viewDialog.user && (
+            <div className="space-y-6 py-4">
+              {/* Profile Section */}
+              <div className="flex items-start gap-4">
+                {viewDialog.user.photoUrl ? (
+                  <img
+                    src={viewDialog.user.photoUrl}
+                    alt={viewDialog.user.displayName}
+                    className="h-20 w-20 rounded-full object-cover ring-2 ring-primary/20"
+                  />
+                ) : (
+                  <div className="h-20 w-20 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                    <span className="font-bold text-white text-2xl">
+                      {viewDialog.user.displayName?.charAt(0)}
+                    </span>
+                  </div>
+                )}
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold">{viewDialog.user.displayName}</h3>
+                  <p className="text-sm text-muted-foreground">{viewDialog.user.email}</p>
+                  <div className="flex gap-2 mt-2">
+                    <Badge className={getRoleBadgeColor(viewDialog.user.role)}>
+                      {viewDialog.user.role}
+                    </Badge>
+                    {viewDialog.user.staffRole && (
+                      <Badge variant="outline">{viewDialog.user.staffRole}</Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Bio */}
+              {viewDialog.user.bio && (
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold">Bio</Label>
+                  <p className="text-sm text-muted-foreground p-3 bg-secondary rounded-lg">
+                    {viewDialog.user.bio}
+                  </p>
+                </div>
+              )}
+
+              {/* Skills */}
+              {viewDialog.user.skills && viewDialog.user.skills.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold">Skills</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {viewDialog.user.skills.map((skill: string, index: number) => (
+                      <Badge key={index} variant="secondary">{skill}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Academic Info */}
+              {(viewDialog.user.studyLevel || viewDialog.user.studyProgram) && (
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold">Academic Information</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    {viewDialog.user.studyLevel && (
+                      <div className="flex items-center gap-2 p-3 bg-secondary rounded-lg">
+                        <GraduationCap className="h-4 w-4 text-primary" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Study Level</p>
+                          <p className="text-sm font-medium">{viewDialog.user.studyLevel}</p>
+                        </div>
+                      </div>
+                    )}
+                    {viewDialog.user.studyProgram && (
+                      <div className="flex items-center gap-2 p-3 bg-secondary rounded-lg">
+                        <BookOpen className="h-4 w-4 text-primary" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Study Program</p>
+                          <p className="text-sm font-medium">{viewDialog.user.studyProgram}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Social Links */}
+              {(viewDialog.user.github || viewDialog.user.linkedin || viewDialog.user.twitter) && (
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold">Social Links</Label>
+                  <div className="flex gap-3">
+                    {viewDialog.user.github && (
+                      <a
+                        href={viewDialog.user.github.startsWith('http') ? viewDialog.user.github : `https://${viewDialog.user.github}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 p-2 bg-secondary rounded-lg hover:bg-primary hover:text-white transition-all"
+                      >
+                        <Github className="h-4 w-4" />
+                        <span className="text-sm">GitHub</span>
+                      </a>
+                    )}
+                    {viewDialog.user.linkedin && (
+                      <a
+                        href={viewDialog.user.linkedin.startsWith('http') ? viewDialog.user.linkedin : `https://${viewDialog.user.linkedin}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 p-2 bg-secondary rounded-lg hover:bg-primary hover:text-white transition-all"
+                      >
+                        <Linkedin className="h-4 w-4" />
+                        <span className="text-sm">LinkedIn</span>
+                      </a>
+                    )}
+                    {viewDialog.user.twitter && (
+                      <a
+                        href={viewDialog.user.twitter.startsWith('http') ? viewDialog.user.twitter : `https://${viewDialog.user.twitter}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 p-2 bg-secondary rounded-lg hover:bg-primary hover:text-white transition-all"
+                      >
+                        <Twitter className="h-4 w-4" />
+                        <span className="text-sm">Twitter</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Account Details */}
+              <div className="space-y-2">
+                <Label className="text-base font-semibold">Account Details</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-3 bg-secondary rounded-lg">
+                    <p className="text-xs text-muted-foreground">User ID</p>
+                    <p className="text-sm font-mono">{viewDialog.user.id}</p>
+                  </div>
+                  <div className="p-3 bg-secondary rounded-lg">
+                    <p className="text-xs text-muted-foreground">Joined</p>
+                    <p className="text-sm">{format(new Date(viewDialog.user.createdAt), 'MMM dd, yyyy HH:mm')}</p>
+                  </div>
+                  <div className="p-3 bg-secondary rounded-lg">
+                    <p className="text-xs text-muted-foreground">Public Profile</p>
+                    <p className="text-sm">{viewDialog.user.publicProfile ? 'Yes' : 'No'}</p>
+                  </div>
+                  <div className="p-3 bg-secondary rounded-lg">
+                    <p className="text-xs text-muted-foreground">Email Verified</p>
+                    <p className="text-sm">{viewDialog.user.emailVerified ? 'Yes' : 'No'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewDialog({ open: false, user: null })}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
