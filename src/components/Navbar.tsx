@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Bell, User, LogOut, Languages, Menu } from 'lucide-react';
+import { Bell, User, LogOut, Languages, Menu, ChevronDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -124,8 +124,30 @@ export const Navbar = () => {
                 {/* User Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <User className="h-5 w-5" />
+                    <Button variant="ghost" className="flex items-center gap-2 px-2">
+                      <div className="relative">
+                        {user?.photoUrl ? (
+                          <img
+                            src={user.photoUrl}
+                            alt={user.displayName}
+                            className="h-8 w-8 rounded-full object-cover ring-2 ring-primary/20"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                        ) : null}
+                        <div
+                          className={`h-8 w-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center ${
+                            user?.photoUrl ? 'hidden' : ''
+                          }`}
+                        >
+                          <span className="font-semibold text-white text-xs">
+                            {user?.displayName?.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      </div>
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
