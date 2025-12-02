@@ -51,14 +51,12 @@ export const Navbar = () => {
         { to: '/admin/dashboard', label: 'Admin Dashboard' },
         { to: '/organizer/events', label: 'Manage Events' },
         { to: '/admin/users', label: 'Manage Users' },
-        { to: '/profile', label: t.nav.profile },
       ];
     } else if (role === 'STAFF') {
       return [
         { to: '/staff/dashboard', label: 'Staff Dashboard' },
         { to: '/organizer/events', label: 'Manage Events' },
         { to: '/organizer/qr-scanner', label: 'QR Scanner' },
-        { to: '/profile', label: t.nav.profile },
       ];
     } else {
       return [
@@ -134,16 +132,22 @@ export const Navbar = () => {
                     <div className="px-2 py-1.5 text-sm font-semibold">{user?.displayName}</div>
                     <div className="px-2 py-0.5 text-xs text-muted-foreground">{user?.email}</div>
                     <DropdownMenuItem asChild>
-                      <Link to="/dashboard">{t.nav.dashboard}</Link>
+                      <Link to={
+                        user?.role === 'ADMIN' ? '/admin/dashboard' :
+                        user?.role === 'STAFF' ? '/staff/dashboard' :
+                        '/dashboard'
+                      }>{t.nav.dashboard}</Link>
                     </DropdownMenuItem>
                     {user?.role === 'USER' && (
-                      <DropdownMenuItem asChild>
-                        <Link to="/my-registrations">My Registrations</Link>
-                      </DropdownMenuItem>
+                      <>
+                        <DropdownMenuItem asChild>
+                          <Link to="/my-registrations">My Registrations</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/profile">{t.nav.profile}</Link>
+                        </DropdownMenuItem>
+                      </>
                     )}
-                    <DropdownMenuItem asChild>
-                      <Link to="/profile">{t.nav.profile}</Link>
-                    </DropdownMenuItem>
                     {user?.role === 'STAFF' && (
                       <DropdownMenuItem asChild>
                         <Link to="/organizer/events">Organizer</Link>
