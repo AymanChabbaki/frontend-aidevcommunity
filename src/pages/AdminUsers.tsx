@@ -39,7 +39,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
 import { adminService } from '@/services/admin.service';
-import { Search, Shield, User as UserIcon, Edit, Trash2, Mail, Calendar, Eye, Github, Linkedin, Twitter, BookOpen, GraduationCap } from 'lucide-react';
+import { Search, Shield, User as UserIcon, Edit, Trash2, Mail, Calendar, Eye, Github, Linkedin, Twitter, BookOpen, GraduationCap, Globe, User, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 
 const AdminUsers = () => {
@@ -392,58 +392,152 @@ const AdminUsers = () => {
       </Dialog>
 
       <Dialog open={viewDialog.open} onOpenChange={(open) => setViewDialog({ open, user: null })}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>User Details</DialogTitle>
+            <DialogTitle className="text-2xl">User Profile</DialogTitle>
             <DialogDescription>
-              Complete information for {viewDialog.user?.displayName}
+              Complete information and details
             </DialogDescription>
           </DialogHeader>
           {viewDialog.user && (
             <div className="space-y-6 py-4">
-              {/* Basic Information */}
-              <div className="space-y-4">
-                <div className="p-4 bg-secondary rounded-lg">
-                  <Label className="text-xs text-muted-foreground">Full Name</Label>
-                  <p className="text-base font-semibold mt-1">{viewDialog.user.displayName}</p>
+              {/* Profile Header */}
+              <div className="flex items-start gap-6 p-6 bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 rounded-xl border">
+                <div className="relative flex-shrink-0">
+                  {viewDialog.user.photoUrl && getImageUrl(viewDialog.user.photoUrl) ? (
+                    <img
+                      src={getImageUrl(viewDialog.user.photoUrl) || ''}
+                      alt={viewDialog.user.displayName}
+                      className="h-24 w-24 rounded-xl object-cover ring-4 ring-primary/20 shadow-lg"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className={`h-24 w-24 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg ${
+                      viewDialog.user.photoUrl && getImageUrl(viewDialog.user.photoUrl) ? 'hidden' : ''
+                    }`}
+                  >
+                    <span className="font-bold text-white text-3xl">
+                      {getInitials(viewDialog.user.displayName)}
+                    </span>
+                  </div>
                 </div>
-
-                <div className="p-4 bg-secondary rounded-lg">
-                  <Label className="text-xs text-muted-foreground">Email</Label>
-                  <p className="text-base font-medium mt-1">{viewDialog.user.email}</p>
-                </div>
-
-                <div className="p-4 bg-secondary rounded-lg">
-                  <Label className="text-xs text-muted-foreground">Role</Label>
-                  <div className="mt-2">
-                    <Badge className={getRoleBadgeColor(viewDialog.user.role)}>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-2xl font-bold mb-2">{viewDialog.user.displayName}</h3>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground truncate">{viewDialog.user.email}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge className={getRoleBadgeColor(viewDialog.user.role)} className="text-sm px-3 py-1">
+                      <Shield className="h-3 w-3 mr-1" />
                       {viewDialog.user.role}
                     </Badge>
+                    {viewDialog.user.staffRole && (
+                      <Badge variant="outline" className="text-sm px-3 py-1">
+                        {viewDialog.user.staffRole}
+                      </Badge>
+                    )}
+                    {viewDialog.user.publicProfile && (
+                      <Badge variant="secondary" className="text-sm px-3 py-1">
+                        <Globe className="h-3 w-3 mr-1" />
+                        Public Profile
+                      </Badge>
+                    )}
                   </div>
-                </div>
-
-                {viewDialog.user.staffRole && (
-                  <div className="p-4 bg-secondary rounded-lg">
-                    <Label className="text-xs text-muted-foreground">Staff Role</Label>
-                    <p className="text-base font-medium mt-1">{viewDialog.user.staffRole}</p>
-                  </div>
-                )}
-
-                <div className="p-4 bg-secondary rounded-lg">
-                  <Label className="text-xs text-muted-foreground">Join Date</Label>
-                  <p className="text-base font-medium mt-1">
-                    {format(new Date(viewDialog.user.createdAt), 'MMMM dd, yyyy')}
-                  </p>
                 </div>
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Personal Information */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <User className="h-5 w-5 text-primary" />
+                    <h4 className="text-lg font-semibold">Personal Information</h4>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-start p-3 bg-secondary/50 rounded-lg">
+                      <span className="text-sm text-muted-foreground">Full Name</span>
+                      <span className="text-sm font-medium text-right">{viewDialog.user.displayName}</span>
+                    </div>
+                    <div className="flex justify-between items-start p-3 bg-secondary/50 rounded-lg">
+                      <span className="text-sm text-muted-foreground">Email Address</span>
+                      <span className="text-sm font-medium text-right break-all">{viewDialog.user.email}</span>
+                    </div>
+                    <div className="flex justify-between items-start p-3 bg-secondary/50 rounded-lg">
+                      <span className="text-sm text-muted-foreground">User ID</span>
+                      <span className="text-xs font-mono text-right break-all">{viewDialog.user.id}</span>
+                    </div>
+                    <div className="flex justify-between items-start p-3 bg-secondary/50 rounded-lg">
+                      <span className="text-sm text-muted-foreground">Language</span>
+                      <span className="text-sm font-medium uppercase">{viewDialog.user.locale || 'EN'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Account Status */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Calendar className="h-5 w-5 text-primary" />
+                    <h4 className="text-lg font-semibold">Account Status</h4>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-start p-3 bg-secondary/50 rounded-lg">
+                      <span className="text-sm text-muted-foreground">Join Date</span>
+                      <span className="text-sm font-medium">
+                        {format(new Date(viewDialog.user.createdAt), 'MMM dd, yyyy HH:mm')}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-start p-3 bg-secondary/50 rounded-lg">
+                      <span className="text-sm text-muted-foreground">Last Updated</span>
+                      <span className="text-sm font-medium">
+                        {viewDialog.user.updatedAt ? format(new Date(viewDialog.user.updatedAt), 'MMM dd, yyyy HH:mm') : 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-secondary/50 rounded-lg">
+                      <span className="text-sm text-muted-foreground">Email Verified</span>
+                      <span className={`text-sm font-semibold ${viewDialog.user.emailVerified ? 'text-green-500' : 'text-orange-500'}`}>
+                        {viewDialog.user.emailVerified ? '✓ Verified' : '○ Pending'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-secondary/50 rounded-lg">
+                      <span className="text-sm text-muted-foreground">Public Profile</span>
+                      <span className={`text-sm font-semibold ${viewDialog.user.publicProfile ? 'text-green-500' : 'text-gray-500'}`}>
+                        {viewDialog.user.publicProfile ? '✓ Enabled' : '✗ Disabled'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bio */}
+              {viewDialog.user.bio && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="h-5 w-5 text-primary" />
+                    <h4 className="text-lg font-semibold">Biography</h4>
+                  </div>
+                  <div className="p-4 bg-secondary/50 rounded-lg border-l-4 border-primary">
+                    <p className="text-sm leading-relaxed">{viewDialog.user.bio}</p>
+                  </div>
+                </div>
+              )}
 
               {/* Skills */}
               {viewDialog.user.skills && viewDialog.user.skills.length > 0 && (
                 <div className="space-y-3">
-                  <Label className="text-base font-semibold">Skills</Label>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    <h4 className="text-lg font-semibold">Skills & Expertise</h4>
+                  </div>
+                  <div className="flex flex-wrap gap-2 p-4 bg-secondary/50 rounded-lg">
                     {viewDialog.user.skills.map((skill: string, index: number) => (
-                      <Badge key={index} variant="secondary" className="px-3 py-1">
+                      <Badge key={index} variant="secondary" className="px-3 py-1.5 text-sm">
                         {skill}
                       </Badge>
                     ))}
@@ -454,23 +548,67 @@ const AdminUsers = () => {
               {/* Academic Information */}
               {(viewDialog.user.studyLevel || viewDialog.user.studyProgram) && (
                 <div className="space-y-3">
-                  <Label className="text-base font-semibold">Academic Information</Label>
-                  <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <GraduationCap className="h-5 w-5 text-primary" />
+                    <h4 className="text-lg font-semibold">Academic Information</h4>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {viewDialog.user.studyLevel && (
-                      <div className="p-4 bg-secondary rounded-lg">
-                        <Label className="text-xs text-muted-foreground">Study Level</Label>
-                        <p className="text-base font-medium mt-1">
-                          {viewDialog.user.studyLevel.replace('_', ' ')}
-                        </p>
+                      <div className="p-4 bg-secondary/50 rounded-lg border-l-4 border-blue-500">
+                        <p className="text-xs text-muted-foreground mb-2">Study Level</p>
+                        <p className="text-base font-semibold">{viewDialog.user.studyLevel.replace('_', ' ')}</p>
                       </div>
                     )}
                     {viewDialog.user.studyProgram && (
-                      <div className="p-4 bg-secondary rounded-lg">
-                        <Label className="text-xs text-muted-foreground">Study Program</Label>
-                        <p className="text-base font-medium mt-1">
-                          {viewDialog.user.studyProgram.replace(/_/g, ' ')}
-                        </p>
+                      <div className="p-4 bg-secondary/50 rounded-lg border-l-4 border-purple-500">
+                        <p className="text-xs text-muted-foreground mb-2">Study Program / Year</p>
+                        <p className="text-base font-semibold">{viewDialog.user.studyProgram.replace(/_/g, ' ')}</p>
                       </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Social Links */}
+              {(viewDialog.user.github || viewDialog.user.linkedin || viewDialog.user.twitter) && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-5 w-5 text-primary" />
+                    <h4 className="text-lg font-semibold">Social Media</h4>
+                  </div>
+                  <div className="flex flex-wrap gap-3 p-4 bg-secondary/50 rounded-lg">
+                    {viewDialog.user.github && (
+                      <a
+                        href={viewDialog.user.github.startsWith('http') ? viewDialog.user.github : `https://${viewDialog.user.github}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2 bg-background border rounded-lg hover:bg-primary hover:text-white transition-all"
+                      >
+                        <Github className="h-4 w-4" />
+                        <span className="text-sm font-medium">GitHub</span>
+                      </a>
+                    )}
+                    {viewDialog.user.linkedin && (
+                      <a
+                        href={viewDialog.user.linkedin.startsWith('http') ? viewDialog.user.linkedin : `https://${viewDialog.user.linkedin}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2 bg-background border rounded-lg hover:bg-primary hover:text-white transition-all"
+                      >
+                        <Linkedin className="h-4 w-4" />
+                        <span className="text-sm font-medium">LinkedIn</span>
+                      </a>
+                    )}
+                    {viewDialog.user.twitter && (
+                      <a
+                        href={viewDialog.user.twitter.startsWith('http') ? viewDialog.user.twitter : `https://${viewDialog.user.twitter}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2 bg-background border rounded-lg hover:bg-primary hover:text-white transition-all"
+                      >
+                        <Twitter className="h-4 w-4" />
+                        <span className="text-sm font-medium">Twitter</span>
+                      </a>
                     )}
                   </div>
                 </div>
