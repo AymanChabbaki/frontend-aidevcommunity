@@ -261,8 +261,27 @@ export const Navbar = () => {
                     {isAuthenticated && user && (
                       <div className="mt-6 pt-6 border-t border-white/20">
                         <div className="flex items-center gap-3">
-                          <div className="h-12 w-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                            <User className="h-6 w-6 text-white" />
+                          <div className="relative h-12 w-12 flex-shrink-0">
+                            {user.photoUrl ? (
+                              <img
+                                src={user.photoUrl}
+                                alt={user.displayName}
+                                className="h-12 w-12 rounded-full object-cover ring-2 ring-white/30"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                }}
+                              />
+                            ) : null}
+                            <div
+                              className={`h-12 w-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ${
+                                user.photoUrl ? 'hidden' : ''
+                              }`}
+                            >
+                              <span className="text-lg font-bold text-white">
+                                {user.displayName?.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-white truncate">{user.displayName}</p>
@@ -303,9 +322,6 @@ export const Navbar = () => {
                     <>
                       <div className="my-4 border-t border-border"></div>
                       <div className="space-y-1">
-                        <p className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                          Your Account
-                        </p>
                         {userLinks.map((link, index) => (
                           <motion.div
                             key={link.to}
