@@ -19,7 +19,9 @@ import {
   Save,
   RefreshCw,
   AlertTriangle,
-  Loader2
+  Loader2,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 const AdminSettings = () => {
@@ -27,6 +29,7 @@ const AdminSettings = () => {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [initializing, setInitializing] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // General Settings
   const [generalSettings, setGeneralSettings] = useState({
@@ -553,12 +556,28 @@ const AdminSettings = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="smtpPassword">SMTP Password</Label>
-                <Input
-                  id="smtpPassword"
-                  type="password"
-                  value={emailSettings.smtpPassword}
-                  onChange={(e) => setEmailSettings({ ...emailSettings, smtpPassword: e.target.value })}
-                />
+                <div className="relative">
+                  <Input
+                    id="smtpPassword"
+                    type={showPassword ? "text" : "password"}
+                    value={emailSettings.smtpPassword}
+                    onChange={(e) => setEmailSettings({ ...emailSettings, smtpPassword: e.target.value })}
+                    className="pr-12"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-2">

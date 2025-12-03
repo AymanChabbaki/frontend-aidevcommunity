@@ -250,7 +250,7 @@ const Contact = () => {
                       <Label htmlFor="name" className="text-base">Your Name *</Label>
                       <Input 
                         id="name" 
-                        placeholder="John Doe" 
+                        placeholder="Mohammed Salahi" 
                         value={formData.name}
                         onChange={handleChange}
                         required 

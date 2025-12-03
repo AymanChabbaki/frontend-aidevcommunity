@@ -10,12 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { toast } from 'sonner';
-import { UserPlus, ArrowRight, Code2, Rocket, Star, Award, TrendingUp, Users } from 'lucide-react';
+import { UserPlus, ArrowRight, Code2, Rocket, Star, Award, TrendingUp, Users, Eye, EyeOff } from 'lucide-react';
 
 const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [studyLevel, setStudyLevel] = useState('');
   const [studyProgram, setStudyProgram] = useState('');
   const [loading, setLoading] = useState(false);
@@ -209,7 +210,7 @@ const Register = () => {
                 <Input
                   id="name"
                   type="text"
-                  placeholder="John Doe"
+                  placeholder="Mohammed Salahi"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -232,16 +233,31 @@ const Register = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-base">{t.auth.password}</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  className="h-12"
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className="h-12 pr-12"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-12 w-12 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   Must be at least 6 characters long
                 </p>
