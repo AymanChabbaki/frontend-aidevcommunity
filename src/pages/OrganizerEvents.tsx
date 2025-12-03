@@ -506,9 +506,9 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
       </Dialog>
 
       <Dialog open={collaboratorsDialog.open} onOpenChange={(open) => setCollaboratorsDialog({ open, event: null })}>
-        <DialogContent className="max-w-6xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[85vh] overflow-y-auto w-[95vw] sm:w-full">
           <DialogHeader>
-            <DialogTitle>Manage Collaborators - {collaboratorsDialog.event?.title}</DialogTitle>
+            <DialogTitle className="text-base sm:text-lg">Manage Collaborators - {collaboratorsDialog.event?.title}</DialogTitle>
           </DialogHeader>
           {collaboratorsDialog.event && (
             <EventCollaborators 

@@ -90,6 +90,7 @@ const EventCollaborators = ({ eventId, eventTitle, isOrganizer }: Props) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedCollaborator, setSelectedCollaborator] = useState<Collaborator | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [inviteData, setInviteData] = useState({
     userId: '',
     role: 'COLLABORATOR',
@@ -129,24 +130,28 @@ const EventCollaborators = ({ eventId, eventTitle, isOrganizer }: Props) => {
   };
 
   const handleInvite = async () => {
-    if (!inviteData.userId) {
-      toast.error('Please select a staff member');
+    if (selectedUsers.length === 0) {
+      toast.error('Please select at least one staff member');
       return;
     }
 
     try {
       setSubmitting(true);
-      await collaborationService.inviteCollaborator(eventId, {
-        userId: inviteData.userId,
-        role: inviteData.role,
-        permissions: {
-          canEdit: inviteData.canEdit,
-          canApprove: inviteData.canApprove,
-          canManageRegistrations: inviteData.canManageRegistrations
-        }
-      });
-      toast.success('Invitation sent successfully');
+      const promises = selectedUsers.map(userId => 
+        collaborationService.inviteCollaborator(eventId, {
+          userId,
+          role: inviteData.role,
+          permissions: {
+            canEdit: inviteData.canEdit,
+            canApprove: inviteData.canApprove,
+            canManageRegistrations: inviteData.canManageRegistrations
+          }
+        })
+      );
+      await Promise.all(promises);
+      toast.success(`Invitation${selectedUsers.length > 1 ? 's' : ''} sent successfully`);
       setInviteDialogOpen(false);
+      setSelectedUsers([]);
       setInviteData({
         userId: '',
         role: 'COLLABORATOR',
@@ -210,8 +215,9 @@ const EventCollaborators = ({ eventId, eventTitle, isOrganizer }: Props) => {
     setEditDialogOpen(true);
   };
 
-  // Filter available staff members (exclude those already invited)
+  // Filter available staff members (exclude admins and those already invited)
   const availableStaff = staffMembers.filter(staff => 
+    staff.role !== 'ADMIN' &&
     !collaborators.some(collab => collab.user.id === staff.id) &&
     staff.displayName.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -345,7 +351,7 @@ const EventCollaborators = ({ eventId, eventTitle, isOrganizer }: Props) => {
 
       {/* Invite Dialog */}
       <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
           <DialogHeader>
             <DialogTitle>Invite Collaborator</DialogTitle>
             <DialogDescription>
@@ -354,9 +360,9 @@ const EventCollaborators = ({ eventId, eventTitle, isOrganizer }: Props) => {
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Search and Select Staff Member */}
+            {/* Search and Select Staff Members */}
             <div className="space-y-2">
-              <Label>Staff Member</Label>
+              <Label>Staff Members (Select multiple)</Label>
               <div className="relative mb-2">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -366,35 +372,59 @@ const EventCollaborators = ({ eventId, eventTitle, isOrganizer }: Props) => {
                   className="pl-9"
                 />
               </div>
-              <Select value={inviteData.userId} onValueChange={(value) => setInviteData({ ...inviteData, userId: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a staff member" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableStaff.length === 0 ? (
-                    <div className="p-4 text-center text-muted-foreground">
-                      No available staff members
-                    </div>
-                  ) : (
-                    availableStaff.map((staff) => (
-                      <SelectItem key={staff.id} value={staff.id}>
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage src={staff.photoUrl} />
-                            <AvatarFallback className="text-xs">
-                              {staff.displayName.split(' ').map(n => n[0]).join('')}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span>{staff.displayName}</span>
-                          {staff.staffRole && (
-                            <Badge variant="secondary" className="text-xs">{staff.staffRole}</Badge>
-                          )}
+              <div className="border rounded-md max-h-60 overflow-y-auto">
+                {availableStaff.length === 0 ? (
+                  <div className="p-4 text-center text-muted-foreground text-sm">
+                    No available staff members
+                  </div>
+                ) : (
+                  <div className="p-2 space-y-1">
+                    {availableStaff.map((staff) => (
+                      <div
+                        key={staff.id}
+                        className="flex items-center space-x-3 p-3 rounded-md hover:bg-accent cursor-pointer"
+                        onClick={() => {
+                          setSelectedUsers(prev => 
+                            prev.includes(staff.id) 
+                              ? prev.filter(id => id !== staff.id)
+                              : [...prev, staff.id]
+                          );
+                        }}
+                      >
+                        <Checkbox
+                          checked={selectedUsers.includes(staff.id)}
+                          onCheckedChange={(checked) => {
+                            setSelectedUsers(prev => 
+                              checked 
+                                ? [...prev, staff.id]
+                                : prev.filter(id => id !== staff.id)
+                            );
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={staff.photoUrl} />
+                          <AvatarFallback className="text-xs">
+                            {staff.displayName.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{staff.displayName}</p>
+                          <p className="text-xs text-muted-foreground truncate">{staff.email}</p>
                         </div>
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+                        {staff.staffRole && (
+                          <Badge variant="secondary" className="text-xs hidden sm:inline-flex">{staff.staffRole}</Badge>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {selectedUsers.length > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  {selectedUsers.length} staff member{selectedUsers.length > 1 ? 's' : ''} selected
+                </p>
+              )}
             </div>
 
             {/* Role */}
@@ -448,11 +478,11 @@ const EventCollaborators = ({ eventId, eventTitle, isOrganizer }: Props) => {
               </div>
             </div>
 
-            <div className="flex gap-2 justify-end pt-4">
-              <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>
+            <div className="flex flex-col-reverse sm:flex-row gap-2 justify-end pt-4">
+              <Button variant="outline" onClick={() => setInviteDialogOpen(false)} className="w-full sm:w-auto">
                 Cancel
               </Button>
-              <Button onClick={handleInvite} disabled={submitting || !inviteData.userId}>
+              <Button onClick={handleInvite} disabled={submitting || selectedUsers.length === 0} className="w-full sm:w-auto">
                 {submitting ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
@@ -461,7 +491,7 @@ const EventCollaborators = ({ eventId, eventTitle, isOrganizer }: Props) => {
                 ) : (
                   <>
                     <UserPlus className="h-4 w-4 mr-2" />
-                    Send Invitation
+                    Send Invitation{selectedUsers.length > 1 ? 's' : ''}
                   </>
                 )}
               </Button>
@@ -472,7 +502,7 @@ const EventCollaborators = ({ eventId, eventTitle, isOrganizer }: Props) => {
 
       {/* Edit Permissions Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full max-w-lg">
           <DialogHeader>
             <DialogTitle>Edit Permissions</DialogTitle>
             <DialogDescription>
@@ -532,11 +562,11 @@ const EventCollaborators = ({ eventId, eventTitle, isOrganizer }: Props) => {
               </div>
             </div>
 
-            <div className="flex gap-2 justify-end pt-4">
-              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+            <div className="flex flex-col-reverse sm:flex-row gap-2 justify-end pt-4">
+              <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="w-full sm:w-auto">
                 Cancel
               </Button>
-              <Button onClick={handleUpdatePermissions} disabled={submitting}>
+              <Button onClick={handleUpdatePermissions} disabled={submitting} className="w-full sm:w-auto">
                 {submitting ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
