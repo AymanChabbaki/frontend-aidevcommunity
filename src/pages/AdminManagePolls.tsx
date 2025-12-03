@@ -381,11 +381,16 @@ const AdminManagePolls = ({ onCreatePoll }: AdminManagePollsProps = {}) => {
 
                 {/* Results Section */}
                 <div>
-                  <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5 text-primary" />
-                    Voting Results
-                  </h3>
-                  <div className="space-y-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold text-lg flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5 text-primary" />
+                      All Answer Choices & Results
+                    </h3>
+                    <span className="text-sm text-muted-foreground">
+                      {viewDialog.poll.options?.length || 0} options
+                    </span>
+                  </div>
+                  <div className="space-y-3">
                     {viewDialog.poll.options
                       ?.sort((a: any, b: any) => (b._count?.votes || 0) - (a._count?.votes || 0))
                       .map((option: any, index: number) => {
@@ -403,40 +408,48 @@ const AdminManagePolls = ({ onCreatePoll }: AdminManagePollsProps = {}) => {
                             <div className="flex items-start justify-between gap-4 mb-3">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
+                                  <Badge variant="outline" className="font-mono text-xs">
+                                    #{index + 1}
+                                  </Badge>
                                   <span className="font-semibold text-lg">{option.optionText}</span>
                                   {isLeading && total > 0 && (
-                                    <Badge variant="default" className="text-xs">Leading</Badge>
+                                    <Badge variant="default" className="text-xs bg-green-600">
+                                      🏆 Leading
+                                    </Badge>
                                   )}
                                 </div>
                                 {(option.textFr || option.textAr) && (
-                                  <div className="text-sm text-muted-foreground space-y-1 mt-2">
+                                  <div className="text-sm text-muted-foreground space-y-1 mt-2 ml-12">
                                     {option.textFr && <p className="flex gap-2"><span className="font-medium">FR:</span> {option.textFr}</p>}
                                     {option.textAr && <p className="flex gap-2"><span className="font-medium">AR:</span> {option.textAr}</p>}
                                   </div>
                                 )}
                               </div>
-                              <div className="text-right">
+                              <div className="text-right shrink-0">
                                 <div className="text-2xl font-bold text-primary">{votes}</div>
-                                <div className="text-sm text-muted-foreground">votes</div>
+                                <div className="text-xs text-muted-foreground">votes</div>
                               </div>
                             </div>
                             <div className="space-y-2">
                               <Progress value={percentage} className="h-3" />
                               <div className="flex justify-between items-center text-sm">
-                                <span className="text-muted-foreground">
-                                  {total > 0 ? `${percentage}% of total votes` : 'No votes yet'}
+                                <span className="text-muted-foreground font-medium">
+                                  {percentage}% of all votes
                                 </span>
-                                {total > 0 && (
-                                  <span className="font-medium">
-                                    {votes} / {total}
-                                  </span>
-                                )}
+                                <span className="font-semibold text-primary">
+                                  {votes} out of {total} total votes
+                                </span>
                               </div>
                             </div>
                           </div>
                         );
                       })}
                   </div>
+                  {viewDialog.poll.options?.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No answer options available
+                    </div>
+                  )}
                 </div>
               </div>
             </>
