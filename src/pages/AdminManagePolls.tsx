@@ -405,29 +405,34 @@ const AdminManagePolls = ({ onCreatePoll }: AdminManagePollsProps = {}) => {
                               ? 'bg-primary/5 border-primary/30 shadow-md' 
                               : 'bg-muted/30 border-muted'
                           }`}>
-                            <div className="flex items-start justify-between gap-4 mb-3">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <Badge variant="outline" className="font-mono text-xs">
-                                    #{index + 1}
-                                  </Badge>
-                                  <span className="font-semibold text-lg">{option.optionText}</span>
-                                  {isLeading && total > 0 && (
-                                    <Badge variant="default" className="text-xs bg-green-600">
-                                      🏆 Leading
+                            <div className="space-y-3">
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Badge variant="outline" className="font-mono text-xs">
+                                      #{index + 1}
                                     </Badge>
+                                    {isLeading && total > 0 && (
+                                      <Badge variant="default" className="text-xs bg-green-600">
+                                        🏆 Leading
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <div className="space-y-2">
+                                    <p className="text-xl font-bold text-foreground">
+                                      "{option.optionText}"
+                                    </p>
+                                    <p className="text-base text-primary font-semibold">
+                                      {votes} {votes === 1 ? 'vote' : 'votes'} for this choice
+                                    </p>
+                                  </div>
+                                  {(option.textFr || option.textAr) && (
+                                    <div className="text-sm text-muted-foreground space-y-1 mt-3 pl-4 border-l-2 border-muted">
+                                      {option.textFr && <p className="flex gap-2"><span className="font-medium">FR:</span> {option.textFr}</p>}
+                                      {option.textAr && <p className="flex gap-2"><span className="font-medium">AR:</span> {option.textAr}</p>}
+                                    </div>
                                   )}
                                 </div>
-                                {(option.textFr || option.textAr) && (
-                                  <div className="text-sm text-muted-foreground space-y-1 mt-2 ml-12">
-                                    {option.textFr && <p className="flex gap-2"><span className="font-medium">FR:</span> {option.textFr}</p>}
-                                    {option.textAr && <p className="flex gap-2"><span className="font-medium">AR:</span> {option.textAr}</p>}
-                                  </div>
-                                )}
-                              </div>
-                              <div className="text-right shrink-0">
-                                <div className="text-2xl font-bold text-primary">{votes}</div>
-                                <div className="text-xs text-muted-foreground">votes</div>
                               </div>
                             </div>
                             <div className="space-y-2">
