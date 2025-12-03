@@ -38,7 +38,8 @@ import {
   BarChart3,
   User,
   TrendingUp,
-  Activity
+  Activity,
+  CheckCircle
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -67,6 +68,7 @@ import AdminManagePolls from './AdminManagePolls';
 import AdminManageForms from './AdminManageForms';
 import QRScanner from './QRScanner';
 import StaffProfile from './StaffProfile';
+import StaffApproveRegistrations from './StaffApproveRegistrations';
 
 const StaffDashboard = () => {
   const { user, logout } = useAuth();
@@ -163,6 +165,11 @@ const StaffDashboard = () => {
       title: 'Forms',
       icon: FileText,
       path: '/staff/forms',
+    },
+    {
+      title: 'Approve Registrations',
+      icon: CheckCircle,
+      path: '/staff/approve-registrations',
     },
     {
       title: 'Profile',
@@ -704,6 +711,7 @@ const StaffDashboard = () => {
             <Route path="/polls" element={<AdminManagePolls onCreatePoll={() => setCreatePollDialog(true)} />} />
             <Route path="/forms" element={<AdminManageForms onCreateForm={() => setCreateFormDialog(true)} />} />
             <Route path="/qr-scanner" element={<QRScanner />} />
+            <Route path="/approve-registrations" element={<StaffApproveRegistrations />} />
             <Route path="/profile" element={<StaffProfile />} />
           </Routes>
         </div>
