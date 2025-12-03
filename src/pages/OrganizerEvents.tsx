@@ -400,14 +400,17 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setCollaboratorsDialog({ open: true, event })}
-                          title="Manage Collaborators"
-                        >
-                          <UserPlus className="h-4 w-4" />
-                        </Button>
+                        {/* Only show Manage Collaborators if user is the organizer */}
+                        {event.organizerId === user?.id && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCollaboratorsDialog({ open: true, event })}
+                            title="Manage Collaborators"
+                          >
+                            <UserPlus className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="outline"
                           size="sm"
@@ -424,14 +427,17 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
                         >
                           <Download className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setDeleteDialog({ open: true, eventId: event.id })}
-                          title="Delete event"
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
+                        {/* Only show Delete if user is the organizer */}
+                        {event.organizerId === user?.id && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDeleteDialog({ open: true, eventId: event.id })}
+                            title="Delete event"
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
