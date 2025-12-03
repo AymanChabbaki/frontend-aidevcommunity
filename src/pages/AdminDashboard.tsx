@@ -15,12 +15,31 @@ import {
   ChevronRight,
   Plus,
   Mail,
-  CheckCircle
+  CheckCircle,
+  TrendingUp,
+  Activity
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { adminService } from '@/services/admin.service';
 import { eventService } from '@/services/event.service';
 import { pollService } from '@/services/poll.service';
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell
+} from 'recharts';
 
 const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
   const { user, logout } = useAuth();
@@ -34,6 +53,12 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
     systemStatus: 'operational'
   });
   const [loading, setLoading] = useState(true);
+  const [chartData, setChartData] = useState({
+    userGrowth: [] as any[],
+    eventStats: [] as any[],
+    userRoles: [] as any[],
+    monthlyActivity: [] as any[]
+  });
 
   const menuItems = [
     {
@@ -92,13 +117,79 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
         
         // Fetch users
         const usersResponse = await adminService.getAllUsers();
-        const totalUsers = usersResponse.data?.length || 0;
+        const users = usersResponse.data || [];
+        const totalUsers = users.length;
 
         // Fetch events
         const eventsResponse = await eventService.getAllEvents();
-        const activeEvents = eventsResponse.data?.filter((event: any) => 
+        const events = eventsResponse.data || [];
+        const activeEvents = events.filter((event: any) => 
           event.status === 'UPCOMING' || event.status === 'ONGOING'
-        ).length || 0;
+        ).length;
+
+        // Fetch polls
+        const pollsResponse = await pollService.getAllPolls();
+        const polls = pollsResponse.data || [];
+
+        // Calculate user growth data (last 6 months)
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const userGrowthData = [];
+        const now = new Date();
+        for (let i = 5; i >= 0; i--) {
+          const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+          const usersInMonth = users.filter((user: any) => {
+            const createdAt = new Date(user.createdAt);
+            return createdAt >= monthDate && createdAt <= monthEnd;
+          }).length;
+          userGrowthData.push({
+            month: monthNames[monthDate.getMonth()],
+            users: usersInMonth
+          });
+        }
+
+        // Calculate event statistics
+        const eventStatsData = [
+          { status: 'Upcoming', count: events.filter((e: any) => e.status === 'UPCOMING').length },
+          { status: 'Ongoing', count: events.filter((e: any) => e.status === 'ONGOING').length },
+          { status: 'Completed', count: events.filter((e: any) => e.status === 'COMPLETED').length },
+          { status: 'Cancelled', count: events.filter((e: any) => e.status === 'CANCELLED').length }
+        ];
+
+        // Calculate user roles distribution
+        const userRolesData = [
+          { name: 'Users', value: users.filter((u: any) => u.role === 'USER').length },
+          { name: 'Staff', value: users.filter((u: any) => u.role === 'STAFF').length },
+          { name: 'Admin', value: users.filter((u: any) => u.role === 'ADMIN').length }
+        ];
+
+        // Calculate monthly activity (events + polls)
+        const monthlyActivityData = [];
+        for (let i = 5; i >= 0; i--) {
+          const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+          const eventsInMonth = events.filter((event: any) => {
+            const createdAt = new Date(event.createdAt);
+            return createdAt >= monthDate && createdAt <= monthEnd;
+          }).length;
+          const pollsInMonth = polls.filter((poll: any) => {
+            const createdAt = new Date(poll.createdAt);
+            return createdAt >= monthDate && createdAt <= monthEnd;
+          }).length;
+          monthlyActivityData.push({
+            month: monthNames[monthDate.getMonth()],
+            events: eventsInMonth,
+            polls: pollsInMonth
+          });
+        }
+
+        // Update chart data
+        setChartData({
+          userGrowth: userGrowthData,
+          eventStats: eventStatsData,
+          userRoles: userRolesData,
+          monthlyActivity: monthlyActivityData
+        });
 
         // Fetch stats if available
         try {
@@ -359,6 +450,112 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
                       <Plus className="h-4 w-4 mr-2" />
                       New Form
                     </Button>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Analytics Charts */}
+              <div className="mb-6 space-y-6">
+                {/* User Growth Chart */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle>User Growth</CardTitle>
+                        <CardDescription>New user registrations over the last 6 months</CardDescription>
+                      </div>
+                      <TrendingUp className="h-5 w-5 text-green-500" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={chartData.userGrowth}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="users" stroke="#8884d8" strokeWidth={2} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                {/* Event Statistics and User Roles */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Event Statistics Chart */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Event Statistics</CardTitle>
+                      <CardDescription>Events by status</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={chartData.eventStats}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="status" />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Bar dataKey="count" fill="#82ca9d" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+
+                  {/* User Roles Distribution Chart */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>User Roles Distribution</CardTitle>
+                      <CardDescription>Distribution of users by role</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                          <Pie
+                            data={chartData.userRoles}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="value"
+                          >
+                            {chartData.userRoles.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={['#0088FE', '#00C49F', '#FFBB28'][index % 3]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Monthly Activity Chart */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle>Monthly Activity</CardTitle>
+                        <CardDescription>Events and polls created over the last 6 months</CardDescription>
+                      </div>
+                      <Activity className="h-5 w-5 text-blue-500" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <AreaChart data={chartData.monthlyActivity}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Area type="monotone" dataKey="events" stackId="1" stroke="#8884d8" fill="#8884d8" />
+                        <Area type="monotone" dataKey="polls" stackId="1" stroke="#82ca9d" fill="#82ca9d" />
+                      </AreaChart>
+                    </ResponsiveContainer>
                   </CardContent>
                 </Card>
               </div>

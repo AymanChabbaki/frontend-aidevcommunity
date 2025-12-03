@@ -36,8 +36,27 @@ import {
   ChevronRight,
   Plus,
   BarChart3,
-  User
+  User,
+  TrendingUp,
+  Activity
 } from 'lucide-react';
+import { 
+  LineChart, 
+  Line, 
+  BarChart, 
+  Bar, 
+  PieChart, 
+  Pie, 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer,
+  Cell
+} from 'recharts';
 import { cn } from '@/lib/utils';
 import { eventService } from '@/services/event.service';
 import { pollService } from '@/services/poll.service';
@@ -59,6 +78,17 @@ const StaffDashboard = () => {
     totalAttendees: 0
   });
   const [loading, setLoading] = useState(true);
+  const [chartData, setChartData] = useState<{
+    eventGrowth: Array<{ month: string; events: number }>;
+    eventStatus: Array<{ status: string; count: number }>;
+    pollActivity: Array<{ month: string; polls: number; votes: number }>;
+    formSubmissions: Array<{ month: string; submissions: number }>;
+  }>({
+    eventGrowth: [],
+    eventStatus: [],
+    pollActivity: [],
+    formSubmissions: []
+  });
   const [createEventDialog, setCreateEventDialog] = useState(false);
   const [createPollDialog, setCreatePollDialog] = useState(false);
   const [createFormDialog, setCreateFormDialog] = useState(false);
@@ -147,14 +177,94 @@ const StaffDashboard = () => {
     const fetchStats = async () => {
       try {
         setLoading(true);
+        
+        // Fetch all data
         const eventsResponse = await eventService.getAllEvents();
         const allEvents = eventsResponse.data || [];
+        const pollsResponse = await pollService.getAllPolls();
+        const allPolls = pollsResponse.data || [];
+        const formsResponse = await formService.getAllForms();
+        const allForms = formsResponse.data || [];
         
         // Filter events created by this staff member
         const myEvents = allEvents.filter((event: any) => event.organizerId === user?.id);
         const totalAttendees = myEvents.reduce((sum: number, event: any) => 
           sum + (event._count?.registrations || 0), 0
         );
+
+        // Calculate chart data for last 6 months
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const now = new Date();
+
+        // Event growth data
+        const eventGrowthData = [];
+        for (let i = 5; i >= 0; i--) {
+          const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+          const eventsInMonth = myEvents.filter((event: any) => {
+            const createdAt = new Date(event.createdAt);
+            return createdAt >= monthDate && createdAt <= monthEnd;
+          }).length;
+          eventGrowthData.push({
+            month: monthNames[monthDate.getMonth()],
+            events: eventsInMonth
+          });
+        }
+
+        // Event status distribution
+        const eventStatusData = [
+          { status: 'Upcoming', count: myEvents.filter((e: any) => e.status === 'UPCOMING').length },
+          { status: 'Ongoing', count: myEvents.filter((e: any) => e.status === 'ONGOING').length },
+          { status: 'Completed', count: myEvents.filter((e: any) => e.status === 'COMPLETED').length },
+          { status: 'Cancelled', count: myEvents.filter((e: any) => e.status === 'CANCELLED').length }
+        ];
+
+        // Poll activity data (polls created by staff)
+        const myPolls = allPolls.filter((poll: any) => poll.creatorId === user?.id);
+        const pollActivityData = [];
+        for (let i = 5; i >= 0; i--) {
+          const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+          const pollsInMonth = myPolls.filter((poll: any) => {
+            const createdAt = new Date(poll.createdAt);
+            return createdAt >= monthDate && createdAt <= monthEnd;
+          }).length;
+          const votesInMonth = myPolls.reduce((sum: number, poll: any) => {
+            const createdAt = new Date(poll.createdAt);
+            if (createdAt >= monthDate && createdAt <= monthEnd) {
+              return sum + (poll._count?.votes || 0);
+            }
+            return sum;
+          }, 0);
+          pollActivityData.push({
+            month: monthNames[monthDate.getMonth()],
+            polls: pollsInMonth,
+            votes: votesInMonth
+          });
+        }
+
+        // Form submissions data (forms created by staff)
+        const myForms = allForms.filter((form: any) => form.createdById === user?.id);
+        const formSubmissionsData = [];
+        for (let i = 5; i >= 0; i--) {
+          const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+          const submissionsInMonth = myForms.reduce((sum: number, form: any) => {
+            return sum + (form._count?.responses || 0);
+          }, 0);
+          formSubmissionsData.push({
+            month: monthNames[monthDate.getMonth()],
+            submissions: submissionsInMonth
+          });
+        }
+
+        // Update chart data
+        setChartData({
+          eventGrowth: eventGrowthData,
+          eventStatus: eventStatusData,
+          pollActivity: pollActivityData,
+          formSubmissions: formSubmissionsData
+        });
 
         setStats({
           myEvents: myEvents.length,
@@ -463,6 +573,103 @@ const StaffDashboard = () => {
                       <Plus className="h-4 w-4 mr-2" />
                       New Form
                     </Button>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Analytics Charts */}
+              <div className="mb-6 space-y-6">
+                {/* Event Growth Chart */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle>My Event Growth</CardTitle>
+                        <CardDescription>Events created over the last 6 months</CardDescription>
+                      </div>
+                      <TrendingUp className="h-5 w-5 text-green-500" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={chartData.eventGrowth}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="events" stroke="#10b981" strokeWidth={2} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                {/* Event Status and Poll Activity */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Event Status Chart */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>My Event Status</CardTitle>
+                      <CardDescription>Events by status</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={chartData.eventStatus}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="status" />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Bar dataKey="count" fill="#3b82f6" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+
+                  {/* Poll Activity Chart */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Poll Activity</CardTitle>
+                      <CardDescription>Polls and votes over the last 6 months</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <AreaChart data={chartData.pollActivity}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="month" />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Area type="monotone" dataKey="polls" stackId="1" stroke="#8b5cf6" fill="#8b5cf6" />
+                          <Area type="monotone" dataKey="votes" stackId="1" stroke="#ec4899" fill="#ec4899" />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Form Submissions Chart */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle>Form Submissions</CardTitle>
+                        <CardDescription>Form responses over the last 6 months</CardDescription>
+                      </div>
+                      <Activity className="h-5 w-5 text-blue-500" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <AreaChart data={chartData.formSubmissions}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Area type="monotone" dataKey="submissions" stroke="#f59e0b" fill="#f59e0b" />
+                      </AreaChart>
+                    </ResponsiveContainer>
                   </CardContent>
                 </Card>
               </div>
