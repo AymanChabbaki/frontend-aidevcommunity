@@ -69,6 +69,7 @@ import AdminManageForms from './AdminManageForms';
 import QRScanner from './QRScanner';
 import StaffProfile from './StaffProfile';
 import StaffApproveRegistrations from './StaffApproveRegistrations';
+import StaffCollaborations from './StaffCollaborations';
 
 const StaffDashboard = () => {
   const { user, logout } = useAuth();
@@ -170,6 +171,11 @@ const StaffDashboard = () => {
       title: 'Approve Registrations',
       icon: CheckCircle,
       path: '/staff/approve-registrations',
+    },
+    {
+      title: 'Collaborations',
+      icon: Users,
+      path: '/staff/collaborations',
     },
     {
       title: 'Profile',
@@ -712,6 +718,7 @@ const StaffDashboard = () => {
             <Route path="/forms" element={<AdminManageForms onCreateForm={() => setCreateFormDialog(true)} />} />
             <Route path="/qr-scanner" element={<QRScanner />} />
             <Route path="/approve-registrations" element={<StaffApproveRegistrations />} />
+            <Route path="/collaborations" element={<StaffCollaborations />} />
             <Route path="/profile" element={<StaffProfile />} />
           </Routes>
         </div>
