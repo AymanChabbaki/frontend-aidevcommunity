@@ -36,13 +36,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Users, Calendar, MapPin, Search, Eye, Download, ChevronLeft, ChevronRight, Check, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, Calendar, MapPin, Search, Eye, Download, ChevronLeft, ChevronRight, Check, X, UserPlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { eventService } from '@/services/event.service';
 import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
+import EventCollaborators from './EventCollaborators';
 
 interface OrganizerEventsProps {
   onCreateEvent?: () => void;
@@ -64,6 +65,10 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
     open: false,
     event: null,
     registrations: [],
+  });
+  const [collaboratorsDialog, setCollaboratorsDialog] = useState<{ open: boolean; event: any | null }>({
+    open: false,
+    event: null,
   });
 
   useEffect(() => {
@@ -299,12 +304,16 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
                           <SelectItem value="UPCOMING">UPCOMING</SelectItem>
                           <SelectItem value="ONGOING">ONGOING</SelectItem>
                           <SelectItem value="COMPLETED">COMPLETED</SelectItem>
-                          <SelectItem value="CANCELLED">CANCELLED</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCollaboratorsDialog({ open: true, event })}
+                          title="Manage Collaborators"
+                        >
+                          <UserPlus className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
@@ -327,6 +336,10 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
                           onClick={() => setDeleteDialog({ open: true, eventId: event.id })}
                           title="Delete event"
                         >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
+                    </TableCell>
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
                       </div>
@@ -489,6 +502,21 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
               </Button>
             )}
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={collaboratorsDialog.open} onOpenChange={(open) => setCollaboratorsDialog({ open, event: null })}>
+        <DialogContent className="max-w-6xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Manage Collaborators - {collaboratorsDialog.event?.title}</DialogTitle>
+          </DialogHeader>
+          {collaboratorsDialog.event && (
+            <EventCollaborators 
+              eventId={collaboratorsDialog.event.id}
+              eventTitle={collaboratorsDialog.event.title}
+              isOrganizer={true}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
