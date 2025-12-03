@@ -86,8 +86,8 @@ const StaffCollaborations = () => {
         collaborationService.getMyInvitations(),
         collaborationService.getMyCollaborations()
       ]);
-      setInvitations(invitationsRes.data);
-      setCollaborations(collaborationsRes.data);
+      setInvitations(invitationsRes.data.data || []);
+      setCollaborations(collaborationsRes.data.data || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Failed to load collaborations');

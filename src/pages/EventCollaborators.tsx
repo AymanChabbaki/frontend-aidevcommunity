@@ -110,7 +110,7 @@ const EventCollaborators = ({ eventId, eventTitle, isOrganizer }: Props) => {
     try {
       setLoading(true);
       const response = await collaborationService.getEventCollaborators(eventId);
-      setCollaborators(response.data);
+      setCollaborators(response.data.data || []);
     } catch (error) {
       console.error('Error fetching collaborators:', error);
       toast.error('Failed to load collaborators');
@@ -122,7 +122,7 @@ const EventCollaborators = ({ eventId, eventTitle, isOrganizer }: Props) => {
   const fetchStaffMembers = async () => {
     try {
       const response = await collaborationService.getStaffMembers();
-      setStaffMembers(response.data);
+      setStaffMembers(response.data.data || []);
     } catch (error) {
       console.error('Error fetching staff members:', error);
     }
