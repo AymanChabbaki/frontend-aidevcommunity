@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Table,
   TableBody,
@@ -40,6 +42,7 @@ import { Plus, Edit, Trash2, Users, Calendar, MapPin, Search, Eye, Download, Che
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { eventService } from '@/services/event.service';
+import { collaborationService } from '@/services/collaboration.service';
 import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
@@ -70,6 +73,12 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
     open: false,
     event: null,
   });
+  const [editDialog, setEditDialog] = useState<{ open: boolean; event: any | null }>({
+    open: false,
+    event: null,
+  });
+  const [editFormData, setEditFormData] = useState<any>({});
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetchEvents();
@@ -78,10 +87,29 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const response = await eventService.getAllEvents();
-      // Filter only events created by this staff member
-      const myEvents = response.data?.filter((event: any) => event.organizerId === user?.id) || [];
-      setEvents(myEvents);
+      const [eventsResponse, collaborationsResponse] = await Promise.all([
+        eventService.getAllEvents(),
+        collaborationService.getMyCollaborations()
+      ]);
+      
+      // Get events created by this staff member
+      const myEvents = eventsResponse.data?.filter((event: any) => event.organizerId === user?.id) || [];
+      
+      // Get events where user is a collaborator
+      const collaboratedEvents = collaborationsResponse.data?.data || [];
+      const collaboratedEventIds = collaboratedEvents
+        .filter((collab: any) => collab.status === 'ACCEPTED')
+        .map((collab: any) => collab.event);
+      
+      // Combine both lists, removing duplicates
+      const allEvents = [...myEvents];
+      collaboratedEventIds.forEach((event: any) => {
+        if (!allEvents.some(e => e.id === event.id)) {
+          allEvents.push({ ...event, isCollaborator: true });
+        }
+      });
+      
+      setEvents(allEvents);
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to fetch events');
     } finally {
@@ -179,6 +207,42 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
     }
   };
 
+  const handleEditEvent = (event: any) => {
+    setEditFormData({
+      title: event.title,
+      description: event.description,
+      locationType: event.locationType || 'PHYSICAL',
+      locationText: event.locationText,
+      startAt: event.startAt ? new Date(event.startAt).toISOString().slice(0, 16) : '',
+      endAt: event.endAt ? new Date(event.endAt).toISOString().slice(0, 16) : '',
+      capacity: event.capacity,
+      category: event.category || '',
+      speaker: event.speaker || '',
+      imageUrl: event.imageUrl || '',
+    });
+    setEditDialog({ open: true, event });
+  };
+
+  const handleUpdateEvent = async () => {
+    if (!editDialog.event) return;
+
+    try {
+      setSubmitting(true);
+      await eventService.updateEvent(editDialog.event.id, {
+        ...editFormData,
+        startAt: new Date(editFormData.startAt).toISOString(),
+        endAt: new Date(editFormData.endAt).toISOString(),
+      });
+      toast.success('Event updated successfully');
+      setEditDialog({ open: false, event: null });
+      fetchEvents();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to update event');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const filteredEvents = events.filter(event =>
     event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (event.locationText || event.location || '').toLowerCase().includes(searchQuery.toLowerCase())
@@ -204,17 +268,41 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
     }
   };
 
+  // Calculate KPIs
+  const organizingCount = events.filter(event => event.organizerId === user?.id).length;
+  const collaboratingCount = events.filter(event => event.isCollaborator).length;
+
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold mb-2">My Events</h1>
           <p className="text-muted-foreground">Manage events you organize</p>
         </div>
-        <Button onClick={onCreateEvent}>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Event
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          <Card className="px-4 py-2">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-primary" />
+              <div>
+                <p className="text-xs text-muted-foreground">Organizing</p>
+                <p className="text-lg font-bold">{organizingCount}</p>
+              </div>
+            </div>
+          </Card>
+          <Card className="px-4 py-2">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-green-500" />
+              <div>
+                <p className="text-xs text-muted-foreground">Collaborating</p>
+                <p className="text-lg font-bold">{collaboratingCount}</p>
+              </div>
+            </div>
+          </Card>
+          <Button onClick={onCreateEvent}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Event
+          </Button>
+        </div>
       </div>
 
       <Card className="mb-6">
@@ -310,6 +398,14 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditEvent(event)}
+                          title="Edit Event"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
@@ -517,6 +613,146 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
               isOrganizer={true}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editDialog.open} onOpenChange={(open) => setEditDialog({ open, event: null })}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
+          <DialogHeader>
+            <DialogTitle className="text-base sm:text-lg">Edit Event</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-title">Title</Label>
+              <Input
+                id="edit-title"
+                value={editFormData.title || ''}
+                onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                placeholder="Event title"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">Description</Label>
+              <Textarea
+                id="edit-description"
+                value={editFormData.description || ''}
+                onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                placeholder="Event description"
+                rows={4}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-category">Category</Label>
+                <Input
+                  id="edit-category"
+                  value={editFormData.category || ''}
+                  onChange={(e) => setEditFormData({ ...editFormData, category: e.target.value })}
+                  placeholder="e.g., Workshop, Conference"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-speaker">Speaker</Label>
+                <Input
+                  id="edit-speaker"
+                  value={editFormData.speaker || ''}
+                  onChange={(e) => setEditFormData({ ...editFormData, speaker: e.target.value })}
+                  placeholder="Speaker name (optional)"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-locationType">Location Type</Label>
+              <Select
+                value={editFormData.locationType || 'PHYSICAL'}
+                onValueChange={(value) => setEditFormData({ ...editFormData, locationType: value })}
+              >
+                <SelectTrigger id="edit-locationType">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PHYSICAL">Physical</SelectItem>
+                  <SelectItem value="VIRTUAL">Virtual</SelectItem>
+                  <SelectItem value="HYBRID">Hybrid</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-location">Location</Label>
+              <Input
+                id="edit-location"
+                value={editFormData.locationText || ''}
+                onChange={(e) => setEditFormData({ ...editFormData, locationText: e.target.value })}
+                placeholder="Event location or meeting link"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-startAt">Start Date & Time</Label>
+                <Input
+                  id="edit-startAt"
+                  type="datetime-local"
+                  value={editFormData.startAt || ''}
+                  onChange={(e) => setEditFormData({ ...editFormData, startAt: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-endAt">End Date & Time</Label>
+                <Input
+                  id="edit-endAt"
+                  type="datetime-local"
+                  value={editFormData.endAt || ''}
+                  onChange={(e) => setEditFormData({ ...editFormData, endAt: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-capacity">Capacity</Label>
+              <Input
+                id="edit-capacity"
+                type="number"
+                value={editFormData.capacity || ''}
+                onChange={(e) => setEditFormData({ ...editFormData, capacity: parseInt(e.target.value) })}
+                placeholder="Maximum attendees"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-imageUrl">Image URL (optional)</Label>
+              <Input
+                id="edit-imageUrl"
+                value={editFormData.imageUrl || ''}
+                onChange={(e) => setEditFormData({ ...editFormData, imageUrl: e.target.value })}
+                placeholder="https://example.com/image.jpg"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 pt-4">
+            <Button variant="outline" onClick={() => setEditDialog({ open: false, event: null })} className="w-full sm:w-auto">
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateEvent} disabled={submitting} className="w-full sm:w-auto">
+              {submitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Update Event
+                </>
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
