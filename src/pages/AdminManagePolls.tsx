@@ -414,13 +414,13 @@ const AdminManagePolls = ({ onCreatePoll }: AdminManagePollsProps = {}) => {
                                     </Badge>
                                     {isLeading && total > 0 && (
                                       <Badge variant="default" className="text-xs bg-green-600">
-                                        🏆 Leading
+                                        Leading
                                       </Badge>
                                     )}
                                   </div>
                                   <div className="space-y-2">
                                     <p className="text-xl font-bold text-foreground">
-                                      "{option.optionText}"
+                                      {option.text || option.optionText}
                                     </p>
                                     <p className="text-base text-primary font-semibold">
                                       {votes} {votes === 1 ? 'vote' : 'votes'} for this choice
