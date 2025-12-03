@@ -119,6 +119,7 @@ aidevcommunity/
 │   │   └── server.ts      # Express app
 │   └── uploads/           # Uploaded files
 │
+
 ├── src/                    # React frontend
 │   ├── components/        # React components
 │   ├── context/          # React context providers
