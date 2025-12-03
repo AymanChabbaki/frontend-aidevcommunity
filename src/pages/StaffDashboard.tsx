@@ -62,6 +62,7 @@ import { cn } from '@/lib/utils';
 import { eventService } from '@/services/event.service';
 import { pollService } from '@/services/poll.service';
 import { formService } from '@/services/form.service';
+import { collaborationService } from '@/services/collaboration.service';
 import { toast } from 'sonner';
 import OrganizerEvents from './OrganizerEvents';
 import AdminManagePolls from './AdminManagePolls';
@@ -78,7 +79,9 @@ const StaffDashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [stats, setStats] = useState({
     myEvents: 0,
-    totalAttendees: 0
+    totalAttendees: 0,
+    organizingCount: 0,
+    collaboratingCount: 0
   });
   const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState<{
@@ -192,18 +195,27 @@ const StaffDashboard = () => {
         setLoading(true);
         
         // Fetch all data
-        const eventsResponse = await eventService.getAllEvents();
+        const [eventsResponse, pollsResponse, formsResponse, collaborationsResponse] = await Promise.all([
+          eventService.getAllEvents(),
+          pollService.getAllPolls(),
+          formService.getAllForms(),
+          collaborationService.getMyCollaborations()
+        ]);
+        
         const allEvents = eventsResponse.data || [];
-        const pollsResponse = await pollService.getAllPolls();
         const allPolls = pollsResponse.data || [];
-        const formsResponse = await formService.getAllForms();
         const allForms = formsResponse.data || [];
+        const collaborations = collaborationsResponse.data?.data || [];
         
         // Filter events created by this staff member
         const myEvents = allEvents.filter((event: any) => event.organizerId === user?.id);
         const totalAttendees = myEvents.reduce((sum: number, event: any) => 
           sum + (event._count?.registrations || 0), 0
         );
+        
+        // Count organizing and collaborating events
+        const organizingCount = myEvents.length;
+        const collaboratingCount = collaborations.filter((collab: any) => collab.status === 'ACCEPTED').length;
 
         // Calculate chart data for last 6 months
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -281,11 +293,13 @@ const StaffDashboard = () => {
 
         setStats({
           myEvents: myEvents.length,
-          totalAttendees
+          totalAttendees,
+          organizingCount,
+          collaboratingCount
         });
       } catch (error) {
         console.error('Error fetching stats:', error);
-        setStats({ myEvents: 0, totalAttendees: 0 });
+        setStats({ myEvents: 0, totalAttendees: 0, organizingCount: 0, collaboratingCount: 0 });
       } finally {
         setLoading(false);
       }
@@ -502,24 +516,37 @@ const StaffDashboard = () => {
               </div>
 
               {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">My Events</CardTitle>
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-sm font-medium">Organizing</CardTitle>
+                    <Calendar className="h-4 w-4 text-primary" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {loading ? '...' : stats.myEvents}
+                      {loading ? '...' : stats.organizingCount}
                     </div>
-                    <p className="text-xs text-muted-foreground">Events I organize</p>
+                    <p className="text-xs text-muted-foreground">Events I'm organizing</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Collaborating</CardTitle>
+                    <Users className="h-4 w-4 text-green-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {loading ? '...' : stats.collaboratingCount}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Events I'm collaborating on</p>
                   </CardContent>
                 </Card>
 
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Attendees</CardTitle>
-                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <CheckCircle className="h-4 w-4 text-blue-500" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
@@ -532,7 +559,7 @@ const StaffDashboard = () => {
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Quick Scan</CardTitle>
-                    <QrCode className="h-4 w-4 text-muted-foreground" />
+                    <QrCode className="h-4 w-4 text-orange-500" />
                   </CardHeader>
                   <CardContent>
                     <Link to="/organizer/qr-scanner">

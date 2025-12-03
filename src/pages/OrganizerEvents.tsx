@@ -58,6 +58,7 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'organizing' | 'collaborating'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; eventId: string | null }>({
@@ -243,10 +244,17 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
     }
   };
 
-  const filteredEvents = events.filter(event =>
-    event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (event.locationText || event.location || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredEvents = events.filter(event => {
+    const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (event.locationText || event.location || '').toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesFilter = 
+      filterType === 'all' ||
+      (filterType === 'organizing' && event.organizerId === user?.id) ||
+      (filterType === 'collaborating' && event.isCollaborator);
+    
+    return matchesSearch && matchesFilter;
+  });
 
   // Pagination logic
   const totalPages = Math.ceil(filteredEvents.length / itemsPerPage);
@@ -268,47 +276,23 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
     }
   };
 
-  // Calculate KPIs
-  const organizingCount = events.filter(event => event.organizerId === user?.id).length;
-  const collaboratingCount = events.filter(event => event.isCollaborator).length;
-
   return (
     <div>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold mb-2">My Events</h1>
           <p className="text-muted-foreground">Manage events you organize</p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <Card className="px-4 py-2">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-primary" />
-              <div>
-                <p className="text-xs text-muted-foreground">Organizing</p>
-                <p className="text-lg font-bold">{organizingCount}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="px-4 py-2">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-green-500" />
-              <div>
-                <p className="text-xs text-muted-foreground">Collaborating</p>
-                <p className="text-lg font-bold">{collaboratingCount}</p>
-              </div>
-            </div>
-          </Card>
-          <Button onClick={onCreateEvent}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Event
-          </Button>
-        </div>
+        <Button onClick={onCreateEvent}>
+          <Plus className="h-4 w-4 mr-2" />
+          Create Event
+        </Button>
       </div>
 
       <Card className="mb-6">
         <CardHeader>
-          <div className="flex items-center gap-4">
-            <div className="flex-1 relative">
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="flex-1 w-full relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search events..."
@@ -317,6 +301,16 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
                 className="pl-10"
               />
             </div>
+            <Select value={filterType} onValueChange={(value: any) => setFilterType(value)}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Events</SelectItem>
+                <SelectItem value="organizing">Organizing</SelectItem>
+                <SelectItem value="collaborating">Collaborating</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardHeader>
       </Card>
