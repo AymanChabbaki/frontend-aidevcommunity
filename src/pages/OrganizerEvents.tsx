@@ -304,6 +304,10 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
                           <SelectItem value="UPCOMING">UPCOMING</SelectItem>
                           <SelectItem value="ONGOING">ONGOING</SelectItem>
                           <SelectItem value="COMPLETED">COMPLETED</SelectItem>
+                          <SelectItem value="CANCELLED">CANCELLED</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
@@ -336,10 +340,6 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
                           onClick={() => setDeleteDialog({ open: true, eventId: event.id })}
                           title="Delete event"
                         >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
-                      </div>
-                    </TableCell>
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
                       </div>
