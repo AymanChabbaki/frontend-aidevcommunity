@@ -252,13 +252,13 @@ const EventCollaborators = ({ eventId, eventTitle, isOrganizer }: Props) => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold">Collaborators</h2>
-          <p className="text-muted-foreground">{eventTitle}</p>
+          <h2 className="text-xl sm:text-2xl font-bold">Collaborators</h2>
+          <p className="text-sm text-muted-foreground">{eventTitle}</p>
         </div>
         {isOrganizer && (
-          <Button onClick={() => setInviteDialogOpen(true)}>
+          <Button onClick={() => setInviteDialogOpen(true)} className="w-full sm:w-auto">
             <UserPlus className="h-4 w-4 mr-2" />
             Invite Collaborator
           </Button>
@@ -267,34 +267,35 @@ const EventCollaborators = ({ eventId, eventTitle, isOrganizer }: Props) => {
 
       {/* Collaborators Table */}
       {collaborators.length === 0 ? (
-        <Card className="p-12 text-center">
-          <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-xl font-semibold mb-2">No Collaborators Yet</h3>
-          <p className="text-muted-foreground mb-4">
+        <Card className="p-8 sm:p-12 text-center">
+          <Users className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg sm:text-xl font-semibold mb-2">No Collaborators Yet</h3>
+          <p className="text-sm text-muted-foreground mb-4">
             Invite staff members to help you manage this event
           </p>
           {isOrganizer && (
-            <Button onClick={() => setInviteDialogOpen(true)}>
+            <Button onClick={() => setInviteDialogOpen(true)} className="w-full sm:w-auto">
               <UserPlus className="h-4 w-4 mr-2" />
               Invite Your First Collaborator
             </Button>
           )}
         </Card>
       ) : (
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Member</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Permissions</TableHead>
-                <TableHead>Invited By</TableHead>
-                <TableHead>Date</TableHead>
-                {isOrganizer && <TableHead className="text-right">Actions</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+        <Card className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[200px]">Member</TableHead>
+                  <TableHead className="min-w-[120px]">Role</TableHead>
+                  <TableHead className="min-w-[100px]">Status</TableHead>
+                  <TableHead className="min-w-[150px]">Permissions</TableHead>
+                  <TableHead className="min-w-[120px]">Invited By</TableHead>
+                  <TableHead className="min-w-[150px]">Date</TableHead>
+                  {isOrganizer && <TableHead className="text-right min-w-[120px]">Actions</TableHead>}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
               {collaborators.map((collaborator) => (
                 <TableRow key={collaborator.id}>
                   <TableCell>
@@ -324,11 +325,12 @@ const EventCollaborators = ({ eventId, eventTitle, isOrganizer }: Props) => {
                   <TableCell>{format(new Date(collaborator.createdAt), 'PPp')}</TableCell>
                   {isOrganizer && (
                     <TableCell className="text-right">
-                      <div className="flex gap-2 justify-end">
+                      <div className="flex gap-1 sm:gap-2 justify-end">
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => openEditDialog(collaborator)}
+                          className="h-8 w-8 p-0"
                         >
                           <Settings className="h-4 w-4" />
                         </Button>
@@ -336,6 +338,7 @@ const EventCollaborators = ({ eventId, eventTitle, isOrganizer }: Props) => {
                           size="sm"
                           variant="destructive"
                           onClick={() => handleRemove(collaborator.id)}
+                          className="h-8 w-8 p-0"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -346,6 +349,7 @@ const EventCollaborators = ({ eventId, eventTitle, isOrganizer }: Props) => {
               ))}
             </TableBody>
           </Table>
+          </div>
         </Card>
       )}
 
