@@ -299,16 +299,27 @@ const AdminManagePolls = ({ onCreatePoll }: AdminManagePollsProps = {}) => {
       )}
 
       <Dialog open={viewDialog.open} onOpenChange={(open) => setViewDialog({ open, poll: null })}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           {viewDialog.poll && (
             <>
               <DialogHeader>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <DialogTitle className="text-2xl mb-2">{viewDialog.poll.question}</DialogTitle>
-                    <DialogDescription>
-                      Created by {viewDialog.poll.createdBy?.displayName || 'Unknown'} • {format(new Date(viewDialog.poll.createdAt), 'MMM dd, yyyy')}
-                    </DialogDescription>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <DialogTitle className="text-2xl mb-3 leading-tight">{viewDialog.poll.question}</DialogTitle>
+                    <div className="space-y-2">
+                      <DialogDescription className="flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        Created by {viewDialog.poll.createdBy?.displayName || 'Unknown'}
+                      </DialogDescription>
+                      <DialogDescription>
+                        Created on {format(new Date(viewDialog.poll.createdAt), 'MMMM dd, yyyy')} at {format(new Date(viewDialog.poll.createdAt), 'hh:mm a')}
+                      </DialogDescription>
+                      {viewDialog.poll.updatedAt && viewDialog.poll.updatedAt !== viewDialog.poll.createdAt && (
+                        <DialogDescription>
+                          Last updated {format(new Date(viewDialog.poll.updatedAt), 'MMM dd, yyyy hh:mm a')}
+                        </DialogDescription>
+                      )}
+                    </div>
                   </div>
                   <Badge className={getStatusColor(viewDialog.poll.status)}>
                     {viewDialog.poll.status}
@@ -316,54 +327,115 @@ const AdminManagePolls = ({ onCreatePoll }: AdminManagePollsProps = {}) => {
                 </div>
               </DialogHeader>
               <div className="space-y-6">
+                {/* Poll Details Section */}
+                <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+                  <h4 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Poll Details</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground mb-1">Visibility</p>
+                      <p className="font-semibold">{viewDialog.poll.visibility}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground mb-1">Poll ID</p>
+                      <p className="font-mono text-xs">{viewDialog.poll.id}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground mb-1">Start Date</p>
+                      <p className="font-medium">{format(new Date(viewDialog.poll.startAt), 'MMM dd, yyyy hh:mm a')}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground mb-1">End Date</p>
+                      <p className="font-medium">{format(new Date(viewDialog.poll.endAt), 'MMM dd, yyyy hh:mm a')}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Statistics Cards */}
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="flex items-center gap-3 p-4 bg-secondary rounded-lg">
-                    <Users className="h-8 w-8 text-primary" />
+                  <div className="flex items-center gap-3 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                    <Users className="h-8 w-8 text-blue-500" />
                     <div>
                       <p className="text-2xl font-bold">{getTotalVotes(viewDialog.poll)}</p>
                       <p className="text-sm text-muted-foreground">Total Votes</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 p-4 bg-secondary rounded-lg">
-                    <BarChart3 className="h-8 w-8 text-primary" />
+                  <div className="flex items-center gap-3 p-4 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+                    <BarChart3 className="h-8 w-8 text-purple-500" />
                     <div>
                       <p className="text-2xl font-bold">{viewDialog.poll.options?.length || 0}</p>
                       <p className="text-sm text-muted-foreground">Options</p>
                     </div>
                   </div>
-                  <div className="p-4 bg-secondary rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">Visibility</p>
-                    <p className="text-lg font-semibold">{viewDialog.poll.visibility}</p>
+                  <div className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+                    <BarChart3 className="h-8 w-8 text-green-500" />
+                    <div>
+                      <p className="text-2xl font-bold">
+                        {getTotalVotes(viewDialog.poll) > 0 
+                          ? Math.round((getTotalVotes(viewDialog.poll) / (viewDialog.poll.options?.length || 1)) * 10) / 10
+                          : 0}
+                      </p>
+                      <p className="text-sm text-muted-foreground">Avg per Option</p>
+                    </div>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>Start: {format(new Date(viewDialog.poll.startAt), 'MMM dd, yyyy hh:mm a')}</span>
-                    <span>End: {format(new Date(viewDialog.poll.endAt), 'MMM dd, yyyy hh:mm a')}</span>
-                  </div>
-                </div>
-
+                {/* Results Section */}
                 <div>
-                  <h3 className="font-semibold mb-4">Results</h3>
+                  <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-primary" />
+                    Voting Results
+                  </h3>
                   <div className="space-y-4">
-                    {viewDialog.poll.options?.map((option: any) => {
-                      const votes = option._count?.votes || 0;
-                      const total = getTotalVotes(viewDialog.poll);
-                      const percentage = getPercentage(votes, total);
-                      
-                      return (
-                        <div key={option.id} className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium">{option.optionText}</span>
-                            <span className="text-sm text-muted-foreground">
-                              {votes} votes ({percentage}%)
-                            </span>
+                    {viewDialog.poll.options
+                      ?.sort((a: any, b: any) => (b._count?.votes || 0) - (a._count?.votes || 0))
+                      .map((option: any, index: number) => {
+                        const votes = option._count?.votes || 0;
+                        const total = getTotalVotes(viewDialog.poll);
+                        const percentage = getPercentage(votes, total);
+                        const isLeading = index === 0 && votes > 0;
+                        
+                        return (
+                          <div key={option.id} className={`p-4 rounded-lg border-2 transition-all ${
+                            isLeading 
+                              ? 'bg-primary/5 border-primary/30 shadow-md' 
+                              : 'bg-muted/30 border-muted'
+                          }`}>
+                            <div className="flex items-start justify-between gap-4 mb-3">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-semibold text-lg">{option.optionText}</span>
+                                  {isLeading && total > 0 && (
+                                    <Badge variant="default" className="text-xs">Leading</Badge>
+                                  )}
+                                </div>
+                                {(option.textFr || option.textAr) && (
+                                  <div className="text-sm text-muted-foreground space-y-1 mt-2">
+                                    {option.textFr && <p className="flex gap-2"><span className="font-medium">FR:</span> {option.textFr}</p>}
+                                    {option.textAr && <p className="flex gap-2"><span className="font-medium">AR:</span> {option.textAr}</p>}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <div className="text-2xl font-bold text-primary">{votes}</div>
+                                <div className="text-sm text-muted-foreground">votes</div>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Progress value={percentage} className="h-3" />
+                              <div className="flex justify-between items-center text-sm">
+                                <span className="text-muted-foreground">
+                                  {total > 0 ? `${percentage}% of total votes` : 'No votes yet'}
+                                </span>
+                                {total > 0 && (
+                                  <span className="font-medium">
+                                    {votes} / {total}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                          <Progress value={percentage} className="h-2" />
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
                   </div>
                 </div>
               </div>

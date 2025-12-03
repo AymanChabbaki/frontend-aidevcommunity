@@ -263,7 +263,7 @@ const Contact = () => {
                       <Input 
                         id="email" 
                         type="email" 
-                        placeholder="john@example.com" 
+                        placeholder="Mohammed Salahi@example.com" 
                         value={formData.email}
                         onChange={handleChange}
                         required 
