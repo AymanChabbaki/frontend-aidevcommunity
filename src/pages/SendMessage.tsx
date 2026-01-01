@@ -299,14 +299,22 @@ export default function SendMessage() {
 
             {/* Message */}
             <div className="space-y-2">
-              <Label htmlFor="message">Message</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="message">Message</Label>
+                <div className="text-xs text-gray-500">
+                  Available variables: <code className="bg-gray-100 px-1 rounded">{"{{"}name{"}}"}</code>, <code className="bg-gray-100 px-1 rounded">{"{{"}email{"}}"}</code>
+                </div>
+              </div>
               <Textarea
                 id="message"
-                placeholder="Enter your message here..."
+                placeholder="Enter your message here...&#10;&#10;You can use variables like {{name}} and {{email}} which will be replaced with each recipient's information."
                 rows={8}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Tip: Use {"{{"}name{"}}"} for display name and {"{{"}email{"}}"} for email address
+              </p>
             </div>
 
             {/* Recipient Count */}
