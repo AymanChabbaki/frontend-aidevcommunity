@@ -28,7 +28,7 @@ interface Event {
 }
 
 export default function SendMessage() {
-  const [recipientType, setRecipientType] = useState<'all' | 'specific' | 'event'>('all');
+  const [recipientType, setRecipientType] = useState<'all' | 'users' | 'staff' | 'specific' | 'event'>('all');
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
@@ -159,6 +159,8 @@ export default function SendMessage() {
 
   const getRecipientCount = () => {
     if (recipientType === 'all') return users.length;
+    if (recipientType === 'users') return users.filter((u) => u.role === 'USER').length;
+    if (recipientType === 'staff') return users.filter((u) => u.role === 'STAFF' || u.role === 'ADMIN').length;
     if (recipientType === 'specific') return selectedUsers.length;
     if (recipientType === 'event') return eventUsers.length;
     return 0;
@@ -185,7 +187,21 @@ export default function SendMessage() {
                   <RadioGroupItem value="all" id="all" />
                   <Label htmlFor="all" className="flex items-center gap-2 cursor-pointer">
                     <Users className="w-4 h-4" />
-                    All Users ({users.length})
+                    Users and Staffs ({users.length})
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="users" id="users" />
+                  <Label htmlFor="users" className="flex items-center gap-2 cursor-pointer">
+                    <User className="w-4 h-4" />
+                    Users Only ({users.filter((u) => u.role === 'USER').length})
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="staff" id="staff" />
+                  <Label htmlFor="staff" className="flex items-center gap-2 cursor-pointer">
+                    <Users className="w-4 h-4" />
+                    Staff Only ({users.filter((u) => u.role === 'STAFF' || u.role === 'ADMIN').length})
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
