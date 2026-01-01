@@ -59,7 +59,20 @@ const Polls = () => {
     try {
       setLoading(true);
       const response = await pollService.getAllPolls();
-      setPolls(response.data || []);
+      const pollsData = response.data || [];
+      
+      // Check if polls have expired and update status
+      const now = new Date();
+      const updatedPolls = pollsData.map((poll: Poll) => {
+        const endDate = new Date(poll.endAt);
+        // If current date is past end date and status is still ACTIVE, mark as CLOSED
+        if (endDate < now && poll.status === 'ACTIVE') {
+          return { ...poll, status: 'CLOSED' };
+        }
+        return poll;
+      });
+      
+      setPolls(updatedPolls);
     } catch (error: any) {
       console.error('Error fetching polls:', error);
       toast.error('Failed to load polls');
@@ -88,6 +101,17 @@ const Polls = () => {
       toast.error('Please login to vote');
       setTimeout(() => navigate('/login'), 1000);
       return;
+    }
+
+    // Check if poll has ended
+    const poll = polls.find(p => p.id === pollId);
+    if (poll) {
+      const endDate = new Date(poll.endAt);
+      const now = new Date();
+      if (endDate < now || poll.status !== 'ACTIVE') {
+        toast.error('This poll has ended');
+        return;
+      }
     }
 
     if (userVotes[pollId]) {
@@ -256,6 +280,11 @@ const Polls = () => {
                   : poll.question;
             const hasVoted = userVotes[poll.id];
             const totalVotes = poll.options?.reduce((sum, opt) => sum + (opt._count?.votes || 0), 0) || 0;
+            
+            // Check if poll has ended
+            const endDate = new Date(poll.endAt);
+            const now = new Date();
+            const isPollEnded = endDate < now || poll.status !== 'ACTIVE';
 
             return (
               <motion.div
@@ -286,8 +315,8 @@ const Polls = () => {
                           <Users className="h-4 w-4" />
                           {totalVotes} votes
                         </span>
-                        <Badge variant={poll.status === 'ACTIVE' ? 'default' : 'secondary'}>
-                          {poll.status}
+                        <Badge variant={isPollEnded ? 'secondary' : 'default'}>
+                          {isPollEnded ? 'CLOSED' : poll.status}
                         </Badge>
                       </div>
                     </div>
@@ -313,7 +342,7 @@ const Polls = () => {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.1 + optIndex * 0.05 }}
                         >
-                          {hasVoted || !isAuthenticated ? (
+                          {hasVoted || !isAuthenticated || isPollEnded ? (
                             <div className="space-y-2 p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
                               <div className="flex items-center justify-between">
                                 <span className="text-base font-medium flex items-center gap-2">
@@ -357,7 +386,7 @@ const Polls = () => {
                     })}
                   </div>
 
-                  {!hasVoted && isAuthenticated && (
+                  {!hasVoted && isAuthenticated && !isPollEnded && (
                     <motion.p
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -366,6 +395,18 @@ const Polls = () => {
                     >
                       <AlertCircle className="h-4 w-4" />
                       Click an option to cast your vote
+                    </motion.p>
+                  )}
+                  
+                  {isPollEnded && (
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.5 }}
+                      className="text-sm text-muted-foreground mt-6 text-center flex items-center justify-center gap-2"
+                    >
+                      <AlertCircle className="h-4 w-4" />
+                      This poll has ended
                     </motion.p>
                   )}
 
