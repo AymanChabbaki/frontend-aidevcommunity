@@ -39,6 +39,7 @@ export const EventCard: React.FC<EventCardProps> = ({
   
   const displayTitle = language === 'fr' ? titleFr : language === 'ar' ? titleAr : title;
   const isFull = registrations >= capacity;
+  const isPastEvent = new Date(date) < new Date();
 
   return (
     <motion.div
@@ -88,11 +89,13 @@ export const EventCard: React.FC<EventCardProps> = ({
             </div>
           </div>
 
-          <Button asChild className="w-full gradient-primary" disabled={isFull || isRegistered}>
-            <Link to={`/events/${id}`}>
-              {isRegistered ? '✓ Registered' : isFull ? 'Full' : t.events.register}
-            </Link>
-          </Button>
+          {!isPastEvent && (
+            <Button asChild className="w-full gradient-primary" disabled={isFull || isRegistered}>
+              <Link to={`/events/${id}`}>
+                {isRegistered ? '✓ Registered' : isFull ? 'Full' : t.events.register}
+              </Link>
+            </Button>
+          )}
         </div>
       </Card>
     </motion.div>
