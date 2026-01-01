@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/Footer';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 import { 
   Target, Users, Lightbulb, Award, Sparkles, TrendingUp, 
   Code2, Brain, Rocket, Zap, Heart, Star, ArrowRight,
@@ -11,6 +12,7 @@ import {
 } from 'lucide-react';
 
 const About = () => {
+  const { isAuthenticated } = useAuth();
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 300], [0, -50]);
   const y2 = useTransform(scrollY, [0, 300], [0, 50]);
@@ -196,7 +198,7 @@ const About = () => {
               className="flex flex-col sm:flex-row gap-4 justify-center"
             >
               <Button asChild size="lg" className="text-lg gradient-accent group">
-                <Link to="/register">
+                <Link to={isAuthenticated ? "/events" : "/register"}>
                   Join Our Community
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
@@ -448,7 +450,7 @@ const About = () => {
               Start your journey with us today and connect with amazing developers
             </p>
             <Button asChild size="lg" className="text-lg gradient-accent group">
-              <Link to="/register">
+              <Link to={isAuthenticated ? "/events" : "/register"}>
                 Get Started Now
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Link>

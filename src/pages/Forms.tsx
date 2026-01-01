@@ -60,6 +60,7 @@ const Forms = () => {
   const [selectedForm, setSelectedForm] = useState<string | null>(null);
   const [formValues, setFormValues] = useState<Record<string, any>>({});
   const [submittedForms, setSubmittedForms] = useState<string[]>([]);
+  const [isEditingSubmission, setIsEditingSubmission] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const { scrollY } = useScroll();
@@ -98,14 +99,34 @@ const Forms = () => {
     }
   };
 
-  const handleFormSelect = (formId: string) => {
+  const handleFormSelect = async (formId: string) => {
     if (!isAuthenticated) {
       toast.error('Please login to access forms');
       setTimeout(() => navigate('/login'), 1000);
       return;
     }
+    
+    const hasSubmitted = submittedForms.includes(formId);
+    
+    if (hasSubmitted) {
+      // Load existing submission
+      try {
+        const response = await formService.getUserSubmission(formId);
+        if (response.data) {
+          setFormValues(response.data.answers || {});
+          setIsEditingSubmission(true);
+        }
+      } catch (error) {
+        console.error('Error fetching user submission:', error);
+        toast.error('Failed to load your submission');
+        return;
+      }
+    } else {
+      setFormValues({});
+      setIsEditingSubmission(false);
+    }
+    
     setSelectedForm(formId);
-    setFormValues({});
   };
 
   const handleFieldChange = (fieldId: string, value: any) => {
@@ -147,11 +168,14 @@ const Forms = () => {
       await formService.submitForm(formId, formValues);
       
       // Update submitted forms list
-      setSubmittedForms(prev => [...prev, formId]);
+      if (!submittedForms.includes(formId)) {
+        setSubmittedForms(prev => [...prev, formId]);
+      }
       
-      toast.success('Form submitted successfully!');
+      toast.success(isEditingSubmission ? 'Form updated successfully!' : 'Form submitted successfully!');
       setSelectedForm(null);
       setFormValues({});
+      setIsEditingSubmission(false);
       
       // Refresh forms to get updated response counts
       await fetchForms();
@@ -508,13 +532,13 @@ const Forms = () => {
 
                     <Button
                       onClick={() => handleFormSelect(form.id)}
-                      disabled={hasSubmitted || !isAuthenticated}
+                      disabled={!isAuthenticated}
                       className="w-full gradient-accent h-12 text-base group"
                     >
                       {hasSubmitted ? (
                         <>
                           <CheckCircle2 className="mr-2 h-5 w-5" />
-                          Already Submitted
+                          Edit Submission
                         </>
                       ) : !isAuthenticated ? (
                         <>
@@ -601,11 +625,11 @@ const Forms = () => {
                         {submitting ? (
                           <>
                             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                            Submitting...
+                            {isEditingSubmission ? 'Updating...' : 'Submitting...'}
                           </>
                         ) : (
                           <>
-                            Submit Form
+                            {isEditingSubmission ? 'Update Submission' : 'Submit Form'}
                             <Send className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                           </>
                         )}

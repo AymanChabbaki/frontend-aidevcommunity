@@ -9,6 +9,7 @@ import { Footer } from '@/components/Footer';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 import { eventService } from '@/services/event.service';
+import { Link } from 'react-router-dom';
 import { 
   Search, Calendar, Filter, Sparkles, TrendingUp, 
   MapPin, Users, Clock, Tag, ArrowRight, Zap,
@@ -365,10 +366,10 @@ const Events = () => {
               Become an organizer and share your knowledge with our community
             </p>
             <Button asChild size="lg" className="text-lg gradient-accent group">
-              <a href="mailto:events@aidevclub.com">
+              <Link to="/contact">
                 Get in Touch
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </a>
+              </Link>
             </Button>
           </motion.div>
         </div>

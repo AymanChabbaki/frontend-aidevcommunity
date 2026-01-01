@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/context/LanguageContext';
+import { useAuth } from '@/context/AuthContext';
 import { EventCard } from '@/components/EventCard';
 import { Footer } from '@/components/Footer';
 import { ArrowRight, Calendar, Users, Award, Sparkles, TrendingUp, Heart, Code2, Zap, Brain, Rocket, Image as ImageIcon } from 'lucide-react';
@@ -13,6 +14,7 @@ import { homeContentService, HomeContent } from '@/services/home-content.service
 
 const Index = () => {
   const { t } = useLanguage();
+  const { isAuthenticated } = useAuth();
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 300], [0, -50]);
   const y2 = useTransform(scrollY, [0, 300], [0, 50]);
@@ -186,7 +188,7 @@ const Index = () => {
                 className="flex flex-col sm:flex-row gap-4 mb-8"
               >
                 <Button asChild size="lg" className="text-lg gradient-accent group">
-                  <Link to={homeContent.heroCtaLink || '/events'}>
+                  <Link to={isAuthenticated ? "/events" : (homeContent.heroCtaLink || '/events')}>
                     {homeContent.heroCtaText || t.hero.cta}
                     <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                   </Link>
@@ -453,7 +455,7 @@ const Index = () => {
               Become part of our growing community of AI and tech enthusiasts
             </p>
             <Button asChild size="lg" className="gradient-accent">
-              <Link to="/register">
+              <Link to={isAuthenticated ? "/events" : "/register"}>
                 Get Started Today
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
