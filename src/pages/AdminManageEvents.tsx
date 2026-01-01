@@ -132,7 +132,32 @@ const AdminManageEvents = () => {
     try {
       setLoading(true);
       const response = await eventService.getAllEvents();
-      setEvents(response.data || []);
+      const eventsData = response.data || [];
+      
+      // Check and update event status based on dates
+      const now = new Date();
+      const updatedEvents = eventsData.map((event: any) => {
+        // Don't change CANCELLED status
+        if (event.status === 'CANCELLED') {
+          return event;
+        }
+        
+        const startDate = new Date(event.startAt);
+        const endDate = new Date(event.endAt);
+        
+        let newStatus = event.status;
+        if (now < startDate) {
+          newStatus = 'UPCOMING';
+        } else if (now >= startDate && now < endDate) {
+          newStatus = 'ONGOING';
+        } else if (now >= endDate) {
+          newStatus = 'COMPLETED';
+        }
+        
+        return { ...event, status: newStatus };
+      });
+      
+      setEvents(updatedEvents);
     } catch (error: any) {
       toast({
         title: 'Error',

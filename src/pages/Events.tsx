@@ -60,8 +60,31 @@ const Events = () => {
       const response = await eventService.getAllEvents();
       const eventsData = response.data || [];
       
+      // Check and update event status based on dates
+      const now = new Date();
+      const updatedEventsData = eventsData.map((event: any) => {
+        // Don't change CANCELLED status
+        if (event.status === 'CANCELLED') {
+          return event;
+        }
+        
+        const startDate = new Date(event.startAt);
+        const endDate = new Date(event.endAt);
+        
+        let newStatus = event.status;
+        if (now < startDate) {
+          newStatus = 'UPCOMING';
+        } else if (now >= startDate && now < endDate) {
+          newStatus = 'ONGOING';
+        } else if (now >= endDate) {
+          newStatus = 'COMPLETED';
+        }
+        
+        return { ...event, status: newStatus };
+      });
+      
       // Map events to EventCard format
-      const mappedEvents = eventsData.map((event: any) => ({
+      const mappedEvents = updatedEventsData.map((event: any) => ({
         ...event,
         date: event.startAt,
         location: event.locationText,

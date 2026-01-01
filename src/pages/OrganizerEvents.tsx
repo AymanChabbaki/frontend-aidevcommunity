@@ -93,8 +93,33 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
         collaborationService.getMyCollaborations()
       ]);
       
+      const allEventsData = eventsResponse.data || [];
+      
+      // Check and update event status based on dates
+      const now = new Date();
+      const updatedEventsData = allEventsData.map((event: any) => {
+        // Don't change CANCELLED status
+        if (event.status === 'CANCELLED') {
+          return event;
+        }
+        
+        const startDate = new Date(event.startAt);
+        const endDate = new Date(event.endAt);
+        
+        let newStatus = event.status;
+        if (now < startDate) {
+          newStatus = 'UPCOMING';
+        } else if (now >= startDate && now < endDate) {
+          newStatus = 'ONGOING';
+        } else if (now >= endDate) {
+          newStatus = 'COMPLETED';
+        }
+        
+        return { ...event, status: newStatus };
+      });
+      
       // Get events created by this staff member
-      const myEvents = eventsResponse.data?.filter((event: any) => event.organizerId === user?.id) || [];
+      const myEvents = updatedEventsData.filter((event: any) => event.organizerId === user?.id);
       
       // Get events where user is a collaborator
       const collaboratedEvents = collaborationsResponse.data?.data || [];

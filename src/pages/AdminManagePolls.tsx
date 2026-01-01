@@ -67,7 +67,19 @@ const AdminManagePolls = ({ onCreatePoll }: AdminManagePollsProps = {}) => {
       const filteredData = user?.role === 'ADMIN' 
         ? response.data || [] 
         : (response.data || []).filter((poll: any) => poll.createdBy === user?.id);
-      setPolls(filteredData);
+      
+      // Check if polls have expired and update status
+      const now = new Date();
+      const updatedPolls = filteredData.map((poll: any) => {
+        const endDate = new Date(poll.endAt);
+        // If current date is past end date and status is still ACTIVE, mark as CLOSED
+        if (endDate < now && poll.status === 'ACTIVE') {
+          return { ...poll, status: 'CLOSED' };
+        }
+        return poll;
+      });
+      
+      setPolls(updatedPolls);
     } catch (error: any) {
       toast({
         title: 'Error',

@@ -128,19 +128,52 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
 
         // Fetch events
         const eventsResponse = await eventService.getAllEvents();
-        const events = eventsResponse.data || [];
+        const eventsData = eventsResponse.data || [];
+        
+        // Check and update event status based on dates
+        const now = new Date();
+        const events = eventsData.map((event: any) => {
+          // Don't change CANCELLED status
+          if (event.status === 'CANCELLED') {
+            return event;
+          }
+          
+          const startDate = new Date(event.startAt);
+          const endDate = new Date(event.endAt);
+          
+          let newStatus = event.status;
+          if (now < startDate) {
+            newStatus = 'UPCOMING';
+          } else if (now >= startDate && now < endDate) {
+            newStatus = 'ONGOING';
+          } else if (now >= endDate) {
+            newStatus = 'COMPLETED';
+          }
+          
+          return { ...event, status: newStatus };
+        });
+        
         const activeEvents = events.filter((event: any) => 
           event.status === 'UPCOMING' || event.status === 'ONGOING'
         ).length;
 
         // Fetch polls
         const pollsResponse = await pollService.getAllPolls();
-        const polls = pollsResponse.data || [];
+        const pollsData = pollsResponse.data || [];
+        
+        // Check if polls have expired and update status
+        const polls = pollsData.map((poll: any) => {
+          const endDate = new Date(poll.endAt);
+          // If current date is past end date and status is still ACTIVE, mark as CLOSED
+          if (endDate < now && poll.status === 'ACTIVE') {
+            return { ...poll, status: 'CLOSED' };
+          }
+          return poll;
+        });
 
         // Calculate user growth data (last 6 months)
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const userGrowthData = [];
-        const now = new Date();
         for (let i = 5; i >= 0; i--) {
           const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
           const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);

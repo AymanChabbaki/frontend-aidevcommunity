@@ -209,10 +209,43 @@ const StaffDashboard = () => {
           collaborationService.getMyCollaborations()
         ]);
         
-        const allEvents = eventsResponse.data || [];
-        const allPolls = pollsResponse.data || [];
+        const allEventsData = eventsResponse.data || [];
+        const allPollsData = pollsResponse.data || [];
         const allForms = formsResponse.data || [];
         const collaborations = collaborationsResponse.data?.data || [];
+        
+        // Check and update event status based on dates
+        const now = new Date();
+        const allEvents = allEventsData.map((event: any) => {
+          // Don't change CANCELLED status
+          if (event.status === 'CANCELLED') {
+            return event;
+          }
+          
+          const startDate = new Date(event.startAt);
+          const endDate = new Date(event.endAt);
+          
+          let newStatus = event.status;
+          if (now < startDate) {
+            newStatus = 'UPCOMING';
+          } else if (now >= startDate && now < endDate) {
+            newStatus = 'ONGOING';
+          } else if (now >= endDate) {
+            newStatus = 'COMPLETED';
+          }
+          
+          return { ...event, status: newStatus };
+        });
+        
+        // Check if polls have expired and update status
+        const allPolls = allPollsData.map((poll: any) => {
+          const endDate = new Date(poll.endAt);
+          // If current date is past end date and status is still ACTIVE, mark as CLOSED
+          if (endDate < now && poll.status === 'ACTIVE') {
+            return { ...poll, status: 'CLOSED' };
+          }
+          return poll;
+        });
         
         // Filter events created by this staff member
         const myEvents = allEvents.filter((event: any) => event.organizerId === user?.id);
@@ -226,7 +259,6 @@ const StaffDashboard = () => {
 
         // Calculate chart data for last 6 months
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const now = new Date();
 
         // Event growth data
         const eventGrowthData = [];
