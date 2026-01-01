@@ -22,27 +22,25 @@ const translations: Record<Language, Translations> = {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguageState] = useState<Language>('en');
+  // Lock language to English only
+  const language: Language = 'en';
 
   useEffect(() => {
-    const storedLang = localStorage.getItem('language') as Language;
-    if (storedLang && ['en', 'fr', 'ar'].includes(storedLang)) {
-      setLanguageState(storedLang);
-    }
+    // Always set to English
+    document.documentElement.dir = 'ltr';
+    document.documentElement.lang = 'en';
+    // Clear any stored language preference
+    localStorage.removeItem('language');
   }, []);
 
-  useEffect(() => {
-    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
-    document.documentElement.lang = language;
-  }, [language]);
-
+  // Keep setLanguage for compatibility but it does nothing
   const setLanguage = (lang: Language) => {
-    setLanguageState(lang);
-    localStorage.setItem('language', lang);
+    // Do nothing - language is locked to English
+    console.log('Language switching is disabled. Website is English only.');
   };
 
-  const t = translations[language];
-  const dir = language === 'ar' ? 'rtl' : 'ltr';
+  const t = translations['en'];
+  const dir = 'ltr';
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t, dir }}>
