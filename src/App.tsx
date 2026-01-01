@@ -49,6 +49,7 @@ import AdminManagePolls from "./pages/AdminManagePolls";
 import AdminManageForms from "./pages/AdminManageForms";
 import AdminContactMessages from "./pages/AdminContactMessages";
 import AdminApproveRegistrations from "./pages/AdminApproveRegistrations";
+import SendMessage from "./pages/SendMessage";
 
 // Staff Pages (Dashboard)
 import StaffDashboard from "./pages/StaffDashboard";
@@ -187,6 +188,7 @@ const App = () => (
                         <Route path="home-content" element={<AdminDashboard><AdminHomeContent /></AdminDashboard>} />
                         <Route path="contact-messages" element={<AdminDashboard><AdminContactMessages /></AdminDashboard>} />
                         <Route path="approve-registrations" element={<AdminDashboard><AdminApproveRegistrations /></AdminDashboard>} />
+                        <Route path="send-message" element={<AdminDashboard><SendMessage /></AdminDashboard>} />
                       </Routes>
                     </ProtectedRoute>
                   </AdminLayout>

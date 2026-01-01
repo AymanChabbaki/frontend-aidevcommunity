@@ -39,7 +39,8 @@ import {
   User,
   TrendingUp,
   Activity,
-  CheckCircle
+  CheckCircle,
+  Send
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -71,6 +72,7 @@ import QRScanner from './QRScanner';
 import StaffProfile from './StaffProfile';
 import StaffApproveRegistrations from './StaffApproveRegistrations';
 import StaffCollaborations from './StaffCollaborations';
+import SendMessage from './SendMessage';
 
 const StaffDashboard = () => {
   const { user, logout } = useAuth();
@@ -179,6 +181,11 @@ const StaffDashboard = () => {
       title: 'Collaborations',
       icon: Users,
       path: '/staff/collaborations',
+    },
+    {
+      title: 'Send Messages',
+      icon: Send,
+      path: '/staff/send-message',
     },
     {
       title: 'Profile',
@@ -746,6 +753,7 @@ const StaffDashboard = () => {
             <Route path="/qr-scanner" element={<QRScanner />} />
             <Route path="/approve-registrations" element={<StaffApproveRegistrations />} />
             <Route path="/collaborations" element={<StaffCollaborations />} />
+            <Route path="/send-message" element={<SendMessage />} />
             <Route path="/profile" element={<StaffProfile />} />
           </Routes>
         </div>
