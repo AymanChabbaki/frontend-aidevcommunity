@@ -35,10 +35,13 @@ const AdminManageQuizzes = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
+  const [selectedQuizTitle, setSelectedQuizTitle] = useState<string>('');
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
   const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deleteParticipantDialog, setDeleteParticipantDialog] = useState(false);
+  const [participantToDelete, setParticipantToDelete] = useState<{ userId: string; displayName: string } | null>(null);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
@@ -209,6 +212,7 @@ const AdminManageQuizzes = () => {
     try {
       setLoadingLeaderboard(true);
       setSelectedQuizId(quizId);
+      setSelectedQuizTitle(quizTitle);
       setLeaderboardOpen(true);
       const data = await quizService.getQuizLeaderboard(quizId);
       setLeaderboard(data);
@@ -222,6 +226,37 @@ const AdminManageQuizzes = () => {
     } finally {
       setLoadingLeaderboard(false);
     }
+  };
+
+  const handleDeleteParticipant = async () => {
+    if (!selectedQuizId || !participantToDelete) return;
+
+    try {
+      await quizService.deleteQuizParticipant(selectedQuizId, participantToDelete.userId);
+      
+      // Refresh leaderboard
+      const data = await quizService.getQuizLeaderboard(selectedQuizId);
+      setLeaderboard(data);
+      
+      toast({
+        title: 'Success',
+        description: 'Participant removed successfully',
+      });
+      
+      setDeleteParticipantDialog(false);
+      setParticipantToDelete(null);
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to delete participant',
+      });
+    }
+  };
+
+  const confirmDeleteParticipant = (userId: string, displayName: string) => {
+    setParticipantToDelete({ userId, displayName });
+    setDeleteParticipantDialog(true);
   };
 
   const handleDelete = async (quizId: string) => {
@@ -722,9 +757,20 @@ const AdminManageQuizzes = () => {
                           <div className="text-sm text-muted-foreground">{entry.email}</div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-primary">{entry.totalScore}</div>
-                        <div className="text-xs text-muted-foreground">points</div>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-primary">{entry.totalScore}</div>
+                          <div className="text-xs text-muted-foreground">points</div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => confirmDeleteParticipant(entry.userId, entry.displayName)}
+                          title="Remove participant"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -745,9 +791,20 @@ const AdminManageQuizzes = () => {
                           <div className="text-xs text-muted-foreground">{entry.email}</div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-bold">{entry.totalScore}</div>
-                        <div className="text-xs text-muted-foreground">points</div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-right">
+                          <div className="font-bold">{entry.totalScore}</div>
+                          <div className="text-xs text-muted-foreground">points</div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => confirmDeleteParticipant(entry.userId, entry.displayName)}
+                          title="Remove participant"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -789,6 +846,36 @@ Best regards,
 AI Dev Community Team`}
         />
       )}
+
+      {/* Delete Participant Confirmation Dialog */}
+      <Dialog open={deleteParticipantDialog} onOpenChange={setDeleteParticipantDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove Participant</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to remove <strong>{participantToDelete?.displayName}</strong> from this quiz?
+              This will delete all their submissions and cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteParticipantDialog(false);
+                setParticipantToDelete(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteParticipant}
+            >
+              Remove Participant
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

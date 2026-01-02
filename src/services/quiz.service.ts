@@ -148,6 +148,12 @@ const quizService = {
     const response = await api.delete(`/quizzes/${quizId}`);
     return response.data;
   },
+
+  // Delete participant from quiz (Staff/Admin only)
+  deleteQuizParticipant: async (quizId: string, userId: string): Promise<{ message: string; deletedCount: number }> => {
+    const response = await api.delete(`/quizzes/${quizId}/participants/${userId}`);
+    return response.data;
+  },
 };
 
 export default quizService;
