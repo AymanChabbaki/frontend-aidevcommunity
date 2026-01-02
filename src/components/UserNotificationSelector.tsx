@@ -113,7 +113,7 @@ const UserNotificationSelector = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh]">
+      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
@@ -124,7 +124,7 @@ const UserNotificationSelector = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 flex-1 overflow-hidden">
           {/* Message Editor */}
           <div>
             <Label htmlFor="message">Email Message</Label>
@@ -132,7 +132,7 @@ const UserNotificationSelector = ({
               id="message"
               value={emailMessage}
               onChange={(e) => setEmailMessage(e.target.value)}
-              rows={6}
+              rows={4}
               className="mt-2"
               placeholder="Enter your message..."
             />
@@ -142,7 +142,7 @@ const UserNotificationSelector = ({
           </div>
 
           {/* User Selection */}
-          <div>
+          <div className="flex flex-col min-h-0">
             <div className="flex items-center justify-between mb-3">
               <Label>Select Recipients ({selectedUsers.length} selected)</Label>
               <Button
@@ -155,7 +155,7 @@ const UserNotificationSelector = ({
               </Button>
             </div>
 
-            <ScrollArea className="h-64 border rounded-lg p-4">
+            <ScrollArea className="h-48 border rounded-lg p-4">
               {loading ? (
                 <div className="flex justify-center items-center h-full">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -204,7 +204,7 @@ const UserNotificationSelector = ({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="mt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={sending}>
             Cancel
           </Button>
