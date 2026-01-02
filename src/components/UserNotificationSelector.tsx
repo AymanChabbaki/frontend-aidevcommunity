@@ -16,6 +16,7 @@ interface User {
   email: string;
   displayName: string;
   role: string;
+  photoUrl?: string | null;
 }
 
 interface UserNotificationSelectorProps {
@@ -190,6 +191,7 @@ const UserNotificationSelector = ({
                         onCheckedChange={() => toggleUser(user.id)}
                       />
                       <Avatar className="h-10 w-10">
+                        <AvatarImage src={user.photoUrl || undefined} alt={user.displayName} />
                         <AvatarFallback>
                           {user.displayName.charAt(0).toUpperCase()}
                         </AvatarFallback>
