@@ -8,6 +8,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { useToast } from '../hooks/use-toast';
 
+// Fisher-Yates shuffle algorithm to randomize array
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
 const QuizPlay = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -111,7 +121,16 @@ const QuizPlay = () => {
         return;
       }
 
-      setQuiz(data);
+      // Randomize options order for each question
+      const quizWithShuffledOptions = {
+        ...data,
+        questions: data.questions.map(question => ({
+          ...question,
+          options: shuffleArray(question.options)
+        }))
+      };
+
+      setQuiz(quizWithShuffledOptions);
       setQuestionStartTime(Date.now());
     } catch (error: any) {
       toast({
