@@ -74,24 +74,68 @@ const QuizLeaderboard = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 dark:from-gray-900 dark:via-orange-900 dark:to-yellow-900">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-30">
+        <motion.div
+          className="absolute top-20 left-10 w-96 h-96 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            x: [0, 50, 0],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+          }}
+        />
+        <motion.div
+          className="absolute bottom-20 right-10 w-96 h-96 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl"
+          animate={{
+            scale: [1, 1.3, 1],
+            x: [0, -50, 0],
+          }}
+          transition={{
+            duration: 15,
+            repeat: Infinity,
+          }}
+        />
+      </div>
+
+      <div className="container mx-auto px-4 py-8 max-w-6xl relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
         {/* Header */}
-        <div className="mb-8">
-          <Button variant="ghost" onClick={() => navigate('/quizzes')} className="mb-4">
+        <div className="mb-12">
+          <Button variant="ghost" onClick={() => navigate('/quizzes')} className="mb-6 hover:bg-white/50">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Quizzes
           </Button>
-          <div className="flex items-center gap-3 mb-2">
-            <Trophy className="h-8 w-8 text-primary" />
-            <h1 className="text-4xl font-bold">Leaderboard</h1>
-          </div>
+          <motion.div 
+            className="flex items-center justify-center gap-4 mb-4"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", duration: 0.8 }}
+          >
+            <motion.div
+              animate={{
+                rotate: [0, 10, -10, 0],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+              }}
+            >
+              <Trophy className="h-16 w-16 text-yellow-500 drop-shadow-2xl" />
+            </motion.div>
+            <h1 className="text-5xl font-black bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 bg-clip-text text-transparent">
+              Leaderboard
+            </h1>
+          </motion.div>
           {quiz && (
-            <p className="text-muted-foreground text-lg">{quiz.title}</p>
+            <p className="text-center text-xl text-muted-foreground font-medium">{quiz.title}</p>
           )}
         </div>
 
@@ -105,101 +149,253 @@ const QuizLeaderboard = () => {
           </Card>
         ) : (
           <>
-            {/* Top 3 */}
+            {/* Top 3 - Podium Style */}
             {leaderboard.length >= 1 && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                {leaderboard.slice(0, 3).map((entry, index) => (
-                  <motion.div
-                    key={entry.userId}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className={index === 0 ? 'md:col-start-2' : ''}
-                  >
-                    <Card className={`relative overflow-hidden ${
-                      entry.rank === 1 ? 'border-yellow-500 border-2' :
-                      entry.rank === 2 ? 'border-gray-400 border-2' :
-                      'border-amber-600 border-2'
-                    }`}>
-                      <div className={`absolute top-0 left-0 right-0 h-2 ${
-                        entry.rank === 1 ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' :
-                        entry.rank === 2 ? 'bg-gradient-to-r from-gray-300 to-gray-500' :
-                        'bg-gradient-to-r from-amber-500 to-amber-700'
-                      }`} />
-                      <CardHeader className="text-center">
-                        <div className="flex justify-center mb-4">
-                          <div className="relative">
-                            <Avatar className="h-24 w-24 border-4 border-background">
-                              <AvatarImage src={entry.profilePicture} alt={entry.displayName} />
-                              <AvatarFallback className="text-2xl">
-                                {entry.displayName.charAt(0).toUpperCase()}
+              <div className="mb-12">
+                {/* Reorder for podium: 2nd, 1st, 3rd */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                  {/* Second Place */}
+                  {leaderboard[1] && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 50 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: 0.2 }}
+                      className="order-1"
+                    >
+                      <div className="relative">
+                        <motion.div
+                          className="absolute -inset-1 bg-gradient-to-r from-gray-400 to-gray-600 rounded-3xl blur opacity-75"
+                          animate={{
+                            scale: [1, 1.05, 1],
+                          }}
+                          transition={{
+                            duration: 3,
+                            repeat: Infinity,
+                          }}
+                        />
+                        <div className="relative bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-2xl border-4 border-gray-400">
+                          <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+                            <motion.div
+                              animate={{
+                                y: [0, -10, 0],
+                              }}
+                              transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                              }}
+                              className="bg-gradient-to-br from-gray-300 to-gray-500 rounded-full p-4 shadow-xl"
+                            >
+                              <Medal className="h-8 w-8 text-white" />
+                            </motion.div>
+                          </div>
+                          <div className="flex flex-col items-center pt-6">
+                            <Avatar className="h-20 w-20 border-4 border-gray-400 shadow-xl mb-3">
+                              <AvatarImage src={leaderboard[1].profilePicture} alt={leaderboard[1].displayName} />
+                              <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-gray-300 to-gray-500">
+                                {leaderboard[1].displayName.charAt(0).toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
-                            <div className="absolute -bottom-2 -right-2 bg-background rounded-full p-2 shadow-lg">
-                              {getMedalIcon(entry.rank)}
+                            <div className="text-4xl font-black mb-1 text-gray-500">2nd</div>
+                            <h3 className="text-lg font-bold text-center mb-1">{leaderboard[1].displayName}</h3>
+                            <p className="text-sm text-muted-foreground mb-3 text-center">{leaderboard[1].email}</p>
+                            <div className="bg-gradient-to-r from-gray-400 to-gray-600 rounded-full px-6 py-3 shadow-lg">
+                              <div className="text-3xl font-black text-white">{leaderboard[1].totalScore}</div>
+                              <div className="text-xs text-white/80 text-center">points</div>
                             </div>
                           </div>
                         </div>
-                        <CardTitle className="text-xl">{entry.displayName}</CardTitle>
-                        <CardDescription>{entry.email}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="text-center">
-                        <div className="text-3xl font-bold text-primary mb-1">
-                          {entry.totalScore}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* First Place - Tallest */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0 }}
+                    className="order-2"
+                  >
+                    <div className="relative">
+                      <motion.div
+                        className="absolute -inset-2 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 rounded-3xl blur-lg opacity-75"
+                        animate={{
+                          scale: [1, 1.08, 1],
+                          rotate: [0, 2, -2, 0],
+                        }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                        }}
+                      />
+                      <div className="relative bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-2xl border-4 border-yellow-400 transform md:scale-110">
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
+                          <motion.div
+                            animate={{
+                              y: [0, -15, 0],
+                              rotate: [0, 10, -10, 0],
+                            }}
+                            transition={{
+                              duration: 2,
+                              repeat: Infinity,
+                            }}
+                            className="bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full p-5 shadow-2xl"
+                          >
+                            <Trophy className="h-10 w-10 text-white" />
+                          </motion.div>
                         </div>
-                        <div className="text-sm text-muted-foreground">points</div>
-                      </CardContent>
-                    </Card>
+                        <div className="flex flex-col items-center pt-8">
+                          <Avatar className="h-24 w-24 border-4 border-yellow-400 shadow-2xl mb-4">
+                            <AvatarImage src={leaderboard[0].profilePicture} alt={leaderboard[0].displayName} />
+                            <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-yellow-400 to-yellow-600">
+                              {leaderboard[0].displayName.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="text-5xl font-black mb-2 bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
+                            1st
+                          </div>
+                          <h3 className="text-xl font-bold text-center mb-2">{leaderboard[0].displayName}</h3>
+                          <p className="text-sm text-muted-foreground mb-4 text-center">{leaderboard[0].email}</p>
+                          <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full px-8 py-4 shadow-2xl">
+                            <div className="text-4xl font-black text-white">{leaderboard[0].totalScore}</div>
+                            <div className="text-xs text-white/80 text-center">points</div>
+                          </div>
+                          <motion.div
+                            animate={{
+                              scale: [1, 1.2, 1],
+                            }}
+                            transition={{
+                              duration: 1.5,
+                              repeat: Infinity,
+                            }}
+                            className="mt-4 text-4xl"
+                          >
+                            👑
+                          </motion.div>
+                        </div>
+                      </div>
+                    </div>
                   </motion.div>
-                ))}
+
+                  {/* Third Place */}
+                  {leaderboard[2] && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 50 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: 0.4 }}
+                      className="order-3"
+                    >
+                      <div className="relative">
+                        <motion.div
+                          className="absolute -inset-1 bg-gradient-to-r from-amber-600 to-amber-800 rounded-3xl blur opacity-75"
+                          animate={{
+                            scale: [1, 1.05, 1],
+                          }}
+                          transition={{
+                            duration: 3,
+                            repeat: Infinity,
+                          }}
+                        />
+                        <div className="relative bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-2xl border-4 border-amber-600">
+                          <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+                            <motion.div
+                              animate={{
+                                y: [0, -10, 0],
+                              }}
+                              transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                              }}
+                              className="bg-gradient-to-br from-amber-600 to-amber-800 rounded-full p-4 shadow-xl"
+                            >
+                              <Medal className="h-8 w-8 text-white" />
+                            </motion.div>
+                          </div>
+                          <div className="flex flex-col items-center pt-6">
+                            <Avatar className="h-20 w-20 border-4 border-amber-600 shadow-xl mb-3">
+                              <AvatarImage src={leaderboard[2].profilePicture} alt={leaderboard[2].displayName} />
+                              <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-amber-600 to-amber-800">
+                                {leaderboard[2].displayName.charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="text-4xl font-black mb-1 text-amber-600">3rd</div>
+                            <h3 className="text-lg font-bold text-center mb-1">{leaderboard[2].displayName}</h3>
+                            <p className="text-sm text-muted-foreground mb-3 text-center">{leaderboard[2].email}</p>
+                            <div className="bg-gradient-to-r from-amber-600 to-amber-800 rounded-full px-6 py-3 shadow-lg">
+                              <div className="text-3xl font-black text-white">{leaderboard[2].totalScore}</div>
+                              <div className="text-xs text-white/80 text-center">points</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
               </div>
             )}
 
-            {/* Rest of leaderboard */}
+            {/* Rest of leaderboard - Table */}
             {leaderboard.length > 3 && (
-              <Card>
+              <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl shadow-xl">
                 <CardHeader>
-                  <CardTitle>All Participants</CardTitle>
+                  <CardTitle className="text-2xl">All Participants</CardTitle>
                   <CardDescription>Complete ranking of all quiz takers</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
-                    {leaderboard.slice(3).map((entry, index) => (
-                      <motion.div
-                        key={entry.userId}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: index * 0.05 }}
-                        className="flex items-center justify-between p-4 rounded-lg hover:bg-accent transition-colors"
-                      >
-                        <div className="flex items-center gap-4">
-                          <span className="text-lg font-bold text-muted-foreground min-w-[40px]">
-                            #{entry.rank}
-                          </span>
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={entry.profilePicture} alt={entry.displayName} />
-                            <AvatarFallback>
-                              {entry.displayName.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="font-medium">{entry.displayName}</div>
-                            <div className="text-sm text-muted-foreground">{entry.email}</div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xl font-bold">{entry.totalScore}</div>
-                          <div className="text-sm text-muted-foreground">points</div>
-                        </div>
-                      </motion.div>
-                    ))}
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b-2">
+                          <th className="text-left p-3 font-bold">Rank</th>
+                          <th className="text-left p-3 font-bold">Participant</th>
+                          <th className="text-right p-3 font-bold">Score</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {leaderboard.slice(3).map((entry, index) => (
+                          <motion.tr
+                            key={entry.userId}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.3, delay: index * 0.05 }}
+                            className="border-b hover:bg-accent/50 transition-colors"
+                          >
+                            <td className="p-4">
+                              <span className="text-lg font-bold text-muted-foreground">
+                                #{entry.rank}
+                              </span>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-10 w-10">
+                                  <AvatarImage src={entry.profilePicture} alt={entry.displayName} />
+                                  <AvatarFallback>
+                                    {entry.displayName.charAt(0).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <div className="font-medium">{entry.displayName}</div>
+                                  <div className="text-sm text-muted-foreground">{entry.email}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-4 text-right">
+                              <div className="inline-flex flex-col items-end">
+                                <div className="text-xl font-bold text-primary">{entry.totalScore}</div>
+                                <div className="text-xs text-muted-foreground">points</div>
+                              </div>
+                            </td>
+                          </motion.tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </CardContent>
               </Card>
             )}
           </>
         )}
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 };
