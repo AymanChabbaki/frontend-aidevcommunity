@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Trophy, Medal, ArrowLeft } from 'lucide-react';
+import { Trophy, Medal, ArrowLeft, Crown } from 'lucide-react';
 import quizService, { LeaderboardEntry, Quiz } from '../services/quiz.service';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -267,9 +267,9 @@ const QuizLeaderboard = () => {
                               duration: 1.5,
                               repeat: Infinity,
                             }}
-                            className="mt-4 text-4xl"
+                            className="mt-4"
                           >
-                            👑
+                            <Crown className="h-10 w-10 text-yellow-500" />
                           </motion.div>
                         </div>
                       </div>

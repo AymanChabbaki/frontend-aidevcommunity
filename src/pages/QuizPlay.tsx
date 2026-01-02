@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Timer, Trophy, AlertCircle } from 'lucide-react';
+import { Timer, Trophy, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
 import quizService, { Quiz, QuizQuestion, QuizAnswer } from '../services/quiz.service';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -137,8 +137,24 @@ const QuizPlay = () => {
     const currentQuestion = quiz.questions[currentQuestionIndex];
     const correctOption = currentQuestion.options.find(opt => opt.isCorrect);
     const isCorrect = selectedOption === correctOption?.id;
+    const isLastQuestion = currentQuestionIndex >= quiz.questions.length - 1;
 
-    // Show feedback
+    // Store the answer
+    const newAnswer: QuizAnswer = {
+      questionId: currentQuestion.id,
+      selectedOption,
+      timeSpent,
+    };
+
+    // If it's the last question, submit immediately without feedback
+    if (isLastQuestion) {
+      const finalAnswers = [...answers, newAnswer];
+      setAnswers(finalAnswers);
+      handleSubmitQuiz(false);
+      return;
+    }
+
+    // Show feedback for non-last questions
     setAnswerFeedback({
       correct: isCorrect,
       correctAnswer: correctOption?.text || ''
@@ -147,23 +163,12 @@ const QuizPlay = () => {
 
     // Wait 1.5 seconds before moving to next question
     setTimeout(() => {
-      const newAnswer: QuizAnswer = {
-        questionId: currentQuestion.id,
-        selectedOption,
-        timeSpent,
-      };
-
       setAnswers([...answers, newAnswer]);
       setSelectedOption(null);
       setShowFeedback(false);
       setAnswerFeedback(null);
-
-      if (currentQuestionIndex < quiz.questions.length - 1) {
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
-        setQuestionStartTime(Date.now());
-      } else {
-        handleSubmitQuiz(false);
-      }
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setQuestionStartTime(Date.now());
     }, 1500);
   };
 
@@ -399,20 +404,27 @@ const QuizPlay = () => {
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className={`mt-4 p-4 rounded-lg ${
+                      className={`mt-4 p-4 rounded-lg flex items-start gap-3 ${
                         answerFeedback.correct 
                           ? 'bg-green-100 dark:bg-green-900/30 border-2 border-green-500' 
                           : 'bg-red-100 dark:bg-red-900/30 border-2 border-red-500'
                       }`}
                     >
-                      <p className={`font-semibold ${answerFeedback.correct ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
-                        {answerFeedback.correct ? '🎉 Correct!' : '❌ Incorrect'}
-                      </p>
-                      {!answerFeedback.correct && (
-                        <p className="text-sm mt-1 text-muted-foreground">
-                          Correct answer: {answerFeedback.correctAnswer}
-                        </p>
+                      {answerFeedback.correct ? (
+                        <CheckCircle className="h-5 w-5 text-green-700 dark:text-green-300 flex-shrink-0 mt-0.5" />
+                      ) : (
+                        <XCircle className="h-5 w-5 text-red-700 dark:text-red-300 flex-shrink-0 mt-0.5" />
                       )}
+                      <div>
+                        <p className={`font-semibold ${answerFeedback.correct ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
+                          {answerFeedback.correct ? 'Correct!' : 'Incorrect'}
+                        </p>
+                        {!answerFeedback.correct && (
+                          <p className="text-sm mt-1 text-muted-foreground">
+                            Correct answer: {answerFeedback.correctAnswer}
+                          </p>
+                        )}
+                      </div>
                     </motion.div>
                   )}
 
@@ -423,7 +435,17 @@ const QuizPlay = () => {
                       size="lg"
                       className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold shadow-lg"
                     >
-                      {currentQuestionIndex < quiz.questions.length - 1 ? 'Next Question →' : 'Submit Quiz 🏆'}
+                      {currentQuestionIndex < quiz.questions.length - 1 ? (
+                        <>
+                          Next Question
+                          <Trophy className="ml-2 h-5 w-5" />
+                        </>
+                      ) : (
+                        <>
+                          Submit Quiz
+                          <Trophy className="ml-2 h-5 w-5" />
+                        </>
+                      )}
                     </Button>
                   </div>
                 </CardContent>
