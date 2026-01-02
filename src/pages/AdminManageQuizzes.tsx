@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, Eye, Trophy, Medal, Download, Upload } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye, Trophy, Medal, Download, Upload, Bell } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import quizService, { Quiz, QuizOption, LeaderboardEntry } from '../services/quiz.service';
+import UserNotificationSelector from '../components/UserNotificationSelector';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog';
@@ -40,6 +41,8 @@ const AdminManageQuizzes = () => {
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
+  const [createdQuizData, setCreatedQuizData] = useState<{ title: string; description: string; startAt: string; endAt: string } | null>(null);
 
   const [formData, setFormData] = useState<QuizFormData>({
     title: '',
@@ -171,16 +174,26 @@ const AdminManageQuizzes = () => {
           title: 'Success',
           description: 'Quiz updated successfully',
         });
+        setDialogOpen(false);
+        fetchQuizzes();
       } else {
         await quizService.createQuiz(quizData);
         toast({
           title: 'Success',
           description: 'Quiz created successfully',
         });
+        setDialogOpen(false);
+        fetchQuizzes();
+        
+        // Store quiz data and open notification dialog
+        setCreatedQuizData({
+          title: quizData.title,
+          description: quizData.description,
+          startAt: new Date(quizData.startAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+          endAt: new Date(quizData.endAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+        });
+        setNotificationDialogOpen(true);
       }
-
-      setDialogOpen(false);
-      fetchQuizzes();
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -750,6 +763,32 @@ const AdminManageQuizzes = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Notification Dialog */}
+      {createdQuizData && (
+        <UserNotificationSelector
+          open={notificationDialogOpen}
+          onOpenChange={setNotificationDialogOpen}
+          defaultSubject={`New Quiz Available - ${createdQuizData.title}`}
+          defaultMessage={`Hi there!
+
+A new quiz has been created and is available for you to participate:
+
+${createdQuizData.title}
+
+${createdQuizData.description}
+
+Available from: ${createdQuizData.startAt}
+Until: ${createdQuizData.endAt}
+
+Test your knowledge and compete for the top spot on the leaderboard!
+
+Good luck!
+
+Best regards,
+AI Dev Community Team`}
+        />
+      )}
     </div>
   );
 };
