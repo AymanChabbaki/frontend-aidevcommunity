@@ -67,13 +67,13 @@ const quizService = {
   // Get all quizzes
   getAllQuizzes: async (): Promise<Quiz[]> => {
     const response = await api.get('/quizzes');
-    return response.data;
+    return response.data.data || response.data;
   },
 
   // Get quiz by ID (with questions)
   getQuizById: async (quizId: string): Promise<Quiz> => {
     const response = await api.get(`/quizzes/${quizId}`);
-    return response.data;
+    return response.data.data || response.data;
   },
 
   // Check if user has already attempted a quiz
@@ -96,13 +96,13 @@ const quizService = {
   // Get quiz leaderboard
   getQuizLeaderboard: async (quizId: string): Promise<LeaderboardEntry[]> => {
     const response = await api.get(`/quizzes/${quizId}/leaderboard`);
-    return response.data;
+    return response.data.data || response.data;
   },
 
   // Get monthly leaderboard (all quizzes)
   getMonthlyLeaderboard: async (): Promise<MonthlyLeaderboardEntry[]> => {
     const response = await api.get('/quizzes/monthly-leaderboard');
-    return response.data;
+    return response.data.data || response.data;
   },
 
   // Create quiz (Staff/Admin only)
@@ -121,7 +121,7 @@ const quizService = {
     }>;
   }): Promise<Quiz> => {
     const response = await api.post('/quizzes', quizData);
-    return response.data;
+    return response.data.data || response.data;
   },
 
   // Update quiz (Staff/Admin only)
@@ -140,7 +140,7 @@ const quizService = {
     }>;
   }): Promise<Quiz> => {
     const response = await api.put(`/quizzes/${quizId}`, quizData);
-    return response.data;
+    return response.data.data || response.data;
   },
 
   // Delete quiz (Staff/Admin only)
