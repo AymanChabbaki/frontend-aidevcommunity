@@ -19,7 +19,8 @@ import {
   TrendingUp,
   Activity,
   Send,
-  Trophy
+  Trophy,
+  Globe
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { adminService } from '@/services/admin.service';
@@ -63,6 +64,11 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
   });
 
   const menuItems = [
+    {
+      title: 'Back to Website',
+      icon: Globe,
+      path: '/',
+    },
     {
       title: 'Dashboard',
       icon: Home,

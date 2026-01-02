@@ -41,7 +41,8 @@ import {
   Activity,
   CheckCircle,
   Send,
-  Trophy
+  Trophy,
+  Globe
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -149,6 +150,11 @@ const StaffDashboard = () => {
   const [editingOptions, setEditingOptions] = useState<{[key: string]: string}>({});
 
   const menuItems = [
+    {
+      title: 'Back to Website',
+      icon: Globe,
+      path: '/',
+    },
     {
       title: 'Dashboard',
       icon: Home,
