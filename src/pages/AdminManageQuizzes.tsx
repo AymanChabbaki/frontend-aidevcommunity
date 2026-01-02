@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, Eye, Trophy } from 'lucide-react';
-import quizService, { Quiz, QuizOption } from '../services/quiz.service';
+import { Plus, Pencil, Trash2, Eye, Trophy, Medal } from 'lucide-react';
+import quizService, { Quiz, QuizOption, LeaderboardEntry } from '../services/quiz.service';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog';
@@ -31,6 +31,10 @@ const AdminManageQuizzes = () => {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [leaderboardOpen, setLeaderboardOpen] = useState(false);
+  const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
   const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
@@ -186,6 +190,25 @@ const AdminManageQuizzes = () => {
     }
   };
 
+  const handleViewLeaderboard = async (quizId: string, quizTitle: string) => {
+    try {
+      setLoadingLeaderboard(true);
+      setSelectedQuizId(quizId);
+      setLeaderboardOpen(true);
+      const data = await quizService.getQuizLeaderboard(quizId);
+      setLeaderboard(data);
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to load leaderboard',
+      });
+      setLeaderboardOpen(false);
+    } finally {
+      setLoadingLeaderboard(false);
+    }
+  };
+
   const handleDelete = async (quizId: string) => {
     if (!confirm('Are you sure you want to delete this quiz? This action cannot be undone.')) {
       return;
@@ -312,7 +335,7 @@ const AdminManageQuizzes = () => {
                     <TableRow key={quiz.id}>
                       <TableCell className="font-medium">{quiz.title}</TableCell>
                       <TableCell>{getStatusBadge(quiz.status)}</TableCell>
-                      <TableCell>{quiz.questions?.length || 0}</TableCell>
+                      <TableCell>{(quiz as any)._count?.questions || quiz.questions?.length || 0}</TableCell>
                       <TableCell>{Math.floor(quiz.timeLimit / 60)} min</TableCell>
                       <TableCell>{new Date(quiz.startAt).toLocaleDateString()}</TableCell>
                       <TableCell>{new Date(quiz.endAt).toLocaleDateString()}</TableCell>
@@ -321,7 +344,8 @@ const AdminManageQuizzes = () => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => window.open(`/quizzes/${quiz.id}/leaderboard`, '_blank')}
+                            onClick={() => handleViewLeaderboard(quiz.id, quiz.title)}
+                            title="View Leaderboard"
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -498,6 +522,90 @@ const AdminManageQuizzes = () => {
             </Button>
             <Button onClick={handleSubmit} disabled={submitting}>
               {submitting ? 'Saving...' : editingQuiz ? 'Update Quiz' : 'Create Quiz'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Leaderboard Modal */}
+      <Dialog open={leaderboardOpen} onOpenChange={setLeaderboardOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Quiz Leaderboard</DialogTitle>
+            <DialogDescription>
+              Top performers for this quiz
+            </DialogDescription>
+          </DialogHeader>
+
+          {loadingLeaderboard ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          ) : leaderboard.length === 0 ? (
+            <div className="text-center py-12">
+              <Trophy className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">No participants yet</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Top 3 */}
+              {leaderboard.slice(0, 3).map((entry) => (
+                <Card key={entry.userId} className={`${
+                  entry.rank === 1 ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20' :
+                  entry.rank === 2 ? 'border-gray-400 bg-gray-50 dark:bg-gray-950/20' :
+                  entry.rank === 3 ? 'border-amber-600 bg-amber-50 dark:bg-amber-950/20' :
+                  ''
+                } border-2`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Medal className={`h-6 w-6 ${
+                          entry.rank === 1 ? 'text-yellow-500' :
+                          entry.rank === 2 ? 'text-gray-400' :
+                          'text-amber-600'
+                        }`} />
+                        <div>
+                          <div className="font-semibold">{entry.displayName}</div>
+                          <div className="text-sm text-muted-foreground">{entry.email}</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-primary">{entry.totalScore}</div>
+                        <div className="text-xs text-muted-foreground">points</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+
+              {/* Rest */}
+              {leaderboard.length > 3 && (
+                <div className="space-y-2 pt-4 border-t">
+                  {leaderboard.slice(3).map((entry) => (
+                    <div key={entry.userId} className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-semibold text-muted-foreground min-w-[30px]">
+                          #{entry.rank}
+                        </span>
+                        <div>
+                          <div className="font-medium text-sm">{entry.displayName}</div>
+                          <div className="text-xs text-muted-foreground">{entry.email}</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold">{entry.totalScore}</div>
+                        <div className="text-xs text-muted-foreground">points</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLeaderboardOpen(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
