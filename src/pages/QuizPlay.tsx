@@ -20,7 +20,8 @@ const QuizPlay = () => {
   const [questionStartTime, setQuestionStartTime] = useState<number>(Date.now());
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState(0);
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  const [quizStarted, setQuizStarted] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -29,12 +30,18 @@ const QuizPlay = () => {
   }, [id]);
 
   useEffect(() => {
-    if (quiz && quiz.questions && quiz.questions.length > 0) {
+    if (quiz && quiz.questions && quiz.questions.length > 0 && !quizStarted) {
       setTimeRemaining(quiz.timeLimit * 1000); // Convert seconds to milliseconds
+      setQuizStarted(true);
     }
-  }, [quiz]);
+  }, [quiz, quizStarted]);
 
   useEffect(() => {
+    // Don't start timer until quiz is loaded and started
+    if (!quizStarted || timeRemaining === null || submitting) {
+      return;
+    }
+
     if (timeRemaining <= 0 && quiz) {
       // Time's up, auto-submit
       handleSubmitQuiz(true);
@@ -42,11 +49,11 @@ const QuizPlay = () => {
     }
 
     const timer = setInterval(() => {
-      setTimeRemaining((prev) => Math.max(0, prev - 100));
+      setTimeRemaining((prev) => prev !== null ? Math.max(0, prev - 100) : null);
     }, 100);
 
     return () => clearInterval(timer);
-  }, [timeRemaining, quiz]);
+  }, [timeRemaining, quiz, quizStarted, submitting]);
 
   const fetchQuiz = async () => {
     try {
@@ -200,8 +207,8 @@ const QuizPlay = () => {
             </div>
             <div className="flex items-center gap-2 text-lg font-semibold">
               <Timer className="h-5 w-5" />
-              <span className={timeRemaining < 30000 ? 'text-red-500' : ''}>
-                {formatTime(timeRemaining)}
+              <span className={timeRemaining !== null && timeRemaining < 30000 ? 'text-red-500' : ''}>
+                {timeRemaining !== null ? formatTime(timeRemaining) : '0:00'}
               </span>
             </div>
           </div>
@@ -268,7 +275,7 @@ const QuizPlay = () => {
         </AnimatePresence>
 
         {/* Warning for last 30 seconds */}
-        {timeRemaining < 30000 && timeRemaining > 0 && (
+        {timeRemaining !== null && timeRemaining < 30000 && timeRemaining > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
