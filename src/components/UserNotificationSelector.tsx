@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Users, X } from 'lucide-react';
-import { notificationService, User } from '../services/notification.service';
+import api from '../lib/api';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
@@ -10,6 +10,13 @@ import { Checkbox } from './ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useToast } from '../hooks/use-toast';
 import { ScrollArea } from './ui/scroll-area';
+
+interface User {
+  id: string;
+  email: string;
+  displayName: string;
+  role: string;
+}
 
 interface UserNotificationSelectorProps {
   open: boolean;
@@ -43,8 +50,8 @@ const UserNotificationSelector = ({
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const data = await notificationService.getAllUsers();
-      setUsers(data);
+      const response = await api.get('/messaging/users');
+      setUsers(response.data.data);
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -84,17 +91,16 @@ const UserNotificationSelector = ({
 
     try {
       setSending(true);
-      await notificationService.sendBulkNotification({
-        userIds: selectedUsers,
-        title: defaultSubject,
+      const response = await api.post('/messaging/send', {
+        subject: defaultSubject,
         message: emailMessage,
-        emailSubject: defaultSubject,
-        emailMessage: emailMessage.replace(/\n/g, '<br/>'),
+        recipientType: 'specific',
+        userIds: selectedUsers
       });
 
       toast({
         title: 'Success',
-        description: `Notifications sent to ${selectedUsers.length} user(s)`,
+        description: response.data.message || `Messages sent to ${selectedUsers.length} user(s)`,
       });
 
       onOpenChange(false);
@@ -104,7 +110,7 @@ const UserNotificationSelector = ({
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error.response?.data?.message || 'Failed to send notifications',
+        description: error.response?.data?.error || 'Failed to send messages',
       });
     } finally {
       setSending(false);
@@ -184,7 +190,6 @@ const UserNotificationSelector = ({
                         onCheckedChange={() => toggleUser(user.id)}
                       />
                       <Avatar className="h-10 w-10">
-                        <AvatarImage src={user.photoUrl || undefined} alt={user.displayName} />
                         <AvatarFallback>
                           {user.displayName.charAt(0).toUpperCase()}
                         </AvatarFallback>
