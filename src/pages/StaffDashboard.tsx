@@ -69,6 +69,7 @@ import { toast } from 'sonner';
 import OrganizerEvents from './OrganizerEvents';
 import AdminManagePolls from './AdminManagePolls';
 import AdminManageForms from './AdminManageForms';
+import AdminManageQuizzes from './AdminManageQuizzes';
 import QRScanner from './QRScanner';
 import StaffProfile from './StaffProfile';
 import StaffApproveRegistrations from './StaffApproveRegistrations';
@@ -176,7 +177,7 @@ const StaffDashboard = () => {
     {
       title: 'Quizzes',
       icon: Trophy,
-      path: '/admin/manage-quizzes',
+      path: '/staff/manage-quizzes',
     },
     {
       title: 'Approve Registrations',
@@ -788,6 +789,7 @@ const StaffDashboard = () => {
             <Route path="/events" element={<OrganizerEvents onCreateEvent={() => setCreateEventDialog(true)} />} />
             <Route path="/polls" element={<AdminManagePolls onCreatePoll={() => setCreatePollDialog(true)} />} />
             <Route path="/forms" element={<AdminManageForms onCreateForm={() => setCreateFormDialog(true)} />} />
+            <Route path="/manage-quizzes" element={<AdminManageQuizzes />} />
             <Route path="/qr-scanner" element={<QRScanner />} />
             <Route path="/approve-registrations" element={<StaffApproveRegistrations />} />
             <Route path="/collaborations" element={<StaffCollaborations />} />
