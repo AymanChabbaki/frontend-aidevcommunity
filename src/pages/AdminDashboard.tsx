@@ -18,7 +18,8 @@ import {
   CheckCircle,
   TrendingUp,
   Activity,
-  Send
+  Send,
+  Trophy
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { adminService } from '@/services/admin.service';
@@ -86,6 +87,11 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
       title: 'Forms',
       icon: FileText,
       path: '/admin/manage-forms',
+    },
+    {
+      title: 'Quizzes',
+      icon: Trophy,
+      path: '/admin/manage-quizzes',
     },
     {
       title: 'Home Content',
@@ -709,6 +715,18 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
               >
                 <FileText className="h-5 w-5" />
                 <span className="text-xs mt-1">Forms</span>
+              </Link>
+              <Link
+                to="/admin/manage-quizzes"
+                className={cn(
+                  'flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[70px]',
+                  isActive('/admin/manage-quizzes')
+                    ? 'bg-primary text-white'
+                    : 'text-gray-300 hover:bg-gray-800'
+                )}
+              >
+                <Trophy className="h-5 w-5" />
+                <span className="text-xs mt-1">Quizzes</span>
               </Link>
               <Link
                 to="/admin/home-content"

@@ -40,7 +40,8 @@ import {
   TrendingUp,
   Activity,
   CheckCircle,
-  Send
+  Send,
+  Trophy
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -171,6 +172,11 @@ const StaffDashboard = () => {
       title: 'Forms',
       icon: FileText,
       path: '/staff/forms',
+    },
+    {
+      title: 'Quizzes',
+      icon: Trophy,
+      path: '/admin/manage-quizzes',
     },
     {
       title: 'Approve Registrations',

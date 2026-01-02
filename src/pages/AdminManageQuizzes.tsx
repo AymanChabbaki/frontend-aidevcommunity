@@ -1,0 +1,509 @@
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { Plus, Pencil, Trash2, Eye, Trophy } from 'lucide-react';
+import quizService, { Quiz, QuizOption } from '../services/quiz.service';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Textarea } from '../components/ui/textarea';
+import { Badge } from '../components/ui/badge';
+import { useToast } from '../hooks/use-toast';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
+
+interface QuizFormData {
+  title: string;
+  description: string;
+  coverImage: string;
+  timeLimit: number;
+  startAt: string;
+  endAt: string;
+  questions: {
+    question: string;
+    options: QuizOption[];
+    points: number;
+    order: number;
+  }[];
+}
+
+const AdminManageQuizzes = () => {
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const [formData, setFormData] = useState<QuizFormData>({
+    title: '',
+    description: '',
+    coverImage: '',
+    timeLimit: 600, // 10 minutes default
+    startAt: '',
+    endAt: '',
+    questions: [
+      {
+        question: '',
+        options: [
+          { id: '1', text: '', isCorrect: false },
+          { id: '2', text: '', isCorrect: false },
+          { id: '3', text: '', isCorrect: false },
+          { id: '4', text: '', isCorrect: false },
+        ],
+        points: 1000,
+        order: 0,
+      },
+    ],
+  });
+
+  useEffect(() => {
+    fetchQuizzes();
+  }, []);
+
+  const fetchQuizzes = async () => {
+    try {
+      setLoading(true);
+      const data = await quizService.getAllQuizzes();
+      setQuizzes(data);
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to fetch quizzes',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenDialog = (quiz?: Quiz) => {
+    if (quiz) {
+      setEditingQuiz(quiz);
+      setFormData({
+        title: quiz.title,
+        description: quiz.description,
+        coverImage: quiz.coverImage || '',
+        timeLimit: quiz.timeLimit,
+        startAt: new Date(quiz.startAt).toISOString().slice(0, 16),
+        endAt: new Date(quiz.endAt).toISOString().slice(0, 16),
+        questions: quiz.questions?.map((q, idx) => ({
+          question: q.question,
+          options: q.options,
+          points: q.points,
+          order: idx,
+        })) || [],
+      });
+    } else {
+      setEditingQuiz(null);
+      setFormData({
+        title: '',
+        description: '',
+        coverImage: '',
+        timeLimit: 600,
+        startAt: '',
+        endAt: '',
+        questions: [
+          {
+            question: '',
+            options: [
+              { id: '1', text: '', isCorrect: false },
+              { id: '2', text: '', isCorrect: false },
+              { id: '3', text: '', isCorrect: false },
+              { id: '4', text: '', isCorrect: false },
+            ],
+            points: 1000,
+            order: 0,
+          },
+        ],
+      });
+    }
+    setDialogOpen(true);
+  };
+
+  const handleSubmit = async () => {
+    if (!formData.title || !formData.description || !formData.startAt || !formData.endAt) {
+      toast({
+        variant: 'destructive',
+        title: 'Validation Error',
+        description: 'Please fill in all required fields',
+      });
+      return;
+    }
+
+    // Validate questions
+    for (const question of formData.questions) {
+      if (!question.question || question.options.some(opt => !opt.text)) {
+        toast({
+          variant: 'destructive',
+          title: 'Validation Error',
+          description: 'All questions and options must have text',
+        });
+        return;
+      }
+      if (!question.options.some(opt => opt.isCorrect)) {
+        toast({
+          variant: 'destructive',
+          title: 'Validation Error',
+          description: 'Each question must have at least one correct answer',
+        });
+        return;
+      }
+    }
+
+    try {
+      setSubmitting(true);
+      const quizData = {
+        ...formData,
+        startAt: new Date(formData.startAt).toISOString(),
+        endAt: new Date(formData.endAt).toISOString(),
+      };
+
+      if (editingQuiz) {
+        await quizService.updateQuiz(editingQuiz.id, quizData);
+        toast({
+          title: 'Success',
+          description: 'Quiz updated successfully',
+        });
+      } else {
+        await quizService.createQuiz(quizData);
+        toast({
+          title: 'Success',
+          description: 'Quiz created successfully',
+        });
+      }
+
+      setDialogOpen(false);
+      fetchQuizzes();
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to save quiz',
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (quizId: string) => {
+    if (!confirm('Are you sure you want to delete this quiz? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await quizService.deleteQuiz(quizId);
+      toast({
+        title: 'Success',
+        description: 'Quiz deleted successfully',
+      });
+      fetchQuizzes();
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to delete quiz',
+      });
+    }
+  };
+
+  const addQuestion = () => {
+    setFormData({
+      ...formData,
+      questions: [
+        ...formData.questions,
+        {
+          question: '',
+          options: [
+            { id: '1', text: '', isCorrect: false },
+            { id: '2', text: '', isCorrect: false },
+            { id: '3', text: '', isCorrect: false },
+            { id: '4', text: '', isCorrect: false },
+          ],
+          points: 1000,
+          order: formData.questions.length,
+        },
+      ],
+    });
+  };
+
+  const removeQuestion = (index: number) => {
+    setFormData({
+      ...formData,
+      questions: formData.questions.filter((_, i) => i !== index),
+    });
+  };
+
+  const updateQuestion = (index: number, field: string, value: any) => {
+    const updatedQuestions = [...formData.questions];
+    updatedQuestions[index] = { ...updatedQuestions[index], [field]: value };
+    setFormData({ ...formData, questions: updatedQuestions });
+  };
+
+  const updateOption = (questionIndex: number, optionIndex: number, field: string, value: any) => {
+    const updatedQuestions = [...formData.questions];
+    const updatedOptions = [...updatedQuestions[questionIndex].options];
+    updatedOptions[optionIndex] = { ...updatedOptions[optionIndex], [field]: value };
+    updatedQuestions[questionIndex] = { ...updatedQuestions[questionIndex], options: updatedOptions };
+    setFormData({ ...formData, questions: updatedQuestions });
+  };
+
+  const getStatusBadge = (status: string) => {
+    const variants: { [key: string]: any } = {
+      UPCOMING: 'secondary',
+      ACTIVE: 'default',
+      CLOSED: 'outline',
+    };
+    return <Badge variant={variants[status]}>{status}</Badge>;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-3xl font-bold mb-2">Manage Quizzes</h2>
+            <p className="text-muted-foreground">Create and manage quiz competitions</p>
+          </div>
+          <Button onClick={() => handleOpenDialog()}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Quiz
+          </Button>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>All Quizzes</CardTitle>
+            <CardDescription>View and manage all quiz competitions</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {quizzes.length === 0 ? (
+              <div className="text-center py-12">
+                <Trophy className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">No quizzes yet. Create your first quiz!</p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Questions</TableHead>
+                    <TableHead>Time Limit</TableHead>
+                    <TableHead>Start Date</TableHead>
+                    <TableHead>End Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {quizzes.map((quiz) => (
+                    <TableRow key={quiz.id}>
+                      <TableCell className="font-medium">{quiz.title}</TableCell>
+                      <TableCell>{getStatusBadge(quiz.status)}</TableCell>
+                      <TableCell>{quiz.questions?.length || 0}</TableCell>
+                      <TableCell>{Math.floor(quiz.timeLimit / 60)} min</TableCell>
+                      <TableCell>{new Date(quiz.startAt).toLocaleDateString()}</TableCell>
+                      <TableCell>{new Date(quiz.endAt).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => window.open(`/quizzes/${quiz.id}/leaderboard`, '_blank')}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenDialog(quiz)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(quiz.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Create/Edit Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingQuiz ? 'Edit Quiz' : 'Create New Quiz'}</DialogTitle>
+            <DialogDescription>
+              Fill in the details below to {editingQuiz ? 'update' : 'create'} a quiz
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="title">Title *</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="Enter quiz title"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="description">Description *</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Enter quiz description"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="coverImage">Cover Image URL</Label>
+              <Input
+                id="coverImage"
+                value={formData.coverImage}
+                onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
+                placeholder="https://example.com/image.jpg"
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="timeLimit">Time Limit (seconds) *</Label>
+                <Input
+                  id="timeLimit"
+                  type="number"
+                  value={formData.timeLimit}
+                  onChange={(e) => setFormData({ ...formData, timeLimit: parseInt(e.target.value) })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="startAt">Start Date *</Label>
+                <Input
+                  id="startAt"
+                  type="datetime-local"
+                  value={formData.startAt}
+                  onChange={(e) => setFormData({ ...formData, startAt: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="endAt">End Date *</Label>
+                <Input
+                  id="endAt"
+                  type="datetime-local"
+                  value={formData.endAt}
+                  onChange={(e) => setFormData({ ...formData, endAt: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Questions</h3>
+                <Button onClick={addQuestion} size="sm">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Question
+                </Button>
+              </div>
+
+              {formData.questions.map((question, qIndex) => (
+                <Card key={qIndex} className="mb-4">
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-base">Question {qIndex + 1}</CardTitle>
+                      {formData.questions.length > 1 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeQuestion(qIndex)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label>Question Text *</Label>
+                      <Input
+                        value={question.question}
+                        onChange={(e) => updateQuestion(qIndex, 'question', e.target.value)}
+                        placeholder="Enter question"
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Points</Label>
+                      <Input
+                        type="number"
+                        value={question.points}
+                        onChange={(e) => updateQuestion(qIndex, 'points', parseInt(e.target.value))}
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="mb-2 block">Options *</Label>
+                      {question.options.map((option, oIndex) => (
+                        <div key={oIndex} className="flex gap-2 mb-2">
+                          <Input
+                            value={option.text}
+                            onChange={(e) => updateOption(qIndex, oIndex, 'text', e.target.value)}
+                            placeholder={`Option ${oIndex + 1}`}
+                          />
+                          <label className="flex items-center gap-2 min-w-[120px]">
+                            <input
+                              type="checkbox"
+                              checked={option.isCorrect}
+                              onChange={(e) => updateOption(qIndex, oIndex, 'isCorrect', e.target.checked)}
+                              className="w-4 h-4"
+                            />
+                            <span className="text-sm">Correct</span>
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit} disabled={submitting}>
+              {submitting ? 'Saving...' : editingQuiz ? 'Update Quiz' : 'Create Quiz'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default AdminManageQuizzes;

@@ -31,6 +31,9 @@ import Notifications from "./pages/Notifications";
 import Polls from "./pages/Polls";
 import Forms from "./pages/Forms";
 import UserDashboard from "./pages/UserDashboard";
+import Quizzes from "./pages/Quizzes";
+import QuizPlay from "./pages/QuizPlay";
+import QuizLeaderboard from "./pages/QuizLeaderboard";
 
 // Staff Pages
 import OrganizerEvents from "./pages/OrganizerEvents";
@@ -50,6 +53,7 @@ import AdminManageForms from "./pages/AdminManageForms";
 import AdminContactMessages from "./pages/AdminContactMessages";
 import AdminApproveRegistrations from "./pages/AdminApproveRegistrations";
 import SendMessage from "./pages/SendMessage";
+import AdminManageQuizzes from "./pages/AdminManageQuizzes";
 
 // Staff Pages (Dashboard)
 import StaffDashboard from "./pages/StaffDashboard";
@@ -97,6 +101,38 @@ const App = () => (
               <Route path="/reset-password" element={<MainLayout><ResetPassword /></MainLayout>} />
               <Route path="/polls" element={<MainLayout><Polls /></MainLayout>} />
               <Route path="/forms" element={<MainLayout><Forms /></MainLayout>} />
+
+              {/* Quiz Routes */}
+              <Route
+                path="/quizzes"
+                element={
+                  <MainLayout>
+                    <ProtectedRoute allowedRoles={['USER', 'STAFF', 'ADMIN']}>
+                      <Quizzes />
+                    </ProtectedRoute>
+                  </MainLayout>
+                }
+              />
+              <Route
+                path="/quizzes/:id/play"
+                element={
+                  <MainLayout>
+                    <ProtectedRoute allowedRoles={['USER', 'STAFF', 'ADMIN']}>
+                      <QuizPlay />
+                    </ProtectedRoute>
+                  </MainLayout>
+                }
+              />
+              <Route
+                path="/quizzes/:id/leaderboard"
+                element={
+                  <MainLayout>
+                    <ProtectedRoute allowedRoles={['USER', 'STAFF', 'ADMIN']}>
+                      <QuizLeaderboard />
+                    </ProtectedRoute>
+                  </MainLayout>
+                }
+              />
 
               {/* User Dashboard Routes with Navbar */}
               <Route
@@ -183,6 +219,9 @@ const App = () => (
                         {/* Form Management */}
                         <Route path="manage-forms" element={<AdminDashboard><AdminManageForms /></AdminDashboard>} />
                         <Route path="create-form" element={<AdminDashboard><AdminCreateForm /></AdminDashboard>} />
+                        
+                        {/* Quiz Management */}
+                        <Route path="manage-quizzes" element={<AdminDashboard><AdminManageQuizzes /></AdminDashboard>} />
                         
                         <Route path="settings" element={<AdminDashboard><AdminSettings /></AdminDashboard>} />
                         <Route path="home-content" element={<AdminDashboard><AdminHomeContent /></AdminDashboard>} />

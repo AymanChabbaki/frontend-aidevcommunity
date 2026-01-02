@@ -37,6 +37,7 @@ export const Navbar = () => {
     { to: '/members', label: t.nav.members },
     { to: '/polls', label: 'Polls' },
     { to: '/forms', label: 'Forms' },
+    { to: '/quizzes', label: 'Quizzes' },
     { to: '/contact', label: t.nav.contact },
   ];
 

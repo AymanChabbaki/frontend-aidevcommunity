@@ -8,6 +8,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 import { EventCard } from '@/components/EventCard';
 import { Footer } from '@/components/Footer';
+import LeaderboardWidget from '@/components/LeaderboardWidget';
 import { ArrowRight, Calendar, Users, Award, Sparkles, TrendingUp, Heart, Code2, Zap, Brain, Rocket, Image as ImageIcon } from 'lucide-react';
 import { eventService } from '@/services/event.service';
 import { homeContentService, HomeContent } from '@/services/home-content.service';
@@ -366,6 +367,19 @@ const Index = () => {
               <p className="text-muted-foreground">No upcoming events at the moment. Check back soon!</p>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Monthly Leaderboard */}
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <LeaderboardWidget />
+          </motion.div>
         </div>
       </section>
 
