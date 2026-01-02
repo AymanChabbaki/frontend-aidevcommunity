@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, Eye, Trophy, Medal } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye, Trophy, Medal, Download, Upload } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import quizService, { Quiz, QuizOption, LeaderboardEntry } from '../services/quiz.service';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -38,6 +39,7 @@ const AdminManageQuizzes = () => {
   const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState<QuizFormData>({
     title: '',
@@ -271,6 +273,122 @@ const AdminManageQuizzes = () => {
     setFormData({ ...formData, questions: updatedQuestions });
   };
 
+  const downloadTemplate = () => {
+    // Create template data
+    const templateData = [
+      {
+        Question: 'What is the capital of France?',
+        'Option 1': 'Paris',
+        'Option 2': 'London',
+        'Option 3': 'Berlin',
+        'Option 4': 'Madrid',
+        'Correct Option (1-4)': '1',
+        'Points': '1000'
+      },
+      {
+        Question: 'What is 2 + 2?',
+        'Option 1': '3',
+        'Option 2': '4',
+        'Option 3': '5',
+        'Option 4': '6',
+        'Correct Option (1-4)': '2',
+        'Points': '1000'
+      }
+    ];
+
+    // Create workbook and worksheet
+    const ws = XLSX.utils.json_to_sheet(templateData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Questions');
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 50 }, // Question
+      { wch: 30 }, // Option 1
+      { wch: 30 }, // Option 2
+      { wch: 30 }, // Option 3
+      { wch: 30 }, // Option 4
+      { wch: 20 }, // Correct Option
+      { wch: 10 }  // Points
+    ];
+
+    // Download file
+    XLSX.writeFile(wb, 'quiz_questions_template.xlsx');
+    
+    toast({
+      title: 'Success',
+      description: 'Template downloaded successfully',
+    });
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[];
+
+        if (jsonData.length === 0) {
+          toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'The Excel file is empty',
+          });
+          return;
+        }
+
+        // Validate and convert to quiz questions format
+        const importedQuestions = jsonData.map((row, index) => {
+          const correctOptionIndex = parseInt(row['Correct Option (1-4)']) - 1;
+          
+          if (!row.Question || correctOptionIndex < 0 || correctOptionIndex > 3) {
+            throw new Error(`Invalid data in row ${index + 2}`);
+          }
+
+          return {
+            question: row.Question,
+            options: [
+              { id: '1', text: row['Option 1'] || '', isCorrect: correctOptionIndex === 0 },
+              { id: '2', text: row['Option 2'] || '', isCorrect: correctOptionIndex === 1 },
+              { id: '3', text: row['Option 3'] || '', isCorrect: correctOptionIndex === 2 },
+              { id: '4', text: row['Option 4'] || '', isCorrect: correctOptionIndex === 3 },
+            ],
+            points: parseInt(row.Points) || 1000,
+            order: index,
+          };
+        });
+
+        setFormData({
+          ...formData,
+          questions: importedQuestions,
+        });
+
+        toast({
+          title: 'Success',
+          description: `${importedQuestions.length} questions imported successfully`,
+        });
+      } catch (error: any) {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: error.message || 'Failed to import questions. Please check the file format.',
+        });
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const variants: { [key: string]: any } = {
       UPCOMING: 'secondary',
@@ -448,10 +566,32 @@ const AdminManageQuizzes = () => {
             <div className="border-t pt-4">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Questions</h3>
-                <Button onClick={addQuestion} size="sm">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Question
-                </Button>
+                <div className="flex gap-2">
+                  <Button type="button" onClick={downloadTemplate} size="sm" variant="outline">
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Template
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    size="sm"
+                    variant="outline"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Import Excel
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <Button type="button" onClick={addQuestion} size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Question
+                  </Button>
+                </div>
               </div>
 
               {formData.questions.map((question, qIndex) => (
