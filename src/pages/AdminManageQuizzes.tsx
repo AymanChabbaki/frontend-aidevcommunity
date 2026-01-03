@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, Eye, Trophy, Medal, Download, Upload, Bell, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye, Trophy, Medal, Download, Upload, Bell, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import quizService, { Quiz, QuizOption, LeaderboardEntry } from '../services/quiz.service';
 import UserNotificationSelector from '../components/UserNotificationSelector';
@@ -739,6 +739,7 @@ const AdminManageQuizzes = () => {
               {/* Top 3 */}
               {leaderboard.slice(0, 3).map((entry) => (
                 <Card key={entry.userId} className={`${
+                  entry.isFlagged ? 'border-red-500 bg-red-50 dark:bg-red-950/20' :
                   entry.rank === 1 ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20' :
                   entry.rank === 2 ? 'border-gray-400 bg-gray-50 dark:bg-gray-950/20' :
                   entry.rank === 3 ? 'border-amber-600 bg-amber-50 dark:bg-amber-950/20' :
@@ -747,13 +748,24 @@ const AdminManageQuizzes = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <Medal className={`h-6 w-6 ${
-                          entry.rank === 1 ? 'text-yellow-500' :
-                          entry.rank === 2 ? 'text-gray-400' :
-                          'text-amber-600'
-                        }`} />
+                        {entry.isFlagged ? (
+                          <AlertTriangle className="h-6 w-6 text-red-500 animate-pulse" />
+                        ) : (
+                          <Medal className={`h-6 w-6 ${
+                            entry.rank === 1 ? 'text-yellow-500' :
+                            entry.rank === 2 ? 'text-gray-400' :
+                            'text-amber-600'
+                          }`} />
+                        )}
                         <div>
-                          <div className="font-semibold">{entry.displayName}</div>
+                          <div className="font-semibold flex items-center gap-2">
+                            {entry.displayName}
+                            {entry.isFlagged && (
+                              <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">
+                                FLAGGED
+                              </span>
+                            )}
+                          </div>
                           <div className="text-sm text-muted-foreground">{entry.email}</div>
                           <div className="flex gap-3 mt-1 text-xs">
                             <span className="text-green-600 dark:text-green-400 flex items-center gap-1">
@@ -762,7 +774,17 @@ const AdminManageQuizzes = () => {
                             <span className="text-red-600 dark:text-red-400 flex items-center gap-1">
                               <XCircle className="h-3 w-3" /> {entry.incorrectAnswers} incorrect
                             </span>
+                            {entry.tabSwitches > 0 && (
+                              <span className="text-orange-600 dark:text-orange-400 flex items-center gap-1">
+                                <AlertTriangle className="h-3 w-3" /> {entry.tabSwitches} tab switches
+                              </span>
+                            )}
                           </div>
+                          {entry.isFlagged && entry.flagReason && (
+                            <div className="text-xs text-red-600 dark:text-red-400 mt-1 font-medium">
+                              ⚠️ {entry.flagReason}
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
@@ -789,13 +811,23 @@ const AdminManageQuizzes = () => {
               {leaderboard.length > 3 && (
                 <div className="space-y-2 pt-4 border-t">
                   {leaderboard.slice(3).map((entry) => (
-                    <div key={entry.userId} className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
+                    <div key={entry.userId} className={`flex items-center justify-between p-3 rounded-lg hover:bg-accent ${
+                      entry.isFlagged ? 'bg-red-50 dark:bg-red-950/20 border border-red-200' : ''
+                    }`}>
                       <div className="flex items-center gap-3">
-                        <span className="text-sm font-semibold text-muted-foreground min-w-[30px]">
+                        <span className="text-sm font-semibold text-muted-foreground min-w-[30px] flex items-center gap-1">
+                          {entry.isFlagged && <AlertTriangle className="h-4 w-4 text-red-500" />}
                           #{entry.rank}
                         </span>
-                        <div>
-                          <div className="font-medium text-sm">{entry.displayName}</div>
+                        <div className="flex-1">
+                          <div className="font-medium text-sm flex items-center gap-2">
+                            {entry.displayName}
+                            {entry.isFlagged && (
+                              <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">
+                                FLAGGED
+                              </span>
+                            )}
+                          </div>
                           <div className="text-xs text-muted-foreground">{entry.email}</div>
                           <div className="flex gap-2 mt-1 text-xs">
                             <span className="text-green-600 dark:text-green-400 flex items-center gap-1">
@@ -804,7 +836,17 @@ const AdminManageQuizzes = () => {
                             <span className="text-red-600 dark:text-red-400 flex items-center gap-1">
                               <XCircle className="h-3 w-3" /> {entry.incorrectAnswers}
                             </span>
+                            {entry.tabSwitches > 0 && (
+                              <span className="text-orange-600 dark:text-orange-400 flex items-center gap-1">
+                                <AlertTriangle className="h-3 w-3" /> {entry.tabSwitches}
+                              </span>
+                            )}
                           </div>
+                          {entry.isFlagged && entry.flagReason && (
+                            <div className="text-xs text-red-600 dark:text-red-400 mt-1">
+                              ⚠️ {entry.flagReason}
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">

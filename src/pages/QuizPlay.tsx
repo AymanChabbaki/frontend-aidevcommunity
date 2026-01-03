@@ -34,12 +34,52 @@ const QuizPlay = () => {
   const [submitting, setSubmitting] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [quizStarted, setQuizStarted] = useState(false);
+  const [tabSwitchCount, setTabSwitchCount] = useState(0);
 
   useEffect(() => {
     if (id) {
       fetchQuiz();
     }
   }, [id]);
+
+  // Track tab visibility changes (anti-cheat)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && quizStarted && !submitting) {
+        setTabSwitchCount(prev => prev + 1);
+        toast({
+          variant: 'destructive',
+          title: 'Warning',
+          description: 'Tab switching is being monitored. This activity is logged.',
+        });
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [quizStarted, submitting, toast]);
+
+  // Disable developer tools (F12, Ctrl+Shift+I, etc.)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+      if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+        (e.ctrlKey && e.key === 'U')
+      ) {
+        e.preventDefault();
+        toast({
+          variant: 'destructive',
+          title: 'Action Blocked',
+          description: 'Developer tools are disabled during the quiz',
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [toast]);
 
   // Prevent copy/paste
   useEffect(() => {
@@ -209,7 +249,7 @@ const QuizPlay = () => {
         });
       }
 
-      const result = await quizService.submitQuizAnswers(id!, finalAnswers);
+      const result = await quizService.submitQuizAnswers(id!, finalAnswers, tabSwitchCount);
 
       toast({
         title: 'Quiz Completed!',

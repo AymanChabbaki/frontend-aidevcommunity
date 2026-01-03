@@ -53,6 +53,9 @@ export interface LeaderboardEntry {
   correctAnswers: number;
   incorrectAnswers: number;
   totalQuestions: number;
+  isFlagged: boolean;
+  flagReason?: string | null;
+  tabSwitches: number;
   rank: number;
 }
 
@@ -86,13 +89,13 @@ const quizService = {
   },
 
   // Submit quiz answers
-  submitQuizAnswers: async (quizId: string, answers: QuizAnswer[]): Promise<{ 
+  submitQuizAnswers: async (quizId: string, answers: QuizAnswer[], tabSwitches: number = 0): Promise<{ 
     success: boolean; 
     attempt: QuizAttempt; 
     totalScore: number; 
     rank: number 
   }> => {
-    const response = await api.post(`/quizzes/${quizId}/submit`, { answers });
+    const response = await api.post(`/quizzes/${quizId}/submit`, { answers, tabSwitches });
     return response.data;
   },
 
