@@ -150,9 +150,10 @@ const QuizPlay = () => {
       // Block screenshot attempts (Print Screen, Windows+Shift+S, etc.)
       if (
         e.key === 'PrintScreen' ||
-        (e.metaKey && e.shiftKey && e.key === 's') || // Mac screenshot
-        (e.metaKey && e.shiftKey && e.key === '4') || // Mac screenshot
-        (e.key === 's' && e.shiftKey && (e.metaKey || e.ctrlKey)) // Windows Snipping Tool
+        (e.metaKey && e.shiftKey && (e.key === 's' || e.key === 'S')) || // Mac screenshot Cmd+Shift+S
+        (e.metaKey && e.shiftKey && e.key === '4') || // Mac screenshot Cmd+Shift+4
+        (e.metaKey && e.shiftKey && e.key === '3') || // Mac screenshot Cmd+Shift+3
+        ((e.key === 's' || e.key === 'S') && e.shiftKey && e.ctrlKey) // Windows Snipping Tool Ctrl+Shift+S
       ) {
         e.preventDefault();
         setScreenshotAttempts(prev => prev + 1);
@@ -165,26 +166,12 @@ const QuizPlay = () => {
       }
     };
 
-    // Detect blur events (Print Screen doesn't always trigger keydown)
-    const handleVisibilityChange = () => {
-      if (!document.hidden && quizStarted && !submitting) {
-        // Check if clipboard was accessed (potential screenshot)
-        navigator.clipboard.read().then(() => {
-          setScreenshotAttempts(prev => prev + 1);
-        }).catch(() => {
-          // Clipboard access denied or no clipboard action
-        });
-      }
-    };
-
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyDown); // Also block on keyup
-    document.addEventListener('visibilitychange', handleVisibilityChange);
     
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyDown);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [toast, quizStarted, submitting]);
 
@@ -228,29 +215,73 @@ const QuizPlay = () => {
   const detectSuspiciousExtensions = () => {
     const suspiciousExtensions: string[] = [];
     
-    // Check for common cheating extension patterns
-    const extensionChecks = [
-      { name: 'Screen Capture', pattern: 'chrome-extension://' },
-      { name: 'Screenshot Tool', pattern: 'moz-extension://' },
+    // 1. Check for extension scripts in DOM
+    const extensionScripts = Array.from(document.querySelectorAll('script')).filter(script => {
+      const src = script.src || '';
+      return src.includes('extension://') || src.includes('chrome-extension://') || src.includes('moz-extension://');
+    });
+    
+    if (extensionScripts.length > 0) {
+      suspiciousExtensions.push(`${extensionScripts.length} extension script(s) detected in page`);
+    }
+
+    // 2. Check for extension-injected elements
+    const extensionElements = document.querySelectorAll('[data-extension], [class*="extension"], [id*="extension"]');
+    if (extensionElements.length > 0) {
+      suspiciousExtensions.push(`Extension-injected elements found (${extensionElements.length})`);
+    }
+
+    // 3. Check for Chrome/Browser extension APIs
+    if (typeof (window as any).chrome !== 'undefined' && (window as any).chrome.runtime) {
+      suspiciousExtensions.push('Chrome extension runtime detected');
+    }
+
+    // 4. Check for modified page resources
+    const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
+    const extensionResources = resources.filter(resource => 
+      resource.name.includes('extension://') || 
+      resource.name.includes('chrome-extension://') ||
+      resource.name.includes('moz-extension://')
+    );
+    
+    if (extensionResources.length > 0) {
+      suspiciousExtensions.push(`${extensionResources.length} extension resource(s) loaded`);
+    }
+
+    // 5. Check for common screenshot/screen capture extension patterns
+    const screenshotExtensionPatterns = [
+      'screenshot', 'capture', 'recorder', 'screen', 'snip', 'clip',
+      'lightshot', 'awesome', 'fireshot', 'nimbus'
     ];
+    
+    const allScripts = Array.from(document.scripts);
+    const suspiciousScripts = allScripts.filter(script => {
+      const src = (script.src || '').toLowerCase();
+      return screenshotExtensionPatterns.some(pattern => src.includes(pattern));
+    });
 
-    // Check if extensions are modifying the page
-    const scripts = document.querySelectorAll('script[src*="extension://"]');
-    if (scripts.length > 0) {
-      suspiciousExtensions.push(`${scripts.length} browser extensions detected`);
+    if (suspiciousScripts.length > 0) {
+      suspiciousExtensions.push('Potential screenshot/capture extension detected');
     }
 
-    // Check for modification indicators
-    if (document.documentElement.hasAttribute('data-extension')) {
-      suspiciousExtensions.push('Extension modification detected');
+    // 6. Check for grammarly, ChatGPT, or AI assistant extensions
+    const aiExtensionPatterns = ['grammarly', 'chatgpt', 'openai', 'copilot', 'assistant'];
+    const aiScripts = allScripts.filter(script => {
+      const src = (script.src || '').toLowerCase();
+      return aiExtensionPatterns.some(pattern => src.includes(pattern));
+    });
+
+    if (aiScripts.length > 0) {
+      suspiciousExtensions.push('AI assistant or writing extension detected');
     }
 
-    // Detect if devtools extensions are present (more advanced check)
-    const threshold = 160;
-    const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-    const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-    if (widthThreshold || heightThreshold) {
-      suspiciousExtensions.push('Developer tools or screen capture extension may be active');
+    // 7. Check window size for developer tools
+    const widthDiff = window.outerWidth - window.innerWidth;
+    const heightDiff = window.outerHeight - window.innerHeight;
+    
+    // Normal browser chrome is around 100-150px, more than 200px suggests devtools
+    if (widthDiff > 200 || heightDiff > 200) {
+      suspiciousExtensions.push('Developer tools or large extension panel may be open');
     }
 
     if (suspiciousExtensions.length > 0) {
@@ -258,7 +289,7 @@ const QuizPlay = () => {
       toast({
         variant: 'destructive',
         title: 'Extensions Detected',
-        description: 'Browser extensions have been detected and logged. This may affect your quiz.',
+        description: `${suspiciousExtensions.length} potential issue(s) detected and logged.`,
         duration: 5000,
       });
     }
