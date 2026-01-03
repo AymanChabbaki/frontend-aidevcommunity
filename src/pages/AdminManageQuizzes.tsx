@@ -42,6 +42,8 @@ const AdminManageQuizzes = () => {
   const [submitting, setSubmitting] = useState(false);
   const [deleteParticipantDialog, setDeleteParticipantDialog] = useState(false);
   const [participantToDelete, setParticipantToDelete] = useState<{ userId: string; displayName: string } | null>(null);
+  const [cheatDetailDialog, setCheatDetailDialog] = useState(false);
+  const [selectedCheatEntry, setSelectedCheatEntry] = useState<LeaderboardEntry | null>(null);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
@@ -257,6 +259,11 @@ const AdminManageQuizzes = () => {
   const confirmDeleteParticipant = (userId: string, displayName: string) => {
     setParticipantToDelete({ userId, displayName });
     setDeleteParticipantDialog(true);
+  };
+
+  const viewCheatDetails = (entry: LeaderboardEntry) => {
+    setSelectedCheatEntry(entry);
+    setCheatDetailDialog(true);
   };
 
   const handleDelete = async (quizId: string) => {
@@ -774,15 +781,30 @@ const AdminManageQuizzes = () => {
                             <span className="text-red-600 dark:text-red-400 flex items-center gap-1">
                               <XCircle className="h-3 w-3" /> {entry.incorrectAnswers} incorrect
                             </span>
-                            {entry.tabSwitches > 0 && (
-                              <span className="text-orange-600 dark:text-orange-400 flex items-center gap-1">
-                                <AlertTriangle className="h-3 w-3" /> {entry.tabSwitches} tab switches
-                              </span>
+                            {entry.isFlagged && entry.tabSwitches > 0 && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  viewCheatDetails(entry);
+                                }}
+                                className="text-orange-600 dark:text-orange-400 flex items-center gap-1 hover:underline cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-900/30 px-2 py-0.5 rounded transition-colors font-semibold"
+                                title="Click to view detailed cheating analysis"
+                              >
+                                <AlertTriangle className="h-3 w-3" /> {entry.tabSwitches} tab switches - Click
+                              </button>
                             )}
                           </div>
                           {entry.isFlagged && entry.flagReason && (
-                            <div className="text-sm bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 mt-2 p-2 rounded border border-red-300 dark:border-red-700 font-medium">
+                            <div 
+                              className="text-sm bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 mt-2 p-2 rounded border border-red-300 dark:border-red-700 font-medium cursor-pointer hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                viewCheatDetails(entry);
+                              }}
+                              title="Click to view detailed cheating analysis"
+                            >
                               <span className="font-bold">🚨 Cheating Evidence:</span> {entry.flagReason}
+                              <span className="text-xs ml-2 underline">Click for full analysis</span>
                             </div>
                           )}
                         </div>
@@ -836,15 +858,30 @@ const AdminManageQuizzes = () => {
                             <span className="text-red-600 dark:text-red-400 flex items-center gap-1">
                               <XCircle className="h-3 w-3" /> {entry.incorrectAnswers}
                             </span>
-                            {entry.tabSwitches > 0 && (
-                              <span className="text-orange-600 dark:text-orange-400 flex items-center gap-1 font-semibold">
-                                <AlertTriangle className="h-3 w-3" /> {entry.tabSwitches} tab switches
-                              </span>
+                            {entry.isFlagged && entry.tabSwitches > 0 && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  viewCheatDetails(entry);
+                                }}
+                                className="text-orange-600 dark:text-orange-400 flex items-center gap-1 hover:underline cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-900/30 px-2 py-0.5 rounded transition-colors font-semibold"
+                                title="Click to view detailed cheating analysis"
+                              >
+                                <AlertTriangle className="h-3 w-3" /> {entry.tabSwitches} - Details
+                              </button>
                             )}
                           </div>
                           {entry.isFlagged && entry.flagReason && (
-                            <div className="text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 mt-2 p-2 rounded border border-red-300 dark:border-red-700 font-medium">
+                            <div 
+                              className="text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 mt-2 p-2 rounded border border-red-300 dark:border-red-700 font-medium cursor-pointer hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                viewCheatDetails(entry);
+                              }}
+                              title="Click to view detailed cheating analysis"
+                            >
                               <span className="font-bold">🚨 Cheating Evidence:</span> {entry.flagReason}
+                              <span className="text-xs ml-1 underline">Click details</span>
                             </div>
                           )}
                         </div>
@@ -931,6 +968,151 @@ AI Dev Community Team`}
             >
               Remove Participant
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Detailed Cheating Analysis Modal */}
+      <Dialog open={cheatDetailDialog} onOpenChange={setCheatDetailDialog}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="h-6 w-6" />
+              Detailed Cheating Analysis
+            </DialogTitle>
+            <DialogDescription>
+              Complete behavior analysis for suspicious activity detection
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedCheatEntry && (
+            <div className="space-y-4">
+              {/* Participant Info */}
+              <Card className="border-red-200 bg-red-50 dark:bg-red-950/20">
+                <CardContent className="pt-6">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold">Participant:</span>
+                      <span>{selectedCheatEntry.displayName}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold">Email:</span>
+                      <span>{selectedCheatEntry.email}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold">Rank:</span>
+                      <span>#{selectedCheatEntry.rank}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold">Score:</span>
+                      <span>{selectedCheatEntry.totalScore} points</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Performance Stats */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Performance Statistics</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-950/20 rounded">
+                    <span className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <span>Correct Answers:</span>
+                    </span>
+                    <span className="font-bold text-green-600">{selectedCheatEntry.correctAnswers}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-red-50 dark:bg-red-950/20 rounded">
+                    <span className="flex items-center gap-2">
+                      <XCircle className="h-4 w-4 text-red-600" />
+                      <span>Incorrect Answers:</span>
+                    </span>
+                    <span className="font-bold text-red-600">{selectedCheatEntry.incorrectAnswers}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-950/20 rounded">
+                    <span>Total Questions:</span>
+                    <span className="font-bold">{selectedCheatEntry.totalQuestions}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-950/20 rounded">
+                    <span>Success Rate:</span>
+                    <span className="font-bold">
+                      {((selectedCheatEntry.correctAnswers / selectedCheatEntry.totalQuestions) * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Cheating Evidence */}
+              <Card className="border-red-500 bg-red-50 dark:bg-red-950/30">
+                <CardHeader>
+                  <CardTitle className="text-base text-red-600 flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5" />
+                    Detected Suspicious Activities
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded border border-orange-300">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-semibold text-orange-700 dark:text-orange-300">
+                        Tab Switching Detected
+                      </span>
+                      <span className="text-2xl font-bold text-orange-600">
+                        {selectedCheatEntry.tabSwitches}
+                      </span>
+                    </div>
+                    <p className="text-sm text-orange-700 dark:text-orange-300">
+                      User switched away from quiz tab {selectedCheatEntry.tabSwitches} time(s). 
+                      This could indicate looking up answers or using external resources.
+                    </p>
+                  </div>
+
+                  {selectedCheatEntry.flagReason && (
+                    <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded border border-red-300">
+                      <div className="font-semibold text-red-700 dark:text-red-300 mb-2">
+                        System-Flagged Reasons:
+                      </div>
+                      <div className="text-sm text-red-700 dark:text-red-300 whitespace-pre-wrap">
+                        {selectedCheatEntry.flagReason}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded border border-yellow-300">
+                    <div className="font-semibold text-yellow-700 dark:text-yellow-300 mb-2">
+                      ⚠️ Recommendation:
+                    </div>
+                    <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                      Based on the detected activities, this participant's submission is flagged as suspicious. 
+                      Review the evidence and consider taking appropriate action such as:
+                    </p>
+                    <ul className="list-disc list-inside text-sm text-yellow-700 dark:text-yellow-300 mt-2 space-y-1">
+                      <li>Removing their score from the leaderboard</li>
+                      <li>Contacting the participant for clarification</li>
+                      <li>Requiring a supervised re-attempt</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCheatDetailDialog(false)}>
+              Close
+            </Button>
+            {selectedCheatEntry && (
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  setCheatDetailDialog(false);
+                  confirmDeleteParticipant(selectedCheatEntry.userId, selectedCheatEntry.displayName);
+                }}
+              >
+                Remove This Participant
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
