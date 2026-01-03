@@ -56,6 +56,8 @@ export interface LeaderboardEntry {
   isFlagged: boolean;
   flagReason?: string | null;
   tabSwitches: number;
+  afkIncidents: number;
+  inactivityPeriods?: any;
   rank: number;
 }
 
@@ -89,13 +91,24 @@ const quizService = {
   },
 
   // Submit quiz answers
-  submitQuizAnswers: async (quizId: string, answers: QuizAnswer[], tabSwitches: number = 0): Promise<{ 
+  submitQuizAnswers: async (
+    quizId: string, 
+    answers: QuizAnswer[], 
+    tabSwitches: number = 0,
+    afkIncidents: number = 0,
+    inactivityPeriods: {questionIndex: number, duration: number}[] = []
+  ): Promise<{ 
     success: boolean; 
     attempt: QuizAttempt; 
     totalScore: number; 
     rank: number 
   }> => {
-    const response = await api.post(`/quizzes/${quizId}/submit`, { answers, tabSwitches });
+    const response = await api.post(`/quizzes/${quizId}/submit`, { 
+      answers, 
+      tabSwitches, 
+      afkIncidents, 
+      inactivityPeriods 
+    });
     return response.data;
   },
 

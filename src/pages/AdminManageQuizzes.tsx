@@ -794,7 +794,23 @@ const AdminManageQuizzes = () => {
                                 }`}
                                 title="Click to view detailed cheating analysis"
                               >
-                                <AlertTriangle className="h-3 w-3" /> {entry.tabSwitches} tab switches - Click
+                                <AlertTriangle className="h-3 w-3" /> {entry.tabSwitches} tabs
+                              </button>
+                            )}
+                            {entry.afkIncidents > 0 && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  viewCheatDetails(entry);
+                                }}
+                                className={`flex items-center gap-1 hover:underline cursor-pointer px-2 py-0.5 rounded transition-colors font-semibold ${
+                                  entry.isFlagged 
+                                    ? 'text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 animate-pulse'
+                                    : 'text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30'
+                                }`}
+                                title="Extended inactivity periods detected - Click for details"
+                              >
+                                <AlertTriangle className="h-3 w-3" /> {entry.afkIncidents} AFK
                               </button>
                             )}
                           </div>
@@ -875,7 +891,23 @@ const AdminManageQuizzes = () => {
                                 }`}
                                 title="Click to view detailed analysis"
                               >
-                                <AlertTriangle className="h-3 w-3" /> {entry.tabSwitches} - Details
+                                <AlertTriangle className="h-3 w-3" /> {entry.tabSwitches} tabs
+                              </button>
+                            )}
+                            {entry.afkIncidents > 0 && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  viewCheatDetails(entry);
+                                }}
+                                className={`flex items-center gap-1 hover:underline cursor-pointer px-2 py-0.5 rounded transition-colors font-semibold ${
+                                  entry.isFlagged 
+                                    ? 'text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 animate-pulse'
+                                    : 'text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30'
+                                }`}
+                                title="Extended inactivity detected - Click for details"
+                              >
+                                <AlertTriangle className="h-3 w-3" /> {entry.afkIncidents} AFK
                               </button>
                             )}
                           </div>
@@ -1061,20 +1093,61 @@ AI Dev Community Team`}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded border border-orange-300">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-orange-700 dark:text-orange-300">
-                        Tab Switching Detected
-                      </span>
-                      <span className="text-2xl font-bold text-orange-600">
-                        {selectedCheatEntry.tabSwitches}
-                      </span>
+                  {/* Tab Switching */}
+                  {selectedCheatEntry.tabSwitches > 0 && (
+                    <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded border border-orange-300">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-semibold text-orange-700 dark:text-orange-300">
+                          Tab Switching Detected
+                        </span>
+                        <span className="text-2xl font-bold text-orange-600">
+                          {selectedCheatEntry.tabSwitches}
+                        </span>
+                      </div>
+                      <p className="text-sm text-orange-700 dark:text-orange-300">
+                        User switched away from quiz tab {selectedCheatEntry.tabSwitches} time(s). 
+                        This could indicate looking up answers or using external resources.
+                      </p>
                     </div>
-                    <p className="text-sm text-orange-700 dark:text-orange-300">
-                      User switched away from quiz tab {selectedCheatEntry.tabSwitches} time(s). 
-                      This could indicate looking up answers or using external resources.
-                    </p>
-                  </div>
+                  )}
+
+                  {/* AFK Incidents */}
+                  {selectedCheatEntry.afkIncidents > 0 && (
+                    <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded border border-purple-300">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-semibold text-purple-700 dark:text-purple-300">
+                          AFK (Away From Keyboard) Detected
+                        </span>
+                        <span className="text-2xl font-bold text-purple-600">
+                          {selectedCheatEntry.afkIncidents}
+                        </span>
+                      </div>
+                      <p className="text-sm text-purple-700 dark:text-purple-300">
+                        User had {selectedCheatEntry.afkIncidents} period(s) of extended inactivity (no mouse/keyboard activity). 
+                        This suggests they may have been looking up answers elsewhere or consulting external resources.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Inactivity Periods Detail */}
+                  {selectedCheatEntry.inactivityPeriods && Array.isArray(selectedCheatEntry.inactivityPeriods) && selectedCheatEntry.inactivityPeriods.length > 0 && (
+                    <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded border border-blue-300">
+                      <div className="font-semibold text-blue-700 dark:text-blue-300 mb-2">
+                        Inactivity Timeline:
+                      </div>
+                      <div className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
+                        {selectedCheatEntry.inactivityPeriods.map((period: any, idx: number) => (
+                          <div key={idx} className="flex justify-between">
+                            <span>Question {period.questionIndex + 1}:</span>
+                            <span className="font-semibold">{(period.duration / 1000).toFixed(1)}s inactive</span>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                        Long inactivity periods may indicate phone usage, consulting notes, or getting external help.
+                      </p>
+                    </div>
+                  )}
 
                   {selectedCheatEntry.flagReason && (
                     <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded border border-red-300">
@@ -1099,6 +1172,7 @@ AI Dev Community Team`}
                       <li>Removing their score from the leaderboard</li>
                       <li>Contacting the participant for clarification</li>
                       <li>Requiring a supervised re-attempt</li>
+                      {selectedCheatEntry.afkIncidents > 2 && <li>Extended inactivity suggests external device usage (phone cheating)</li>}
                     </ul>
                   </div>
                 </CardContent>

@@ -35,6 +35,9 @@ const QuizPlay = () => {
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [quizStarted, setQuizStarted] = useState(false);
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
+  const [lastActivityTime, setLastActivityTime] = useState<number>(Date.now());
+  const [afkIncidents, setAfkIncidents] = useState(0);
+  const [inactivityPeriods, setInactivityPeriods] = useState<{questionIndex: number, duration: number}[]>([]);
 
   useEffect(() => {
     if (id) {
@@ -58,6 +61,72 @@ const QuizPlay = () => {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [quizStarted, submitting, toast]);
+
+  // Track user activity (mouse/keyboard) to detect AFK and phone cheating
+  useEffect(() => {
+    if (!quizStarted || submitting) return;
+
+    const updateActivity = () => {
+      const now = Date.now();
+      const inactivityDuration = now - lastActivityTime;
+      
+      // If inactive for more than 10 seconds, log as AFK incident
+      if (inactivityDuration > 10000) {
+        setAfkIncidents(prev => prev + 1);
+        setInactivityPeriods(prev => [...prev, {
+          questionIndex: currentQuestionIndex,
+          duration: inactivityDuration
+        }]);
+        toast({
+          variant: 'destructive',
+          title: 'Activity Warning',
+          description: 'Extended inactivity detected and logged.',
+        });
+      }
+      
+      setLastActivityTime(now);
+    };
+
+    const handleActivity = () => {
+      updateActivity();
+    };
+
+    // Check for inactivity every 5 seconds
+    const inactivityCheck = setInterval(() => {
+      const now = Date.now();
+      const inactivityDuration = now - lastActivityTime;
+      
+      if (inactivityDuration > 10000) {
+        setAfkIncidents(prev => prev + 1);
+        setInactivityPeriods(prev => {
+          // Avoid duplicate entries
+          const lastPeriod = prev[prev.length - 1];
+          if (lastPeriod && lastPeriod.questionIndex === currentQuestionIndex) {
+            return prev;
+          }
+          return [...prev, {
+            questionIndex: currentQuestionIndex,
+            duration: inactivityDuration
+          }];
+        });
+      }
+    }, 5000);
+
+    document.addEventListener('mousemove', handleActivity);
+    document.addEventListener('mousedown', handleActivity);
+    document.addEventListener('keydown', handleActivity);
+    document.addEventListener('scroll', handleActivity);
+    document.addEventListener('click', handleActivity);
+
+    return () => {
+      clearInterval(inactivityCheck);
+      document.removeEventListener('mousemove', handleActivity);
+      document.removeEventListener('mousedown', handleActivity);
+      document.removeEventListener('keydown', handleActivity);
+      document.removeEventListener('scroll', handleActivity);
+      document.removeEventListener('click', handleActivity);
+    };
+  }, [quizStarted, submitting, lastActivityTime, currentQuestionIndex, toast]);
 
   // Disable developer tools (F12, Ctrl+Shift+I, etc.)
   useEffect(() => {
@@ -249,7 +318,7 @@ const QuizPlay = () => {
         });
       }
 
-      const result = await quizService.submitQuizAnswers(id!, finalAnswers, tabSwitchCount);
+      const result = await quizService.submitQuizAnswers(id!, finalAnswers, tabSwitchCount, afkIncidents, inactivityPeriods);
 
       toast({
         title: 'Quiz Completed!',
