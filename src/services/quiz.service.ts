@@ -50,6 +50,9 @@ export interface LeaderboardEntry {
   email: string;
   profilePicture?: string;
   totalScore: number;
+  correctAnswers: number;
+  incorrectAnswers: number;
+  totalQuestions: number;
   rank: number;
 }
 
