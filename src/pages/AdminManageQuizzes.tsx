@@ -781,8 +781,8 @@ const AdminManageQuizzes = () => {
                             )}
                           </div>
                           {entry.isFlagged && entry.flagReason && (
-                            <div className="text-xs text-red-600 dark:text-red-400 mt-1 font-medium">
-                              ⚠️ {entry.flagReason}
+                            <div className="text-sm bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 mt-2 p-2 rounded border border-red-300 dark:border-red-700 font-medium">
+                              <span className="font-bold">🚨 Cheating Evidence:</span> {entry.flagReason}
                             </div>
                           )}
                         </div>
@@ -814,7 +814,7 @@ const AdminManageQuizzes = () => {
                     <div key={entry.userId} className={`flex items-center justify-between p-3 rounded-lg hover:bg-accent ${
                       entry.isFlagged ? 'bg-red-50 dark:bg-red-950/20 border border-red-200' : ''
                     }`}>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 flex-1">
                         <span className="text-sm font-semibold text-muted-foreground min-w-[30px] flex items-center gap-1">
                           {entry.isFlagged && <AlertTriangle className="h-4 w-4 text-red-500" />}
                           #{entry.rank}
@@ -823,8 +823,8 @@ const AdminManageQuizzes = () => {
                           <div className="font-medium text-sm flex items-center gap-2">
                             {entry.displayName}
                             {entry.isFlagged && (
-                              <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">
-                                FLAGGED
+                              <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded-full font-bold">
+                                CHEATER DETECTED
                               </span>
                             )}
                           </div>
@@ -837,14 +837,14 @@ const AdminManageQuizzes = () => {
                               <XCircle className="h-3 w-3" /> {entry.incorrectAnswers}
                             </span>
                             {entry.tabSwitches > 0 && (
-                              <span className="text-orange-600 dark:text-orange-400 flex items-center gap-1">
-                                <AlertTriangle className="h-3 w-3" /> {entry.tabSwitches}
+                              <span className="text-orange-600 dark:text-orange-400 flex items-center gap-1 font-semibold">
+                                <AlertTriangle className="h-3 w-3" /> {entry.tabSwitches} tab switches
                               </span>
                             )}
                           </div>
                           {entry.isFlagged && entry.flagReason && (
-                            <div className="text-xs text-red-600 dark:text-red-400 mt-1">
-                              ⚠️ {entry.flagReason}
+                            <div className="text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 mt-2 p-2 rounded border border-red-300 dark:border-red-700 font-medium">
+                              <span className="font-bold">🚨 Cheating Evidence:</span> {entry.flagReason}
                             </div>
                           )}
                         </div>
