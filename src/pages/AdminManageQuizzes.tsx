@@ -781,13 +781,17 @@ const AdminManageQuizzes = () => {
                             <span className="text-red-600 dark:text-red-400 flex items-center gap-1">
                               <XCircle className="h-3 w-3" /> {entry.incorrectAnswers} incorrect
                             </span>
-                            {entry.isFlagged && entry.tabSwitches > 0 && (
+                            {entry.tabSwitches > 0 && (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   viewCheatDetails(entry);
                                 }}
-                                className="text-orange-600 dark:text-orange-400 flex items-center gap-1 hover:underline cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-900/30 px-2 py-0.5 rounded transition-colors font-semibold"
+                                className={`flex items-center gap-1 hover:underline cursor-pointer px-2 py-0.5 rounded transition-colors font-semibold ${
+                                  entry.isFlagged 
+                                    ? 'text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 animate-pulse'
+                                    : 'text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/30'
+                                }`}
                                 title="Click to view detailed cheating analysis"
                               >
                                 <AlertTriangle className="h-3 w-3" /> {entry.tabSwitches} tab switches - Click
@@ -858,14 +862,18 @@ const AdminManageQuizzes = () => {
                             <span className="text-red-600 dark:text-red-400 flex items-center gap-1">
                               <XCircle className="h-3 w-3" /> {entry.incorrectAnswers}
                             </span>
-                            {entry.isFlagged && entry.tabSwitches > 0 && (
+                            {entry.tabSwitches > 0 && (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   viewCheatDetails(entry);
                                 }}
-                                className="text-orange-600 dark:text-orange-400 flex items-center gap-1 hover:underline cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-900/30 px-2 py-0.5 rounded transition-colors font-semibold"
-                                title="Click to view detailed cheating analysis"
+                                className={`flex items-center gap-1 hover:underline cursor-pointer px-2 py-0.5 rounded transition-colors font-semibold ${
+                                  entry.isFlagged 
+                                    ? 'text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 animate-pulse'
+                                    : 'text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/30'
+                                }`}
+                                title="Click to view detailed analysis"
                               >
                                 <AlertTriangle className="h-3 w-3" /> {entry.tabSwitches} - Details
                               </button>
