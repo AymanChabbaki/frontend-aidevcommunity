@@ -813,6 +813,18 @@ const AdminManageQuizzes = () => {
                                 <AlertTriangle className="h-3 w-3" /> {entry.afkIncidents} AFK
                               </button>
                             )}
+                            {entry.screenshotAttempts > 0 && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  viewCheatDetails(entry);
+                                }}
+                                className="flex items-center gap-1 hover:underline cursor-pointer px-2 py-0.5 rounded transition-colors font-semibold text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 animate-pulse"
+                                title="Screenshot attempts detected - Click for details"
+                              >
+                                <AlertTriangle className="h-3 w-3" /> {entry.screenshotAttempts} screenshots
+                              </button>
+                            )}
                           </div>
                           {entry.isFlagged && entry.flagReason && (
                             <div 
@@ -908,6 +920,18 @@ const AdminManageQuizzes = () => {
                                 title="Extended inactivity detected - Click for details"
                               >
                                 <AlertTriangle className="h-3 w-3" /> {entry.afkIncidents} AFK
+                              </button>
+                            )}
+                            {entry.screenshotAttempts > 0 && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  viewCheatDetails(entry);
+                                }}
+                                className="flex items-center gap-1 hover:underline cursor-pointer px-2 py-0.5 rounded transition-colors font-semibold text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 animate-pulse"
+                                title="Screenshot attempts - Click for details"
+                              >
+                                <AlertTriangle className="h-3 w-3" /> {entry.screenshotAttempts} screenshots
                               </button>
                             )}
                           </div>
@@ -1145,6 +1169,41 @@ AI Dev Community Team`}
                       </div>
                       <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
                         Long inactivity periods may indicate phone usage, consulting notes, or getting external help.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Screenshot Attempts */}
+                  {selectedCheatEntry.screenshotAttempts > 0 && (
+                    <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded border border-red-300">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-semibold text-red-700 dark:text-red-300">
+                          🚨 Screenshot Attempts Detected
+                        </span>
+                        <span className="text-2xl font-bold text-red-600">
+                          {selectedCheatEntry.screenshotAttempts}
+                        </span>
+                      </div>
+                      <p className="text-sm text-red-700 dark:text-red-300">
+                        User tried to take {selectedCheatEntry.screenshotAttempts} screenshot(s) during the quiz. 
+                        All attempts were blocked and logged. This is a clear violation of quiz integrity.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Browser Extensions */}
+                  {selectedCheatEntry.suspiciousExtensions && Array.isArray(selectedCheatEntry.suspiciousExtensions) && selectedCheatEntry.suspiciousExtensions.length > 0 && (
+                    <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded border border-red-300">
+                      <div className="font-semibold text-red-700 dark:text-red-300 mb-2">
+                        ⚠️ Suspicious Browser Extensions:
+                      </div>
+                      <ul className="list-disc list-inside text-sm text-red-700 dark:text-red-300 space-y-1">
+                        {selectedCheatEntry.suspiciousExtensions.map((ext: string, idx: number) => (
+                          <li key={idx}>{ext}</li>
+                        ))}
+                      </ul>
+                      <p className="text-xs text-red-600 dark:text-red-400 mt-2">
+                        These extensions may allow cheating through screen capture, answer lookup, or other means.
                       </p>
                     </div>
                   )}

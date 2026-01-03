@@ -38,6 +38,8 @@ const QuizPlay = () => {
   const [lastActivityTime, setLastActivityTime] = useState<number>(Date.now());
   const [afkIncidents, setAfkIncidents] = useState(0);
   const [inactivityPeriods, setInactivityPeriods] = useState<{questionIndex: number, duration: number}[]>([]);
+  const [screenshotAttempts, setScreenshotAttempts] = useState(0);
+  const [detectedExtensions, setDetectedExtensions] = useState<string[]>([]);
 
   useEffect(() => {
     if (id) {
@@ -128,7 +130,7 @@ const QuizPlay = () => {
     };
   }, [quizStarted, submitting, lastActivityTime, currentQuestionIndex, toast]);
 
-  // Disable developer tools (F12, Ctrl+Shift+I, etc.)
+  // Disable developer tools and screenshot attempts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
@@ -144,11 +146,47 @@ const QuizPlay = () => {
           description: 'Developer tools are disabled during the quiz',
         });
       }
+
+      // Block screenshot attempts (Print Screen, Windows+Shift+S, etc.)
+      if (
+        e.key === 'PrintScreen' ||
+        (e.metaKey && e.shiftKey && e.key === 's') || // Mac screenshot
+        (e.metaKey && e.shiftKey && e.key === '4') || // Mac screenshot
+        (e.key === 's' && e.shiftKey && (e.metaKey || e.ctrlKey)) // Windows Snipping Tool
+      ) {
+        e.preventDefault();
+        setScreenshotAttempts(prev => prev + 1);
+        toast({
+          variant: 'destructive',
+          title: 'Screenshot Blocked',
+          description: 'Screenshots are disabled during the quiz. This attempt has been logged.',
+          duration: 4000,
+        });
+      }
+    };
+
+    // Detect blur events (Print Screen doesn't always trigger keydown)
+    const handleVisibilityChange = () => {
+      if (!document.hidden && quizStarted && !submitting) {
+        // Check if clipboard was accessed (potential screenshot)
+        navigator.clipboard.read().then(() => {
+          setScreenshotAttempts(prev => prev + 1);
+        }).catch(() => {
+          // Clipboard access denied or no clipboard action
+        });
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toast]);
+    window.addEventListener('keyup', handleKeyDown); // Also block on keyup
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyDown);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [toast, quizStarted, submitting]);
 
   // Prevent copy/paste
   useEffect(() => {
@@ -180,8 +218,51 @@ const QuizPlay = () => {
     if (quiz && quiz.questions && quiz.questions.length > 0 && !quizStarted) {
       setTimeRemaining(quiz.timeLimit * 1000); // Convert seconds to milliseconds
       setQuizStarted(true);
+      
+      // Detect suspicious browser extensions
+      detectSuspiciousExtensions();
     }
   }, [quiz, quizStarted]);
+
+  // Detect suspicious browser extensions
+  const detectSuspiciousExtensions = () => {
+    const suspiciousExtensions: string[] = [];
+    
+    // Check for common cheating extension patterns
+    const extensionChecks = [
+      { name: 'Screen Capture', pattern: 'chrome-extension://' },
+      { name: 'Screenshot Tool', pattern: 'moz-extension://' },
+    ];
+
+    // Check if extensions are modifying the page
+    const scripts = document.querySelectorAll('script[src*="extension://"]');
+    if (scripts.length > 0) {
+      suspiciousExtensions.push(`${scripts.length} browser extensions detected`);
+    }
+
+    // Check for modification indicators
+    if (document.documentElement.hasAttribute('data-extension')) {
+      suspiciousExtensions.push('Extension modification detected');
+    }
+
+    // Detect if devtools extensions are present (more advanced check)
+    const threshold = 160;
+    const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+    const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+    if (widthThreshold || heightThreshold) {
+      suspiciousExtensions.push('Developer tools or screen capture extension may be active');
+    }
+
+    if (suspiciousExtensions.length > 0) {
+      setDetectedExtensions(suspiciousExtensions);
+      toast({
+        variant: 'destructive',
+        title: 'Extensions Detected',
+        description: 'Browser extensions have been detected and logged. This may affect your quiz.',
+        duration: 5000,
+      });
+    }
+  };
 
   useEffect(() => {
     // Don't start timer until quiz is loaded and started
@@ -318,7 +399,15 @@ const QuizPlay = () => {
         });
       }
 
-      const result = await quizService.submitQuizAnswers(id!, finalAnswers, tabSwitchCount, afkIncidents, inactivityPeriods);
+      const result = await quizService.submitQuizAnswers(
+        id!, 
+        finalAnswers, 
+        tabSwitchCount, 
+        afkIncidents, 
+        inactivityPeriods,
+        screenshotAttempts,
+        detectedExtensions
+      );
 
       toast({
         title: 'Quiz Completed!',

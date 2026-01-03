@@ -57,6 +57,8 @@ export interface LeaderboardEntry {
   flagReason?: string | null;
   tabSwitches: number;
   afkIncidents: number;
+  screenshotAttempts: number;
+  suspiciousExtensions?: any;
   inactivityPeriods?: any;
   rank: number;
 }
@@ -96,7 +98,9 @@ const quizService = {
     answers: QuizAnswer[], 
     tabSwitches: number = 0,
     afkIncidents: number = 0,
-    inactivityPeriods: {questionIndex: number, duration: number}[] = []
+    inactivityPeriods: {questionIndex: number, duration: number}[] = [],
+    screenshotAttempts: number = 0,
+    detectedExtensions: string[] = []
   ): Promise<{ 
     success: boolean; 
     attempt: QuizAttempt; 
@@ -107,7 +111,9 @@ const quizService = {
       answers, 
       tabSwitches, 
       afkIncidents, 
-      inactivityPeriods 
+      inactivityPeriods,
+      screenshotAttempts,
+      detectedExtensions
     });
     return response.data;
   },
