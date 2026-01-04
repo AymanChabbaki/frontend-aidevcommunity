@@ -943,13 +943,9 @@ const AdminManageQuizzes = () => {
                               </span>
                             )}
                             {entry.flagReason && entry.flagReason.includes('PENALTY') && (
-                              <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-bold">
-                                ⚠️ PENALIZED
-                              </span>
-                            )}
-                            {entry.flagReason && entry.flagReason.includes('PENALTY') && (
-                              <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-bold animate-pulse">
-                                ⚠️ POINTS REDUCED
+                              <span className="inline-flex items-center gap-1 text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-bold animate-pulse">
+                                <AlertTriangle className="h-3 w-3" />
+                                POINTS REDUCED
                               </span>
                             )}
                           </div>
@@ -1346,7 +1342,8 @@ AI Dev Community Team`}
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-orange-600 text-base">
-              ⚠️ Reduce Points
+              <AlertTriangle className="h-4 w-4" />
+              Reduce Points
             </DialogTitle>
             <DialogDescription className="text-sm">
               Apply penalty for cheating

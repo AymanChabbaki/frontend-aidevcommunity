@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Trophy, Medal, ArrowLeft, Crown } from 'lucide-react';
+import { Trophy, Medal, ArrowLeft, Crown, AlertTriangle } from 'lucide-react';
 import quizService, { LeaderboardEntry, Quiz } from '../services/quiz.service';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -200,8 +200,9 @@ const QuizLeaderboard = () => {
                             <p className="text-sm text-muted-foreground mb-3 text-center">{leaderboard[1].email}</p>
                             {(leaderboard[1].hasPenalty || (leaderboard[1].flagReason && leaderboard[1].flagReason.includes('PENALTY'))) && (
                               <div className="mb-2">
-                                <span className="inline-flex items-center gap-1 text-xs bg-red-600 text-white px-2 py-1 rounded-full font-bold animate-pulse">
-                                  ⚠️ CHEATER
+                                <span className="inline-flex items-center gap-1 text-xs bg-red-600 text-white px-2 py-1 rounded-full font-bold">
+                                  <AlertTriangle className="h-3 w-3" />
+                                  CHEATER
                                 </span>
                               </div>
                             )}
@@ -264,8 +265,9 @@ const QuizLeaderboard = () => {
                           <p className="text-sm text-muted-foreground mb-4 text-center">{leaderboard[0].email}</p>
                           {(leaderboard[0].hasPenalty || (leaderboard[0].flagReason && leaderboard[0].flagReason.includes('PENALTY'))) && (
                             <div className="mb-3">
-                              <span className="inline-flex items-center gap-1 text-xs bg-red-600 text-white px-2 py-1 rounded-full font-bold animate-pulse">
-                                ⚠️ CHEATER
+                              <span className="inline-flex items-center gap-1 text-xs bg-red-600 text-white px-2 py-1 rounded-full font-bold">
+                                <AlertTriangle className="h-3 w-3" />
+                                CHEATER
                               </span>
                             </div>
                           )}
@@ -336,8 +338,9 @@ const QuizLeaderboard = () => {
                             <p className="text-sm text-muted-foreground mb-3 text-center">{leaderboard[2].email}</p>
                             {(leaderboard[2].hasPenalty || (leaderboard[2].flagReason && leaderboard[2].flagReason.includes('PENALTY'))) && (
                               <div className="mb-2">
-                                <span className="inline-flex items-center gap-1 text-xs bg-red-600 text-white px-2 py-1 rounded-full font-bold animate-pulse">
-                                  ⚠️ CHEATER
+                                <span className="inline-flex items-center gap-1 text-xs bg-red-600 text-white px-2 py-1 rounded-full font-bold">
+                                  <AlertTriangle className="h-3 w-3" />
+                                  CHEATER
                                 </span>
                               </div>
                             )}
@@ -398,7 +401,8 @@ const QuizLeaderboard = () => {
                                     <span className="font-medium">{entry.displayName}</span>
                                     {(entry.hasPenalty || (entry.flagReason && entry.flagReason.includes('PENALTY'))) && (
                                       <span className="inline-flex items-center gap-1 text-xs bg-red-600 text-white px-1.5 py-0.5 rounded-full font-bold">
-                                        ⚠️ CHEATER
+                                        <AlertTriangle className="h-3 w-3" />
+                                        CHEATER
                                       </span>
                                     )}
                                   </div>

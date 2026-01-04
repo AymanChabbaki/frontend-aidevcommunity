@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, Medal, TrendingUp, Crown, Award } from 'lucide-react';
+import { Trophy, Medal, TrendingUp, Crown, Award, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import quizService, { MonthlyLeaderboardEntry } from '../services/quiz.service';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -203,7 +203,7 @@ const LeaderboardWidget = () => {
                               <span className="font-medium text-sm truncate">{entry.displayName}</span>
                               {entry.hasPenalty && (
                                 <span className="inline-flex items-center text-xs bg-red-600 text-white px-1 py-0.5 rounded-full font-bold flex-shrink-0">
-                                  ⚠️
+                                  <AlertTriangle className="h-3 w-3" />
                                 </span>
                               )}
                             </div>
