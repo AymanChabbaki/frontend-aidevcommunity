@@ -432,16 +432,16 @@ const QuizPlay = () => {
         return;
       }
 
-      // Randomize options order for each question
-      const quizWithShuffledOptions = {
+      // Randomize questions order AND options order for each question
+      const quizWithShuffledQuestionsAndOptions = {
         ...data,
-        questions: data.questions.map(question => ({
+        questions: shuffleArray(data.questions).map(question => ({
           ...question,
           options: shuffleArray(question.options)
         }))
       };
 
-      setQuiz(quizWithShuffledOptions);
+      setQuiz(quizWithShuffledQuestionsAndOptions);
       setQuestionStartTime(Date.now());
     } catch (error: any) {
       toast({
