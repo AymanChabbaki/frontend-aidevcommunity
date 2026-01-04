@@ -12,6 +12,13 @@ const LeaderboardWidget = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Extract penalty points from flagReason
+  const extractPenaltyPoints = (flagReason?: string | null): number | null => {
+    if (!flagReason || !flagReason.includes('PENALTY')) return null;
+    const match = flagReason.match(/PENALTY:\s*(\d+)\s*points?\s*reduced/);
+    return match ? parseInt(match[1]) : null;
+  };
+
   useEffect(() => {
     fetchLeaderboard();
   }, []);
@@ -147,9 +154,16 @@ const LeaderboardWidget = () => {
                       {entry.displayName}
                     </div>
                     {(entry.hasPenalty) && (
-                      <span className="inline-flex items-center justify-center text-xs bg-red-600 text-white px-1.5 py-0.5 rounded-full font-bold mt-1">
-                        <AlertTriangle className="h-3 w-3" />
-                      </span>
+                      <div className="flex flex-col items-center mt-1 gap-0.5">
+                        <span className="inline-flex items-center justify-center text-xs bg-red-600 text-white px-1.5 py-0.5 rounded-full font-bold">
+                          <AlertTriangle className="h-3 w-3" />
+                        </span>
+                        {extractPenaltyPoints(entry.flagReason) && (
+                          <span className="text-xs text-red-600 dark:text-red-400 font-bold">
+                            (-{extractPenaltyPoints(entry.flagReason)}pts)
+                          </span>
+                        )}
+                      </div>
                     )}
                     <div className={`bg-gradient-to-r ${getMedalColor(entry.rank)} rounded-full px-3 py-1 mt-2 shadow-md`}>
                       <div className={`${entry.rank === 1 ? 'text-lg' : 'text-base'} font-black text-white`}>
@@ -204,8 +218,11 @@ const LeaderboardWidget = () => {
                             <div className="flex items-center gap-1.5">
                               <span className="font-medium text-sm truncate">{entry.displayName}</span>
                               {entry.hasPenalty && (
-                                <span className="inline-flex items-center text-xs bg-red-600 text-white px-1 py-0.5 rounded-full font-bold flex-shrink-0">
+                                <span className="inline-flex items-center gap-0.5 text-xs bg-red-600 text-white px-1 py-0.5 rounded-full font-bold flex-shrink-0">
                                   <AlertTriangle className="h-3 w-3" />
+                                  {extractPenaltyPoints(entry.flagReason) && (
+                                    <span>-{extractPenaltyPoints(entry.flagReason)}pts</span>
+                                  )}
                                 </span>
                               )}
                             </div>

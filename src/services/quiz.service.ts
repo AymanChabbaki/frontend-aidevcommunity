@@ -73,6 +73,7 @@ export interface MonthlyLeaderboardEntry {
   quizCount: number;
   rank: number;
   hasPenalty?: boolean;
+  flagReason?: string | null;
 }
 
 const quizService = {
