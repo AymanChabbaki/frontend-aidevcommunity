@@ -145,11 +145,13 @@ const LeaderboardWidget = () => {
                     </div>
                     <div className={`font-bold text-center truncate w-full ${entry.rank === 1 ? 'text-sm' : 'text-xs'}`}>
                       {entry.displayName}
-                    </div>                    {(entry.hasPenalty) && (
-                      <span className="text-xs bg-red-600 text-white px-1.5 py-0.5 rounded-full font-bold mt-1">
-                        ⚠️
+                    </div>
+                    {(entry.hasPenalty) && (
+                      <span className="inline-flex items-center justify-center text-xs bg-red-600 text-white px-1.5 py-0.5 rounded-full font-bold mt-1">
+                        <AlertTriangle className="h-3 w-3" />
                       </span>
-                    )}                    <div className={`bg-gradient-to-r ${getMedalColor(entry.rank)} rounded-full px-3 py-1 mt-2 shadow-md`}>
+                    )}
+                    <div className={`bg-gradient-to-r ${getMedalColor(entry.rank)} rounded-full px-3 py-1 mt-2 shadow-md`}>
                       <div className={`${entry.rank === 1 ? 'text-lg' : 'text-base'} font-black text-white`}>
                         {entry.totalScore}
                       </div>
