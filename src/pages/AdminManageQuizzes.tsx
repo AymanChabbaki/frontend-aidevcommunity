@@ -942,6 +942,16 @@ const AdminManageQuizzes = () => {
                                 CHEATER DETECTED
                               </span>
                             )}
+                            {entry.flagReason && entry.flagReason.includes('PENALTY') && (
+                              <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-bold">
+                                ⚠️ PENALIZED
+                              </span>
+                            )}
+                            {entry.flagReason && entry.flagReason.includes('PENALTY') && (
+                              <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-bold animate-pulse">
+                                ⚠️ POINTS REDUCED
+                              </span>
+                            )}
                           </div>
                           <div className="text-xs text-muted-foreground">{entry.email}</div>
                           <div className="flex gap-2 mt-1 text-xs">
@@ -1333,40 +1343,36 @@ AI Dev Community Team`}
 
       {/* Reduce Points Dialog */}
       <Dialog open={reducePointsDialog} onOpenChange={setReducePointsDialog}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-orange-600">
-              ⚠️ Reduce Points for Cheating
+            <DialogTitle className="flex items-center gap-2 text-orange-600 text-base">
+              ⚠️ Reduce Points
             </DialogTitle>
-            <DialogDescription>
-              Reduce points from this participant based on detected cheating activity
+            <DialogDescription className="text-sm">
+              Apply penalty for cheating
             </DialogDescription>
           </DialogHeader>
 
           {selectedCheatEntry && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {/* Participant Info */}
-              <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
-                <CardContent className="pt-4">
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="font-semibold">Participant:</span>
-                      <span>{selectedCheatEntry.displayName}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-semibold">Current Score:</span>
-                      <span className="text-lg font-bold text-orange-600">{selectedCheatEntry.totalScore} points</span>
-                    </div>
+              <div className="p-3 border-orange-200 bg-orange-50 dark:bg-orange-950/20 rounded border">
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="font-semibold">Participant:</span>
+                    <span className="text-xs">{selectedCheatEntry.displayName}</span>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="flex justify-between">
+                    <span className="font-semibold">Current Score:</span>
+                    <span className="text-lg font-bold text-orange-600">{selectedCheatEntry.totalScore} pts</span>
+                  </div>
+                </div>
+              </div>
 
-              {/* Cheating Summary */}
-              <Card className="border-red-200 bg-red-50 dark:bg-red-950/20">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Detected Violations:</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm">
+              {/* Cheating Summary - Compact */}
+              <div className="p-3 border-red-200 bg-red-50 dark:bg-red-950/20 rounded border">
+                <div className="text-xs font-semibold mb-2">Violations:</div>
+                <div className="space-y-1 text-xs">
                   {selectedCheatEntry.tabSwitches > 0 && (
                     <div className="flex justify-between">
                       <span>• Tab Switches:</span>
@@ -1381,22 +1387,16 @@ AI Dev Community Team`}
                   )}
                   {selectedCheatEntry.screenshotAttempts > 0 && (
                     <div className="flex justify-between">
-                      <span>• Screenshot Attempts:</span>
+                      <span>• Screenshots:</span>
                       <span className="font-bold text-red-600">{selectedCheatEntry.screenshotAttempts}</span>
                     </div>
                   )}
-                  {selectedCheatEntry.flagReason && (
-                    <div className="mt-2 p-2 bg-red-100 dark:bg-red-900/30 rounded text-xs">
-                      <div className="font-semibold mb-1">System Flags:</div>
-                      <div className="text-red-700 dark:text-red-300">{selectedCheatEntry.flagReason}</div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               {/* Point Reduction Input */}
               <div className="space-y-2">
-                <Label htmlFor="pointsToReduce">Points to Reduce</Label>
+                <Label htmlFor="pointsToReduce" className="text-sm">Points to Reduce</Label>
                 <Input
                   id="pointsToReduce"
                   type="number"
@@ -1404,23 +1404,29 @@ AI Dev Community Team`}
                   max={selectedCheatEntry.totalScore}
                   value={pointsToReduce}
                   onChange={(e) => setPointsToReduce(parseInt(e.target.value) || 0)}
-                  placeholder="Enter points to reduce"
+                  placeholder="Enter points"
+                  className="h-9"
                 />
                 <p className="text-xs text-muted-foreground">
-                  New score will be: {Math.max(0, selectedCheatEntry.totalScore - pointsToReduce)} points
+                  New score: <strong>{Math.max(0, selectedCheatEntry.totalScore - pointsToReduce)} points</strong>
                 </p>
               </div>
 
               {/* Reason Input */}
               <div className="space-y-2">
-                <Label htmlFor="reductionReason">Reason (Optional)</Label>
+                <Label htmlFor="reductionReason" className="text-sm">Reason (Optional)</Label>
                 <Textarea
                   id="reductionReason"
                   value={reductionReason}
                   onChange={(e) => setReductionReason(e.target.value)}
-                  placeholder="Explain why points are being reduced..."
-                  rows={3}
+                  placeholder="Explain penalty reason..."
+                  rows={2}
+                  className="text-sm"
                 />
+              </div>
+
+              <div className="text-xs text-muted-foreground p-2 bg-blue-50 dark:bg-blue-950/20 rounded">
+                📧 An email will be sent to the participant explaining the penalty.
               </div>
             </div>
           )}
