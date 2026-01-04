@@ -145,8 +145,11 @@ const LeaderboardWidget = () => {
                     </div>
                     <div className={`font-bold text-center truncate w-full ${entry.rank === 1 ? 'text-sm' : 'text-xs'}`}>
                       {entry.displayName}
-                    </div>
-                    <div className={`bg-gradient-to-r ${getMedalColor(entry.rank)} rounded-full px-3 py-1 mt-2 shadow-md`}>
+                    </div>                    {(entry.hasPenalty) && (
+                      <span className="text-xs bg-red-600 text-white px-1.5 py-0.5 rounded-full font-bold mt-1">
+                        ⚠️
+                      </span>
+                    )}                    <div className={`bg-gradient-to-r ${getMedalColor(entry.rank)} rounded-full px-3 py-1 mt-2 shadow-md`}>
                       <div className={`${entry.rank === 1 ? 'text-lg' : 'text-base'} font-black text-white`}>
                         {entry.totalScore}
                       </div>
@@ -196,7 +199,14 @@ const LeaderboardWidget = () => {
                             </AvatarFallback>
                           </Avatar>
                           <div className="min-w-0 flex-1">
-                            <div className="font-medium text-sm truncate">{entry.displayName}</div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-medium text-sm truncate">{entry.displayName}</span>
+                              {entry.hasPenalty && (
+                                <span className="inline-flex items-center text-xs bg-red-600 text-white px-1 py-0.5 rounded-full font-bold flex-shrink-0">
+                                  ⚠️
+                                </span>
+                              )}
+                            </div>
                             <div className="text-xs text-muted-foreground">
                               {entry.quizCount} quiz{entry.quizCount !== 1 ? 'zes' : ''}
                             </div>

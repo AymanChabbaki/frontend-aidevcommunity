@@ -61,6 +61,7 @@ export interface LeaderboardEntry {
   suspiciousExtensions?: any;
   inactivityPeriods?: any;
   rank: number;
+  hasPenalty?: boolean;
 }
 
 export interface MonthlyLeaderboardEntry {
@@ -71,6 +72,7 @@ export interface MonthlyLeaderboardEntry {
   totalScore: number;
   quizCount: number;
   rank: number;
+  hasPenalty?: boolean;
 }
 
 const quizService = {

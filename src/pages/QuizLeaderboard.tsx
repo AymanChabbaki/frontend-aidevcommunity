@@ -198,6 +198,13 @@ const QuizLeaderboard = () => {
                             <div className="text-4xl font-black mb-1 text-gray-500">2nd</div>
                             <h3 className="text-lg font-bold text-center mb-1">{leaderboard[1].displayName}</h3>
                             <p className="text-sm text-muted-foreground mb-3 text-center">{leaderboard[1].email}</p>
+                            {(leaderboard[1].hasPenalty || (leaderboard[1].flagReason && leaderboard[1].flagReason.includes('PENALTY'))) && (
+                              <div className="mb-2">
+                                <span className="inline-flex items-center gap-1 text-xs bg-red-600 text-white px-2 py-1 rounded-full font-bold animate-pulse">
+                                  ⚠️ CHEATER
+                                </span>
+                              </div>
+                            )}
                             <div className="bg-gradient-to-r from-gray-400 to-gray-600 rounded-full px-6 py-3 shadow-lg">
                               <div className="text-3xl font-black text-white">{leaderboard[1].totalScore}</div>
                               <div className="text-xs text-white/80 text-center">points</div>
@@ -255,6 +262,13 @@ const QuizLeaderboard = () => {
                           </div>
                           <h3 className="text-xl font-bold text-center mb-2">{leaderboard[0].displayName}</h3>
                           <p className="text-sm text-muted-foreground mb-4 text-center">{leaderboard[0].email}</p>
+                          {(leaderboard[0].hasPenalty || (leaderboard[0].flagReason && leaderboard[0].flagReason.includes('PENALTY'))) && (
+                            <div className="mb-3">
+                              <span className="inline-flex items-center gap-1 text-xs bg-red-600 text-white px-2 py-1 rounded-full font-bold animate-pulse">
+                                ⚠️ CHEATER
+                              </span>
+                            </div>
+                          )}
                           <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full px-8 py-4 shadow-2xl">
                             <div className="text-4xl font-black text-white">{leaderboard[0].totalScore}</div>
                             <div className="text-xs text-white/80 text-center">points</div>
@@ -320,6 +334,13 @@ const QuizLeaderboard = () => {
                             <div className="text-4xl font-black mb-1 text-amber-600">3rd</div>
                             <h3 className="text-lg font-bold text-center mb-1">{leaderboard[2].displayName}</h3>
                             <p className="text-sm text-muted-foreground mb-3 text-center">{leaderboard[2].email}</p>
+                            {(leaderboard[2].hasPenalty || (leaderboard[2].flagReason && leaderboard[2].flagReason.includes('PENALTY'))) && (
+                              <div className="mb-2">
+                                <span className="inline-flex items-center gap-1 text-xs bg-red-600 text-white px-2 py-1 rounded-full font-bold animate-pulse">
+                                  ⚠️ CHEATER
+                                </span>
+                              </div>
+                            )}
                             <div className="bg-gradient-to-r from-amber-600 to-amber-800 rounded-full px-6 py-3 shadow-lg">
                               <div className="text-3xl font-black text-white">{leaderboard[2].totalScore}</div>
                               <div className="text-xs text-white/80 text-center">points</div>
@@ -373,7 +394,14 @@ const QuizLeaderboard = () => {
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
-                                  <div className="font-medium">{entry.displayName}</div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium">{entry.displayName}</span>
+                                    {(entry.hasPenalty || (entry.flagReason && entry.flagReason.includes('PENALTY'))) && (
+                                      <span className="inline-flex items-center gap-1 text-xs bg-red-600 text-white px-1.5 py-0.5 rounded-full font-bold">
+                                        ⚠️ CHEATER
+                                      </span>
+                                    )}
+                                  </div>
                                   <div className="text-sm text-muted-foreground">{entry.email}</div>
                                 </div>
                               </div>
