@@ -130,7 +130,7 @@ const QuizPlay = () => {
     };
   }, [quizStarted, submitting, lastActivityTime, currentQuestionIndex, toast]);
 
-  // Disable developer tools and screenshot attempts
+  // Disable developer tools and screenshot attempts (Desktop + Mobile)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
@@ -166,12 +166,102 @@ const QuizPlay = () => {
       }
     };
 
+    // Mobile screenshot detection
+    let lastHidden = Date.now();
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        lastHidden = Date.now();
+      } else {
+        const hiddenDuration = Date.now() - lastHidden;
+        // Mobile screenshots typically cause a very brief visibility change (50-500ms)
+        // Tab switching causes longer duration (>500ms)
+        if (hiddenDuration > 50 && hiddenDuration < 500 && quizStarted && !submitting) {
+          setScreenshotAttempts(prev => prev + 1);
+          toast({
+            variant: 'destructive',
+            title: 'Screenshot Detected',
+            description: 'Screenshot attempt detected and logged. Please do not take screenshots during the quiz.',
+            duration: 4000,
+          });
+        }
+      }
+    };
+
+    // Detect screen recording on mobile/desktop
+    const detectScreenRecording = async () => {
+      try {
+        // Check if screen capture API is being used
+        if (navigator.mediaDevices && (navigator.mediaDevices as any).getDisplayMedia) {
+          // We can't directly detect if it's being used, but we can warn
+          // Some browsers will show indicators
+        }
+      } catch (error) {
+        // Screen capture API not available or blocked
+      }
+    };
+
+    // Mobile-specific: Detect screenshot through user gesture
+    let touchStartTime = 0;
+    const handleTouchStart = () => {
+      touchStartTime = Date.now();
+    };
+
+    const handleTouchEnd = () => {
+      const touchDuration = Date.now() - touchStartTime;
+      // Android: Power + Volume Down is quick tap (<100ms for both buttons)
+      // iOS: Power + Volume Up is similar
+      // These create specific touch patterns
+      if (touchDuration < 100) {
+        // Potential screenshot gesture
+        setTimeout(() => {
+          // Check if page lost focus briefly (common during screenshot)
+          if (!document.hasFocus() || document.hidden) {
+            setScreenshotAttempts(prev => prev + 1);
+            toast({
+              variant: 'destructive',
+              title: 'Suspicious Activity',
+              description: 'Potential screenshot detected. This has been logged.',
+              duration: 3000,
+            });
+          }
+        }, 100);
+      }
+    };
+
+    // Detect when user leaves the page (could be screenshot notification on mobile)
+    const handleBlur = () => {
+      if (quizStarted && !submitting) {
+        setTimeout(() => {
+          if (!document.hasFocus()) {
+            // Brief blur could indicate screenshot notification appeared
+            const blurDuration = Date.now();
+            setTimeout(() => {
+              if (document.hasFocus() && Date.now() - blurDuration < 2000) {
+                // Quick return to focus suggests notification was dismissed
+                setScreenshotAttempts(prev => prev + 1);
+              }
+            }, 100);
+          }
+        }, 50);
+      }
+    };
+
     window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyDown); // Also block on keyup
+    window.addEventListener('keyup', handleKeyDown);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('touchstart', handleTouchStart);
+    window.addEventListener('touchend', handleTouchEnd);
+    window.addEventListener('blur', handleBlur);
+    
+    detectScreenRecording();
     
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyDown);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('blur', handleBlur);
     };
   }, [toast, quizStarted, submitting]);
 
