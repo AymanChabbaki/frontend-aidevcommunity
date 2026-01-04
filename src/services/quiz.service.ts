@@ -179,6 +179,19 @@ const quizService = {
     const response = await api.delete(`/quizzes/${quizId}/participants/${userId}`);
     return response.data;
   },
+
+  // Reduce points from participant (Staff/Admin only)
+  reduceParticipantPoints: async (quizId: string, userId: string, pointsToReduce: number, reason: string): Promise<{
+    success: boolean;
+    message: string;
+    data: { oldScore: number; newScore: number; pointsReduced: number };
+  }> => {
+    const response = await api.put(`/quizzes/${quizId}/participants/${userId}/reduce-points`, {
+      pointsToReduce,
+      reason
+    });
+    return response.data;
+  },
 };
 
 export default quizService;

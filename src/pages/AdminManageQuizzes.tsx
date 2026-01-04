@@ -44,7 +44,10 @@ const AdminManageQuizzes = () => {
   const [participantToDelete, setParticipantToDelete] = useState<{ userId: string; displayName: string } | null>(null);
   const [cheatDetailDialog, setCheatDetailDialog] = useState(false);
   const [selectedCheatEntry, setSelectedCheatEntry] = useState<LeaderboardEntry | null>(null);
-  const { toast } = useToast();
+  const [reducePointsDialog, setReducePointsDialog] = useState(false);
+  const [pointsToReduce, setPointsToReduce] = useState<number>(0);
+  const [reductionReason, setReductionReason] = useState<string>('');
+  const { toast} = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
   const [createdQuizData, setCreatedQuizData] = useState<{ title: string; description: string; startAt: string; endAt: string } | null>(null);
@@ -264,6 +267,64 @@ const AdminManageQuizzes = () => {
   const viewCheatDetails = (entry: LeaderboardEntry) => {
     setSelectedCheatEntry(entry);
     setCheatDetailDialog(true);
+  };
+
+  const openReducePointsDialog = (entry: LeaderboardEntry) => {
+    setSelectedCheatEntry(entry);
+    setPointsToReduce(0);
+    setReductionReason('');
+    setReducePointsDialog(true);
+  };
+
+  const handleReducePoints = async () => {
+    if (!selectedQuizId || !selectedCheatEntry) return;
+
+    if (pointsToReduce <= 0) {
+      toast({
+        variant: 'destructive',
+        title: 'Invalid Input',
+        description: 'Points to reduce must be greater than 0',
+      });
+      return;
+    }
+
+    if (pointsToReduce > selectedCheatEntry.totalScore) {
+      toast({
+        variant: 'destructive',
+        title: 'Invalid Input',
+        description: `Points to reduce cannot exceed current score (${selectedCheatEntry.totalScore})`,
+      });
+      return;
+    }
+
+    try {
+      const result = await quizService.reduceParticipantPoints(
+        selectedQuizId,
+        selectedCheatEntry.userId,
+        pointsToReduce,
+        reductionReason || 'Points reduced due to cheating detection'
+      );
+
+      // Refresh leaderboard
+      const data = await quizService.getQuizLeaderboard(selectedQuizId);
+      setLeaderboard(data);
+
+      toast({
+        title: 'Points Reduced',
+        description: result.message,
+      });
+
+      setReducePointsDialog(false);
+      setSelectedCheatEntry(null);
+      setPointsToReduce(0);
+      setReductionReason('');
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to reduce points',
+      });
+    }
   };
 
   const handleDelete = async (quizId: string) => {
@@ -1244,16 +1305,143 @@ AI Dev Community Team`}
               Close
             </Button>
             {selectedCheatEntry && (
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  setCheatDetailDialog(false);
-                  confirmDeleteParticipant(selectedCheatEntry.userId, selectedCheatEntry.displayName);
-                }}
-              >
-                Remove This Participant
-              </Button>
+              <>
+                <Button
+                  variant="default"
+                  className="bg-orange-600 hover:bg-orange-700 text-white"
+                  onClick={() => {
+                    setCheatDetailDialog(false);
+                    openReducePointsDialog(selectedCheatEntry);
+                  }}
+                >
+                  Reduce Points
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    setCheatDetailDialog(false);
+                    confirmDeleteParticipant(selectedCheatEntry.userId, selectedCheatEntry.displayName);
+                  }}
+                >
+                  Remove This Participant
+                </Button>
+              </>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reduce Points Dialog */}
+      <Dialog open={reducePointsDialog} onOpenChange={setReducePointsDialog}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-orange-600">
+              ⚠️ Reduce Points for Cheating
+            </DialogTitle>
+            <DialogDescription>
+              Reduce points from this participant based on detected cheating activity
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedCheatEntry && (
+            <div className="space-y-4">
+              {/* Participant Info */}
+              <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
+                <CardContent className="pt-4">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="font-semibold">Participant:</span>
+                      <span>{selectedCheatEntry.displayName}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-semibold">Current Score:</span>
+                      <span className="text-lg font-bold text-orange-600">{selectedCheatEntry.totalScore} points</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Cheating Summary */}
+              <Card className="border-red-200 bg-red-50 dark:bg-red-950/20">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">Detected Violations:</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  {selectedCheatEntry.tabSwitches > 0 && (
+                    <div className="flex justify-between">
+                      <span>• Tab Switches:</span>
+                      <span className="font-bold text-red-600">{selectedCheatEntry.tabSwitches}</span>
+                    </div>
+                  )}
+                  {selectedCheatEntry.afkIncidents > 0 && (
+                    <div className="flex justify-between">
+                      <span>• AFK Incidents:</span>
+                      <span className="font-bold text-red-600">{selectedCheatEntry.afkIncidents}</span>
+                    </div>
+                  )}
+                  {selectedCheatEntry.screenshotAttempts > 0 && (
+                    <div className="flex justify-between">
+                      <span>• Screenshot Attempts:</span>
+                      <span className="font-bold text-red-600">{selectedCheatEntry.screenshotAttempts}</span>
+                    </div>
+                  )}
+                  {selectedCheatEntry.flagReason && (
+                    <div className="mt-2 p-2 bg-red-100 dark:bg-red-900/30 rounded text-xs">
+                      <div className="font-semibold mb-1">System Flags:</div>
+                      <div className="text-red-700 dark:text-red-300">{selectedCheatEntry.flagReason}</div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Point Reduction Input */}
+              <div className="space-y-2">
+                <Label htmlFor="pointsToReduce">Points to Reduce</Label>
+                <Input
+                  id="pointsToReduce"
+                  type="number"
+                  min="1"
+                  max={selectedCheatEntry.totalScore}
+                  value={pointsToReduce}
+                  onChange={(e) => setPointsToReduce(parseInt(e.target.value) || 0)}
+                  placeholder="Enter points to reduce"
+                />
+                <p className="text-xs text-muted-foreground">
+                  New score will be: {Math.max(0, selectedCheatEntry.totalScore - pointsToReduce)} points
+                </p>
+              </div>
+
+              {/* Reason Input */}
+              <div className="space-y-2">
+                <Label htmlFor="reductionReason">Reason (Optional)</Label>
+                <Textarea
+                  id="reductionReason"
+                  value={reductionReason}
+                  onChange={(e) => setReductionReason(e.target.value)}
+                  placeholder="Explain why points are being reduced..."
+                  rows={3}
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setReducePointsDialog(false);
+                setSelectedCheatEntry(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="bg-orange-600 hover:bg-orange-700 text-white"
+              onClick={handleReducePoints}
+              disabled={pointsToReduce <= 0}
+            >
+              Reduce {pointsToReduce} Points
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
