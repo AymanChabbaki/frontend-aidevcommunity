@@ -17,6 +17,13 @@ const QuizLeaderboard = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Extract penalty points from flagReason
+  const extractPenaltyPoints = (flagReason?: string | null): number | null => {
+    if (!flagReason || !flagReason.includes('PENALTY')) return null;
+    const match = flagReason.match(/PENALTY:\s*(\d+)\s*points?\s*reduced/);
+    return match ? parseInt(match[1]) : null;
+  };
+
   useEffect(() => {
     if (id) {
       fetchData();
@@ -203,6 +210,9 @@ const QuizLeaderboard = () => {
                                 <span className="inline-flex items-center gap-1 text-xs bg-red-600 text-white px-2 py-1 rounded-full font-bold">
                                   <AlertTriangle className="h-3 w-3" />
                                   CHEATER
+                                  {extractPenaltyPoints(leaderboard[1].flagReason) && (
+                                    <span className="ml-1">(-{extractPenaltyPoints(leaderboard[1].flagReason)}pts)</span>
+                                  )}
                                 </span>
                               </div>
                             )}
@@ -268,6 +278,9 @@ const QuizLeaderboard = () => {
                               <span className="inline-flex items-center gap-1 text-xs bg-red-600 text-white px-2 py-1 rounded-full font-bold">
                                 <AlertTriangle className="h-3 w-3" />
                                 CHEATER
+                                {extractPenaltyPoints(leaderboard[0].flagReason) && (
+                                  <span className="ml-1">(-{extractPenaltyPoints(leaderboard[0].flagReason)}pts)</span>
+                                )}
                               </span>
                             </div>
                           )}
@@ -341,6 +354,9 @@ const QuizLeaderboard = () => {
                                 <span className="inline-flex items-center gap-1 text-xs bg-red-600 text-white px-2 py-1 rounded-full font-bold">
                                   <AlertTriangle className="h-3 w-3" />
                                   CHEATER
+                                  {extractPenaltyPoints(leaderboard[2].flagReason) && (
+                                    <span className="ml-1">(-{extractPenaltyPoints(leaderboard[2].flagReason)}pts)</span>
+                                  )}
                                 </span>
                               </div>
                             )}
@@ -403,6 +419,9 @@ const QuizLeaderboard = () => {
                                       <span className="inline-flex items-center gap-1 text-xs bg-red-600 text-white px-1.5 py-0.5 rounded-full font-bold">
                                         <AlertTriangle className="h-3 w-3" />
                                         CHEATER
+                                        {extractPenaltyPoints(entry.flagReason) && (
+                                          <span className="ml-0.5">(-{extractPenaltyPoints(entry.flagReason)}pts)</span>
+                                        )}
                                       </span>
                                     )}
                                   </div>

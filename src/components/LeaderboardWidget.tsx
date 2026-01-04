@@ -171,7 +171,7 @@ const LeaderboardWidget = () => {
           <div className="border rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
             <div className="max-h-64 overflow-y-auto">
               <table className="w-full">
-                <thead className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 sticky top-0">
+                <thead className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 sticky top-0 z-10 backdrop-blur-sm bg-white/95 dark:bg-gray-800/95">
                   <tr>
                     <th className="text-left p-2 text-xs font-bold">Rank</th>
                     <th className="text-left p-2 text-xs font-bold">Player</th>
