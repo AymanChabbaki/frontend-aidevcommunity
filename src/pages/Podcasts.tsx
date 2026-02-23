@@ -11,7 +11,7 @@ import { podcastService, Podcast } from '@/services/podcast.service';
 import { 
   Play, Eye, Calendar, ExternalLink, MessageSquare, 
   Podcast as PodcastIcon, Sparkles, TrendingUp, Users,
-  Code2, Brain, Rocket
+  Code2, Brain, Rocket, Search
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -163,9 +163,7 @@ const Podcasts = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                🔍
-              </span>
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
             <div className="flex gap-2">
               <Badge variant="outline" className="text-sm">
