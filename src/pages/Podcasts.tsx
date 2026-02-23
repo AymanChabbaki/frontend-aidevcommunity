@@ -194,7 +194,7 @@ const Podcasts = () => {
             </div>
           ) : filteredPodcasts.length === 0 ? (
             <div className="text-center py-20">
-              <img src="/Podcast.png" alt="No podcasts" className="mx-auto mb-6 w-48 h-48 object-contain" />
+              <img src="/Podcast.png" alt="No podcasts" className="mx-auto mb-6 w-48 h-48 md:w-80 md:h-80 lg:w-96 lg:h-96 object-contain" />
               <h3 className="text-2xl font-semibold mb-2">No Podcasts Yet</h3>
               <p className="text-muted-foreground mb-4">
                 {searchTerm
