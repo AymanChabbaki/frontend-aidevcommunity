@@ -14,6 +14,7 @@ import { ArrowRight, Calendar, Users, Award, Sparkles, TrendingUp, Heart, Code2,
 import { eventService } from '@/services/event.service';
 import { homeContentService, HomeContent } from '@/services/home-content.service';
 import { podcastService, PodcastSubject } from '@/services/podcast.service';
+import { toast } from '@/hooks/use-toast';
 
 const Index = () => {
   const { t } = useLanguage();
@@ -28,6 +29,7 @@ const Index = () => {
   const [featuredEvents, setFeaturedEvents] = useState<any[]>([]);
   const [podcastSubjects, setPodcastSubjects] = useState<PodcastSubject[]>([]);
   const [userVotes, setUserVotes] = useState<Set<string>>(new Set());
+  const [voting, setVoting] = useState<Set<string>>(new Set());
   const [newSubjectTitle, setNewSubjectTitle] = useState('');
   const [newSubjectDescription, setNewSubjectDescription] = useState('');
   const [showNewSubjectForm, setShowNewSubjectForm] = useState(false);
@@ -135,25 +137,39 @@ const Index = () => {
       return;
     }
 
+    // Prevent duplicate clicks while voting
+    if (voting.has(subjectId)) return;
+
+    setVoting((s) => new Set(s).add(subjectId));
+
     try {
       const hasVoted = userVotes.has(subjectId);
-      
+
       if (hasVoted) {
         await podcastService.unvoteForPodcastSubject(subjectId);
-        setUserVotes(prev => {
+        setUserVotes((prev) => {
           const newVotes = new Set(prev);
           newVotes.delete(subjectId);
           return newVotes;
         });
+        toast({ title: 'Vote removed', description: 'You unliked this topic.' });
       } else {
         await podcastService.voteForPodcastSubject(subjectId);
-        setUserVotes(prev => new Set(prev).add(subjectId));
+        setUserVotes((prev) => new Set(prev).add(subjectId));
+        toast({ title: 'Voted', description: 'Thanks — your vote was recorded.' });
       }
-      
+
       // Refresh subjects to get updated vote counts
       fetchPodcastSubjects();
-    } catch (error) {
-      console.error('Error voting:', error);
+    } catch (error: any) {
+      // Show a toast instead of console spam
+      toast({ title: 'Error', description: error?.response?.data?.message || 'Failed to register vote', variant: 'destructive' });
+    } finally {
+      setVoting((s) => {
+        const newSet = new Set(s);
+        newSet.delete(subjectId);
+        return newSet;
+      });
     }
   };
 
