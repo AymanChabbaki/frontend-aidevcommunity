@@ -9,9 +9,10 @@ import { useAuth } from '@/context/AuthContext';
 import { EventCard } from '@/components/EventCard';
 import { Footer } from '@/components/Footer';
 import LeaderboardWidget from '@/components/LeaderboardWidget';
-import { ArrowRight, Calendar, Users, Award, Sparkles, TrendingUp, Heart, Code2, Zap, Brain, Rocket, Image as ImageIcon } from 'lucide-react';
+import { ArrowRight, Calendar, Users, Award, Sparkles, TrendingUp, Heart, Code2, Zap, Brain, Rocket, Image as ImageIcon, ThumbsUp, Podcast as PodcastIcon, MessageSquare, Plus } from 'lucide-react';
 import { eventService } from '@/services/event.service';
 import { homeContentService, HomeContent } from '@/services/home-content.service';
+import { podcastService, PodcastSubject } from '@/services/podcast.service';
 
 const Index = () => {
   const { t } = useLanguage();
@@ -24,6 +25,11 @@ const Index = () => {
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
   const [pastEvents, setPastEvents] = useState<any[]>([]);
   const [featuredEvents, setFeaturedEvents] = useState<any[]>([]);
+  const [podcastSubjects, setPodcastSubjects] = useState<PodcastSubject[]>([]);
+  const [userVotes, setUserVotes] = useState<Set<string>>(new Set());
+  const [newSubjectTitle, setNewSubjectTitle] = useState('');
+  const [newSubjectDescription, setNewSubjectDescription] = useState('');
+  const [showNewSubjectForm, setShowNewSubjectForm] = useState(false);
   const [homeContent, setHomeContent] = useState<Partial<HomeContent>>({
     heroTitle: 'Welcome to AI Dev Community',
     heroSubtitle: 'Join us in exploring the future of artificial intelligence and machine learning',
@@ -39,6 +45,7 @@ const Index = () => {
 
   useEffect(() => {
     fetchData();
+    fetchPodcastSubjects();
   }, []);
 
   const fetchData = async () => {
@@ -79,6 +86,84 @@ const Index = () => {
       setFeaturedEvents(featured);
     } catch (error) {
       console.error('Error fetching events:', error);
+    }
+  };
+
+  const fetchPodcastSubjects = async () => {
+    try {
+      const subjects = await podcastService.getAllPodcastSubjects({ status: 'approved,pending' });
+      setPodcastSubjects(subjects.sort((a: PodcastSubject, b: PodcastSubject) => b.votes - a.votes).slice(0, 6));
+      
+      // Fetch user votes if authenticated
+      if (isAuthenticated) {
+        const votes = new Set<string>();
+        for (const subject of subjects) {
+          try {
+            const voteData = await podcastService.getUserVoteForSubject(subject.id);
+            if (voteData.hasVoted) {
+              votes.add(subject.id);
+            }
+          } catch (error) {
+            // User hasn't voted for this subject
+          }
+        }
+        setUserVotes(votes);
+      }
+    } catch (error) {
+      console.error('Error fetching podcast subjects:', error);
+    }
+  };
+
+  const handleVote = async (subjectId: string) => {
+    if (!isAuthenticated) {
+      window.location.href = '/login';
+      return;
+    }
+
+    try {
+      const hasVoted = userVotes.has(subjectId);
+      
+      if (hasVoted) {
+        await podcastService.unvoteForPodcastSubject(subjectId);
+        setUserVotes(prev => {
+          const newVotes = new Set(prev);
+          newVotes.delete(subjectId);
+          return newVotes;
+        });
+      } else {
+        await podcastService.voteForPodcastSubject(subjectId);
+        setUserVotes(prev => new Set(prev).add(subjectId));
+      }
+      
+      // Refresh subjects to get updated vote counts
+      fetchPodcastSubjects();
+    } catch (error) {
+      console.error('Error voting:', error);
+    }
+  };
+
+  const handleSubmitSubject = async () => {
+    if (!isAuthenticated) {
+      window.location.href = '/login';
+      return;
+    }
+
+    if (!newSubjectTitle.trim()) {
+      return;
+    }
+
+    try {
+      await podcastService.createPodcastSubject({
+        title: newSubjectTitle,
+        description: newSubjectDescription
+      });
+      
+      setNewSubjectTitle('');
+      setNewSubjectDescription('');
+      setShowNewSubjectForm(false);
+      fetchPodcastSubjects();
+    } catch (error) {
+      console.error('Error submitting subject:', error);
     }
   };
 
@@ -380,6 +465,156 @@ const Index = () => {
           >
             <LeaderboardWidget />
           </motion.div>
+        </div>
+      </section>
+
+      {/* Podcast Subject Voting Section */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <Badge className="mb-4">
+              <PodcastIcon className="h-3 w-3 mr-1" />
+              Community Input
+            </Badge>
+            <h2 className="text-4xl font-bold mb-4">Vote for Podcast Topics</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Help us decide what topics to cover in our next podcast episode! Vote for existing ideas or submit your own.
+            </p>
+          </motion.div>
+
+          <div className="max-w-4xl mx-auto">
+            <div className="grid gap-4 mb-6">
+              {podcastSubjects.length === 0 ? (
+                <Card className="p-8 text-center">
+                  <PodcastIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No podcast topics yet. Be the first to suggest one!</p>
+                </Card>
+              ) : (
+                podcastSubjects.map((subject, index) => (
+                  <motion.div
+                    key={subject.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <Card className="group hover:shadow-lg transition-all border-2 hover:border-primary/50">
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <Button
+                            variant={userVotes.has(subject.id) ? "default" : "outline"}
+                            size="sm"
+                            className="flex-col h-auto py-2 px-3 min-w-[60px]"
+                            onClick={() => handleVote(subject.id)}
+                          >
+                            <ThumbsUp className={`h-5 w-5 mb-1 ${userVotes.has(subject.id) ? 'fill-current' : ''}`} />
+                            <span className="text-lg font-bold">{subject.votes}</span>
+                          </Button>
+                          <div className="flex-1">
+                            <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
+                              {subject.title}
+                            </h3>
+                            {subject.description && (
+                              <p className="text-muted-foreground mb-2">{subject.description}</p>
+                            )}
+                            <div className="flex items-center gap-2">
+                              <Badge variant={subject.status === 'approved' ? 'default' : 'secondary'}>
+                                {subject.status}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                Submitted {new Date(subject.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))
+              )}
+            </div>
+
+            {/* Submit New Subject Form */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="mt-8"
+            >
+              {!showNewSubjectForm ? (
+                <Button
+                  onClick={() => setShowNewSubjectForm(true)}
+                  size="lg"
+                  variant="outline"
+                  className="w-full border-dashed border-2 h-auto py-6 hover:border-primary hover:bg-primary/5"
+                >
+                  <Plus className="h-5 w-5 mr-2" />
+                  Suggest Your Own Podcast Topic
+                </Button>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Suggest a Podcast Topic</CardTitle>
+                    <CardDescription>
+                      Share your idea for a podcast episode. Our team will review it before it appears for voting.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Topic Title *</label>
+                      <Input
+                        placeholder="e.g., The Future of AI in Healthcare"
+                        value={newSubjectTitle}
+                        onChange={(e) => setNewSubjectTitle(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Description (Optional)</label>
+                      <textarea
+                        className="w-full min-h-[100px] px-3 py-2 text-sm rounded-md border border-input bg-background"
+                        placeholder="Tell us more about what you'd like us to discuss..."
+                        value={newSubjectDescription}
+                        onChange={(e) => setNewSubjectDescription(e.target.value)}
+                      />
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex gap-2">
+                    <Button onClick={handleSubmitSubject} disabled={!newSubjectTitle.trim()}>
+                      Submit Idea
+                    </Button>
+                    <Button variant="outline" onClick={() => {
+                      setShowNewSubjectForm(false);
+                      setNewSubjectTitle('');
+                      setNewSubjectDescription('');
+                    }}>
+                      Cancel
+                    </Button>
+                  </CardFooter>
+                </Card>
+              )}
+            </motion.div>
+
+            {/* Link to Podcasts Page */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              className="text-center mt-8"
+            >
+              <Button asChild variant="outline" size="lg">
+                <Link to="/podcasts">
+                  <PodcastIcon className="mr-2 h-5 w-5" />
+                  View All Podcasts
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </motion.div>
+          </div>
         </div>
       </section>
 

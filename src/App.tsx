@@ -34,6 +34,7 @@ import UserDashboard from "./pages/UserDashboard";
 import Quizzes from "./pages/Quizzes";
 import QuizPlay from "./pages/QuizPlay";
 import QuizLeaderboard from "./pages/QuizLeaderboard";
+import Podcasts from "./pages/Podcasts";
 
 // Staff Pages
 import OrganizerEvents from "./pages/OrganizerEvents";
@@ -100,6 +101,7 @@ const App = () => (
               <Route path="/forgot-password" element={<MainLayout><ForgotPassword /></MainLayout>} />
               <Route path="/reset-password" element={<MainLayout><ResetPassword /></MainLayout>} />
               <Route path="/polls" element={<MainLayout><Polls /></MainLayout>} />
+              <Route path="/podcasts" element={<MainLayout><Podcasts /></MainLayout>} />
               <Route path="/forms" element={<MainLayout><Forms /></MainLayout>} />
 
               {/* Quiz Routes */}
