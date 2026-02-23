@@ -49,6 +49,13 @@ const Index = () => {
     fetchPodcastSubjects();
   }, []);
 
+  // Re-fetch podcast subjects (including user votes) when auth state changes
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchPodcastSubjects();
+    }
+  }, [isAuthenticated]);
+
   const fetchData = async () => {
     try {
       const [contentData, eventsResponse] = await Promise.all([
@@ -96,20 +103,26 @@ const Index = () => {
       const subjects = await podcastService.getAllPodcastSubjects();
       setPodcastSubjects(subjects.sort((a: PodcastSubject, b: PodcastSubject) => b.votes - a.votes).slice(0, 6));
       
-      // Fetch user votes if authenticated
+      // Fetch user votes if authenticated (do it in parallel)
       if (isAuthenticated) {
-        const votes = new Set<string>();
-        for (const subject of subjects) {
-          try {
-            const voteData = await podcastService.getUserVoteForSubject(subject.id);
-            if (voteData.hasVoted) {
-              votes.add(subject.id);
-            }
-          } catch (error) {
-            // User hasn't voted for this subject
-          }
+        try {
+          const votePromises = subjects.map((subject: PodcastSubject) =>
+            podcastService
+              .getUserVoteForSubject(subject.id)
+              .then((r) => !!r.hasVoted)
+              .catch(() => false)
+          );
+
+          const voteResults = await Promise.all(votePromises);
+          const votes = new Set<string>();
+          subjects.forEach((subject: PodcastSubject, idx: number) => {
+            if (voteResults[idx]) votes.add(subject.id);
+          });
+          setUserVotes(votes);
+        } catch (err) {
+          // If fetching user votes fails, keep existing local votes
+          console.warn('Could not fetch user votes:', err);
         }
-        setUserVotes(votes);
       }
     } catch (error) {
       console.error('Error fetching podcast subjects:', error);
