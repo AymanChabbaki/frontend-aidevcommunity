@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import  api from '@/lib/api';
+import { podcastService } from '@/services/podcast.service';
 
 interface User {
   id: string;
@@ -39,6 +40,8 @@ export default function SendMessage() {
   const [loading, setLoading] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const { toast } = useToast();
+  const [attachments, setAttachments] = useState<Array<{ filename: string; path: string; contentType?: string }>>([]);
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
 
   // Load users and events on mount
   useEffect(() => {
@@ -133,6 +136,7 @@ export default function SendMessage() {
         recipientType,
         ...(recipientType === 'specific' && { userIds: selectedUsers }),
         ...(recipientType === 'event' && { eventId: selectedEvent }),
+        ...(attachments.length > 0 && { attachments }),
       });
 
       toast({
@@ -155,6 +159,45 @@ export default function SendMessage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAttachmentChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Basic validation
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'Error', description: 'File size must be less than 5MB', variant: 'destructive' });
+      return;
+    }
+
+    setUploadingAttachment(true);
+    try {
+      // Use podcast image upload endpoint which stores to Cloudinary and returns imageUrl
+      const formData = new FormData();
+      formData.append('image', file);
+      const resp = await api.post('/podcasts/upload-image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      if (resp.data?.success && resp.data?.data?.imageUrl) {
+        const imageUrl = resp.data.data.imageUrl;
+        setAttachments((prev) => [...prev, { filename: file.name, path: imageUrl, contentType: file.type }]);
+        toast({ title: 'Uploaded', description: `${file.name} uploaded` });
+      } else {
+        toast({ title: 'Error', description: 'Upload failed', variant: 'destructive' });
+      }
+    } catch (error: any) {
+      toast({ title: 'Error', description: error?.response?.data?.error || 'Upload failed', variant: 'destructive' });
+    } finally {
+      setUploadingAttachment(false);
+      // clear input value
+      if (e.target) e.target.value = '' as any;
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
   const getRecipientCount = () => {
@@ -183,6 +226,30 @@ export default function SendMessage() {
             <div className="space-y-3">
               <Label>Select Recipients</Label>
               <RadioGroup value={recipientType} onValueChange={(value: any) => setRecipientType(value)}>
+
+            {/* Attachments */}
+            <div className="space-y-2">
+              <Label>Attach File (image/pdf)</Label>
+              <div className="flex items-center gap-2">
+                <Input type="file" accept="image/*,application/pdf" onChange={handleAttachmentChange} />
+                {uploadingAttachment && (
+                  <div className="text-sm text-muted-foreground">Uploading...</div>
+                )}
+              </div>
+              {attachments.length > 0 && (
+                <div className="space-y-2 mt-2">
+                  {attachments.map((att, idx) => (
+                    <div key={idx} className="flex items-center justify-between border rounded p-2">
+                      <div>
+                        <div className="font-medium">{att.filename}</div>
+                        <a href={att.path} target="_blank" rel="noreferrer" className="text-sm text-blue-600">View</a>
+                      </div>
+                      <Button size="sm" variant="ghost" onClick={() => removeAttachment(idx)}>Remove</Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="all" id="all" />
                   <Label htmlFor="all" className="flex items-center gap-2 cursor-pointer">
