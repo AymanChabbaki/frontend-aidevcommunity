@@ -194,13 +194,16 @@ const Podcasts = () => {
             </div>
           ) : filteredPodcasts.length === 0 ? (
             <div className="text-center py-20">
-              <PodcastIcon className="h-20 w-20 mx-auto text-muted-foreground mb-4" />
+              <img src="/Podcast.png" alt="No podcasts" className="mx-auto mb-6 w-48 h-48 object-contain" />
               <h3 className="text-2xl font-semibold mb-2">No Podcasts Yet</h3>
-              <p className="text-muted-foreground">
-                {searchTerm 
-                  ? "No podcasts match your search. Try different keywords."
-                  : "Check back soon for our latest episodes!"}
+              <p className="text-muted-foreground mb-4">
+                {searchTerm
+                  ? 'No podcasts match your search. Try different keywords.'
+                  : 'Stay tuned — our first episode is coming soon!'}
               </p>
+              {!searchTerm && (
+                <p className="text-sm text-muted-foreground">Follow us and check back later for the launch.</p>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
