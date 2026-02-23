@@ -92,7 +92,8 @@ const Index = () => {
 
   const fetchPodcastSubjects = async () => {
     try {
-      const subjects = await podcastService.getAllPodcastSubjects({ status: 'approved,pending' });
+      // Do not pass a comma-separated status string; backend uses default to show approved and pending when no status provided
+      const subjects = await podcastService.getAllPodcastSubjects();
       setPodcastSubjects(subjects.sort((a: PodcastSubject, b: PodcastSubject) => b.votes - a.votes).slice(0, 6));
       
       // Fetch user votes if authenticated
