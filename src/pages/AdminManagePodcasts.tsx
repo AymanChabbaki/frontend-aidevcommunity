@@ -94,7 +94,7 @@ const AdminManagePodcasts = () => {
               <h1 className="text-4xl font-bold mb-2">Manage Podcasts</h1>
               <p className="text-muted-foreground">Create and manage podcast episodes</p>
             </div>
-            <Button onClick={() => navigate('/admin/podcasts/create')}>
+            <Button onClick={() => navigate('create')}>
               <Plus className="h-4 w-4 mr-2" />
               Create Podcast
             </Button>
