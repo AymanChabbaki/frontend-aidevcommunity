@@ -96,5 +96,16 @@ export const podcastService = {
   async deletePodcastSubject(id: string) {
     const response = await api.delete(`/podcasts/subjects/${id}`);
     return response.data;
+  },
+
+  async uploadPodcastImage(file: File) {
+    const formData = new FormData();
+    formData.append('image', file);
+    const response = await api.post('/podcasts/upload-image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
   }
 };

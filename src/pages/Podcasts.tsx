@@ -213,17 +213,9 @@ const Podcasts = () => {
                   transition={{ delay: index * 0.05 }}
                 >
                   <Card className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50 overflow-hidden h-full flex flex-col">
-                    {/* Thumbnail or YouTube Embed */}
+                    {/* Thumbnail Image (Always show if available) */}
                     <div className="relative aspect-video bg-muted overflow-hidden">
-                      {podcast.youtubeUrl ? (
-                        <iframe
-                          src={getYouTubeEmbedUrl(podcast.youtubeUrl)}
-                          title={podcast.title}
-                          className="w-full h-full"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
-                      ) : podcast.thumbnailUrl ? (
+                      {podcast.thumbnailUrl ? (
                         <img 
                           src={podcast.thumbnailUrl} 
                           alt={podcast.title}

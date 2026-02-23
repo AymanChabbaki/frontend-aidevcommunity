@@ -42,7 +42,8 @@ import {
   CheckCircle,
   Send,
   Trophy,
-  Globe
+  Globe,
+  Podcast
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -71,6 +72,8 @@ import OrganizerEvents from './OrganizerEvents';
 import AdminManagePolls from './AdminManagePolls';
 import AdminManageForms from './AdminManageForms';
 import AdminManageQuizzes from './AdminManageQuizzes';
+import AdminManagePodcasts from './AdminManagePodcasts';
+import AdminCreatePodcast from './AdminCreatePodcast';
 import QRScanner from './QRScanner';
 import StaffProfile from './StaffProfile';
 import StaffApproveRegistrations from './StaffApproveRegistrations';
@@ -184,6 +187,11 @@ const StaffDashboard = () => {
       title: 'Quizzes',
       icon: Trophy,
       path: '/staff/manage-quizzes',
+    },
+    {
+      title: 'Podcasts',
+      icon: Podcast,
+      path: '/staff/podcasts',
     },
     {
       title: 'Approve Registrations',
@@ -796,6 +804,9 @@ const StaffDashboard = () => {
             <Route path="/polls" element={<AdminManagePolls onCreatePoll={() => setCreatePollDialog(true)} />} />
             <Route path="/forms" element={<AdminManageForms onCreateForm={() => setCreateFormDialog(true)} />} />
             <Route path="/manage-quizzes" element={<AdminManageQuizzes />} />
+            <Route path="/podcasts" element={<AdminManagePodcasts />} />
+            <Route path="/podcasts/create" element={<AdminCreatePodcast />} />
+            <Route path="/podcasts/edit/:id" element={<AdminCreatePodcast />} />
             <Route path="/qr-scanner" element={<QRScanner />} />
             <Route path="/approve-registrations" element={<StaffApproveRegistrations />} />
             <Route path="/collaborations" element={<StaffCollaborations />} />

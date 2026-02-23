@@ -20,7 +20,8 @@ import {
   Activity,
   Send,
   Trophy,
-  Globe
+  Globe,
+  Podcast
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { adminService } from '@/services/admin.service';
@@ -98,6 +99,11 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
       title: 'Quizzes',
       icon: Trophy,
       path: '/admin/manage-quizzes',
+    },
+    {
+      title: 'Podcasts',
+      icon: Podcast,
+      path: '/admin/podcasts',
     },
     {
       title: 'Home Content',

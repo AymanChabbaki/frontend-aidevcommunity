@@ -55,6 +55,8 @@ import AdminContactMessages from "./pages/AdminContactMessages";
 import AdminApproveRegistrations from "./pages/AdminApproveRegistrations";
 import SendMessage from "./pages/SendMessage";
 import AdminManageQuizzes from "./pages/AdminManageQuizzes";
+import AdminManagePodcasts from "./pages/AdminManagePodcasts";
+import AdminCreatePodcast from "./pages/AdminCreatePodcast";
 
 // Staff Pages (Dashboard)
 import StaffDashboard from "./pages/StaffDashboard";
@@ -224,6 +226,11 @@ const App = () => (
                         
                         {/* Quiz Management */}
                         <Route path="manage-quizzes" element={<AdminDashboard><AdminManageQuizzes /></AdminDashboard>} />
+                        
+                        {/* Podcast Management */}
+                        <Route path="podcasts" element={<AdminDashboard><AdminManagePodcasts /></AdminDashboard>} />
+                        <Route path="podcasts/create" element={<AdminDashboard><AdminCreatePodcast /></AdminDashboard>} />
+                        <Route path="podcasts/edit/:id" element={<AdminDashboard><AdminCreatePodcast /></AdminDashboard>} />
                         
                         <Route path="settings" element={<AdminDashboard><AdminSettings /></AdminDashboard>} />
                         <Route path="home-content" element={<AdminDashboard><AdminHomeContent /></AdminDashboard>} />
