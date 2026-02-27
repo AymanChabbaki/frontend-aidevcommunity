@@ -21,9 +21,13 @@ function showReminder(title: string, body?: string) {
 
 export async function enableInAppReminders() {
   try {
-    const now = Math.floor(Date.now() / 1000);
+    const nowDate = new Date();
+    const dd = String(nowDate.getDate()).padStart(2, '0');
+    const mm = String(nowDate.getMonth() + 1).padStart(2, '0');
+    const yyyy = String(nowDate.getFullYear());
+    const datePath = `${dd}-${mm}-${yyyy}`; // e.g. 27-02-2026
     const res = await fetch(
-      `https://api.aladhan.com/v1/timings/${now}?city=${encodeURIComponent(CITY)}&country=${encodeURIComponent(
+      `https://api.aladhan.com/v1/timingsByCity/${datePath}?city=${encodeURIComponent(CITY)}&country=${encodeURIComponent(
         COUNTRY,
       )}&method=2`,
     );
