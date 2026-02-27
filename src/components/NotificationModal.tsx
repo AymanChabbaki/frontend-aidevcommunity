@@ -34,7 +34,8 @@ export default function NotificationModal() {
         if (!data) return;
         if (data.type === 'fcm-notification') {
           setTitle(data.title || 'AI Dev Community');
-          setBody(data.body || data.data?.body || '');
+          // Prefer fullText if provided in data
+          setBody(data.data?.fullText || data.body || data.data?.body || '');
           setOpen(true);
         }
       } catch (err) {
@@ -48,7 +49,7 @@ export default function NotificationModal() {
       const detail = (ev as CustomEvent).detail;
       if (detail && detail.type === 'fcm-notification') {
         setTitle(detail.title || 'AI Dev Community');
-        setBody(detail.body || detail.data?.body || '');
+        setBody(detail.data?.fullText || detail.body || detail.data?.body || '');
         setOpen(true);
       }
     };
