@@ -27,6 +27,9 @@ messaging.onBackgroundMessage(function(payload) {
     body: notification.body || '',
     icon: notification.icon || '/logo.png',
     data: payload.data || payload || {},
+    // Use messageId (if present) as tag so duplicate messages replace previous
+    tag: payload.messageId || (payload.data && payload.data.messageId) || undefined,
+    renotify: false,
   };
 
   // Show notification and log result
@@ -58,20 +61,39 @@ self.addEventListener('notificationclick', function(event) {
     const title = encodeURIComponent(event.notification.title || 'AI Dev Community');
     const body = encodeURIComponent(event.notification.body || (data && data.body) || '');
     const url = `${base}${base.includes('?') ? '&' : '?'}notif=1&title=${title}&body=${body}`;
-    event.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+
+    const p = clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (clientList) => {
       for (const client of clientList) {
-        // If a client is already open, focus it and postMessage the data
-        if ('focus' in client) {
-          client.focus();
-          try {
-            client.postMessage({ type: 'fcm-notification', title: event.notification.title, body: event.notification.body, data });
-          } catch (e) {}
-          return Promise.resolve();
+        // try to navigate the existing client to the notif URL (ensures modal reads URL params)
+        try {
+          if (client && 'navigate' in client && typeof client.navigate === 'function') {
+            // navigate returns a promise resolving to a WindowClient
+            await client.navigate(url);
+            client.focus();
+            return;
+          }
+        } catch (e) {
+          // ignore and fallback to postMessage
+        }
+
+        // Fallback: focus and postMessage so the app can show modal
+        try {
+          if ('focus' in client) {
+            client.focus();
+          }
+          client.postMessage({ type: 'fcm-notification', title: event.notification.title, body: event.notification.body, data });
+          return;
+        } catch (e) {
+          // ignore and try next client
         }
       }
+
+      // No client found; open a new window with the URL params (will show modal on load)
       if (clients.openWindow) return clients.openWindow(url);
-      return Promise.resolve();
-    }));
+      return;
+    });
+
+    event.waitUntil(p);
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('[SW] notificationclick error', err);
