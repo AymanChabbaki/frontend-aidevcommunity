@@ -15,12 +15,47 @@ firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(function(payload) {
+  // Log payload for debugging in SW console
+  try {
+    // eslint-disable-next-line no-console
+    console.log('[SW] onBackgroundMessage payload:', payload);
+  } catch (e) {}
+
   const notification = payload.notification || {};
   const title = notification.title || 'AI Dev Community';
   const options = {
     body: notification.body || '',
     icon: notification.icon || '/Podcast.png',
-    data: payload.data || {}
+    data: payload.data || payload || {},
   };
-  self.registration.showNotification(title, options);
+
+  // Show notification and log result
+  self.registration.showNotification(title, options).catch((err) => {
+    try { console.error('[SW] showNotification error', err); } catch (e) {}
+  });
+});
+
+// Log service worker lifecycle events for easier debugging
+self.addEventListener('install', (event) => {
+  try { console.log('[SW] install'); } catch (e) {}
+});
+
+self.addEventListener('activate', (event) => {
+  try { console.log('[SW] activate'); } catch (e) {}
+});
+
+// Handle notification click to open the app (uses fcmOptions.link or data.url)
+self.addEventListener('notificationclick', function(event) {
+  try {
+    // eslint-disable-next-line no-console
+    console.log('[SW] notificationclick', event.notification && event.notification.data);
+  } catch (e) {}
+  event.notification.close();
+  const url = (event.notification && event.notification.data && event.notification.data.url) || '/';
+  event.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+    for (const client of clientList) {
+      if (client.url === url && 'focus' in client) return client.focus();
+    }
+    if (clients.openWindow) return clients.openWindow(url);
+  }));
 });
