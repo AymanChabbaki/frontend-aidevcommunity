@@ -12,7 +12,22 @@ export default function NotificationModal() {
       const params = new URLSearchParams(window.location.search);
       if (params.get('notif')) {
         const t = params.get('title') ? decodeURIComponent(params.get('title') as string) : '';
-        const b = params.get('body') ? decodeURIComponent(params.get('body') as string) : '';
+        // Prefer full base64 param if provided
+        let b = '';
+        const fullB64 = params.get('full');
+        if (fullB64) {
+          try {
+            const decoded = decodeURIComponent(Array.prototype.map.call(atob(decodeURIComponent(fullB64)), function(c: string) {
+              return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            b = decoded;
+          } catch (e) {
+            // fallback to body param
+            b = params.get('body') ? decodeURIComponent(params.get('body') as string) : '';
+          }
+        } else {
+          b = params.get('body') ? decodeURIComponent(params.get('body') as string) : '';
+        }
         setTitle(t);
         setBody(b);
         setOpen(true);
@@ -21,6 +36,7 @@ export default function NotificationModal() {
         url.searchParams.delete('notif');
         url.searchParams.delete('title');
         url.searchParams.delete('body');
+        url.searchParams.delete('full');
         window.history.replaceState({}, document.title, url.toString());
       }
     } catch (e) {

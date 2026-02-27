@@ -60,7 +60,25 @@ self.addEventListener('notificationclick', function(event) {
   try {
     const title = encodeURIComponent(event.notification.title || 'AI Dev Community');
     const body = encodeURIComponent(event.notification.body || (data && data.body) || '');
-    const url = `${base}${base.includes('?') ? '&' : '?'}notif=1&title=${title}&body=${body}`;
+    // Optionally include fullText in base64 (UTF-8 safe) if available and not too long
+    let fullParam = '';
+    try {
+      const full = data && (data.fullText || data.fulltext || data.full);
+      if (full && typeof full === 'string' && full.length > 0) {
+        // encode unicode to base64
+        const utf8 = encodeURIComponent(full).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+          return String.fromCharCode('0x' + p1);
+        });
+        const b64 = btoa(utf8);
+        // Limit length to avoid overly long URLs
+        if (b64.length < 2000) {
+          fullParam = `&full=${encodeURIComponent(b64)}`;
+        }
+      }
+    } catch (e) {
+      // ignore encoding errors
+    }
+    const url = `${base}${base.includes('?') ? '&' : '?'}notif=1&title=${title}&body=${body}${fullParam}`;
 
     const p = clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (clientList) => {
       for (const client of clientList) {
