@@ -25,7 +25,7 @@ messaging.onBackgroundMessage(function(payload) {
   const title = notification.title || 'AI Dev Community';
   const options = {
     body: notification.body || '',
-    icon: notification.icon || '/Podcast.png',
+    icon: notification.icon || '/logo.png',
     data: payload.data || payload || {},
   };
 

@@ -30,7 +30,7 @@ export function registerOnMessageHandler() {
         const title = notification.title || 'AI Dev Community';
         const options: any = {
           body: notification.body || '',
-          icon: (notification && notification.icon) || '/Podcast.png',
+          icon: (notification && notification.icon) || '/logo.png',
           data: (payload && payload.data) || {},
         };
 
