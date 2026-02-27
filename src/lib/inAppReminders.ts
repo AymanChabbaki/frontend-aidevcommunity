@@ -57,8 +57,8 @@ export async function enableInAppReminders() {
     });
 
     // Schedule a refresh at midnight to reschedule next day
-    const nowDate = new Date();
-    const msToMidnight = new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate() + 1, 0, 1, 0).getTime() - Date.now();
+    const midnightBase = new Date();
+    const msToMidnight = new Date(midnightBase.getFullYear(), midnightBase.getMonth(), midnightBase.getDate() + 1, 0, 1, 0).getTime() - Date.now();
     const refreshTimer = setTimeout(() => {
       clearTimers();
       enableInAppReminders();
