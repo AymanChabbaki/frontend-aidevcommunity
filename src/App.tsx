@@ -8,6 +8,7 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import { Navbar } from "@/components/Navbar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { OnboardingCheck } from "@/components/OnboardingCheck";
+import FirstVisitDialog from "@/components/FirstVisitDialog";
 
 // Public Pages
 import Index from "./pages/Index";
@@ -86,6 +87,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <OnboardingCheck />
+          <FirstVisitDialog />
           <BrowserRouter>
             <Routes>
               {/* Public Routes with Navbar */}
