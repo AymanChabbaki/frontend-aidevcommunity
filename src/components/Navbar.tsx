@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Bell, User, LogOut, Languages, Menu, ChevronDown } from 'lucide-react';
+import NotificationToggle from './NotificationToggle';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -116,12 +117,7 @@ export const Navbar = () => {
             {isAuthenticated ? (
               <>
                 {/* Notifications */}
-                <Link to="/notifications">
-                  <Button variant="ghost" size="icon" className="relative">
-                    <Bell className="h-5 w-5" />
-                    <span className="absolute top-1 right-1 h-2 w-2 bg-accent rounded-full"></span>
-                  </Button>
-                </Link>
+                <NotificationToggle />
 
                 {/* User Menu */}
                 <DropdownMenu>
