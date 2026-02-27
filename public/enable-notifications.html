@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Enable Notifications</title>
+    <style>
+      body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; display:flex; align-items:center; justify-content:center; height:100vh; margin:0; }
+      .box { max-width:420px; padding:20px; border-radius:8px; box-shadow:0 6px 30px rgba(0,0,0,.12); text-align:center; }
+      button { margin-top:16px; padding:10px 14px; border-radius:6px; }
+    </style>
+  </head>
+  <body>
+    <div class="box">
+      <h2>Enable notifications</h2>
+      <p>This small window will ask the browser for permission to show notifications. Please click "Allow" in the browser prompt.</p>
+      <div>
+        <button id="start">Request permission</button>
+      </div>
+    </div>
+
+    <script>
+      function sendResult(res) {
+        try {
+          if (window.opener && !window.opener.closed) {
+            window.opener.postMessage({ permission: res }, window.location.origin);
+          }
+        } catch (e) {
+          /* ignore */
+        }
+      }
+
+      async function doRequest() {
+        if (!('Notification' in window)) {
+          sendResult('unsupported');
+          window.close();
+          return;
+        }
+        try {
+          const r = await Notification.requestPermission();
+          sendResult(r);
+        } catch (e) {
+          sendResult('error');
+        } finally {
+          setTimeout(() => window.close(), 400);
+        }
+      }
+
+      document.getElementById('start').addEventListener('click', doRequest);
+
+      // Auto-start for convenience (still considered a user gesture when opened by window.open from a click)
+      window.addEventListener('load', () => {
+        // small delay to allow UI to render
+        setTimeout(() => {
+          // do not auto-run without user click in some browsers; we'll leave the button visible
+        }, 200);
+      });
+
+      // Safety: after 12s, report timeout if nothing happened
+      setTimeout(() => sendResult('timeout'), 12000);
+    </script>
+  </body>
+</html>

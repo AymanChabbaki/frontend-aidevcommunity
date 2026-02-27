@@ -34,22 +34,61 @@ export default function FirstVisitDialog() {
   async function handleYes() {
     setLoading(true);
     try {
-      // Make the browser permission request directly inside the click handler
-      // so Chrome treats it as a user gesture and shows the native prompt.
-      const result = await Notification.requestPermission();
+      // Open a small popup that will call Notification.requestPermission()
+      // and postMessage the result back. This sometimes avoids the browser
+      // treating the prompt as indirect when the flow is complex.
+      const popup = window.open('/enable-notifications.html', 'enable-notifs', 'width=480,height=360');
+
+      let result: NotificationPermission | 'timeout' | 'unsupported' | 'error' = 'timeout';
+
+      if (popup) {
+        result = await new Promise((resolve) => {
+          const onMessage = (e: MessageEvent) => {
+            try {
+              if (e.origin !== window.location.origin) return;
+              if (e.data && 'permission' in e.data) {
+                resolve(e.data.permission);
+              }
+            } catch (err) {
+              // ignore
+            }
+          };
+          window.addEventListener('message', onMessage);
+          // safety timeout in case popup was blocked or user took too long
+          const t = setTimeout(() => {
+            window.removeEventListener('message', onMessage);
+            resolve('timeout');
+          }, 12000);
+          // If popup is closed manually, treat as timeout
+          const interval = setInterval(() => {
+            if (popup.closed) {
+              clearInterval(interval);
+              clearTimeout(t);
+              window.removeEventListener('message', onMessage);
+              resolve('timeout');
+            }
+          }, 300);
+        });
+      } else {
+        // popup blocked — fall back to direct permission request
+        try {
+          result = await Notification.requestPermission();
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.error('Direct permission request failed', e);
+          result = 'error';
+        }
+      }
+
       if (result === 'granted') {
-        // Now proceed with registering token and service worker
         await requestPermissionAndRegisterToken();
         localStorage.setItem('notif_prompt_shown', 'true');
         setVisible(false);
       } else if (result === 'denied') {
-        // Show instructions to enable notifications from browser settings
         setShowInstructions(true);
-        // keep prompt_shown so we don't nag repeatedly
         localStorage.setItem('notif_prompt_shown', 'true');
       } else {
-        // 'default' - user dismissed the native prompt
-        // mark as shown to avoid repeating; user can enable via navbar toggle later
+        // timeout, unsupported or dismissed — mark shown and close prompt
         localStorage.setItem('notif_prompt_shown', 'true');
         setVisible(false);
       }
