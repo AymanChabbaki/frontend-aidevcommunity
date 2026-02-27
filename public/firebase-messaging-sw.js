@@ -51,11 +51,30 @@ self.addEventListener('notificationclick', function(event) {
     console.log('[SW] notificationclick', event.notification && event.notification.data);
   } catch (e) {}
   event.notification.close();
-  const url = (event.notification && event.notification.data && event.notification.data.url) || '/';
-  event.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-    for (const client of clientList) {
-      if (client.url === url && 'focus' in client) return client.focus();
-    }
-    if (clients.openWindow) return clients.openWindow(url);
-  }));
+  // Prefer data.url if provided; otherwise open root but include title/body in query params
+  const data = (event.notification && event.notification.data) || {};
+  const base = (data && data.url) || '/';
+  try {
+    const title = encodeURIComponent(event.notification.title || 'AI Dev Community');
+    const body = encodeURIComponent(event.notification.body || (data && data.body) || '');
+    const url = `${base}${base.includes('?') ? '&' : '?'}notif=1&title=${title}&body=${body}`;
+    event.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        // If a client is already open, focus it and postMessage the data
+        if ('focus' in client) {
+          client.focus();
+          try {
+            client.postMessage({ type: 'fcm-notification', title: event.notification.title, body: event.notification.body, data });
+          } catch (e) {}
+          return Promise.resolve();
+        }
+      }
+      if (clients.openWindow) return clients.openWindow(url);
+      return Promise.resolve();
+    }));
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('[SW] notificationclick error', err);
+    event.waitUntil(clients.openWindow('/'));
+  }
 });

@@ -49,6 +49,15 @@ export function registerOnMessageHandler() {
             try { new Notification(title, options); } catch (e) {}
           }
         }
+
+        // Dispatch a custom event so the app can show the full content in its modal
+        try {
+          const detail = { type: 'fcm-notification', title, body: options.body, data: options.data };
+          window.dispatchEvent(new CustomEvent('fcm-notification', { detail }));
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.warn('Failed to dispatch fcm-notification event', e);
+        }
       } catch (e) {
         // eslint-disable-next-line no-console
         console.error('[FCM] onMessage handler error', e);

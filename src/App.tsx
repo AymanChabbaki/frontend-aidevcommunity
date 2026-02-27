@@ -9,6 +9,7 @@ import { Navbar } from "@/components/Navbar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { OnboardingCheck } from "@/components/OnboardingCheck";
 import FirstVisitDialog from "@/components/FirstVisitDialog";
+import NotificationModal from "@/components/NotificationModal";
 
 // Public Pages
 import Index from "./pages/Index";
@@ -88,6 +89,7 @@ const App = () => (
           <Sonner />
           <OnboardingCheck />
           <FirstVisitDialog />
+          <NotificationModal />
           <BrowserRouter>
             <Routes>
               {/* Public Routes with Navbar */}
