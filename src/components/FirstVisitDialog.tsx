@@ -13,8 +13,10 @@ export default function FirstVisitDialog() {
       // Only prompt if notifications and push are available and not already granted/denied
       if (!('Notification' in window)) return;
       if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        // Not supported (e.g. some Safari versions). Do not repeatedly prompt.
-        localStorage.setItem('notif_prompt_shown', 'true');
+        // Not supported (e.g. Safari / iOS). Show an informational dialog
+        // instead of silently skipping so users understand why notifications don't work.
+        setUnsupported(true);
+        setVisible(true);
         return;
       }
       if (Notification.permission === 'granted') {
@@ -106,6 +108,7 @@ export default function FirstVisitDialog() {
   }
 
   const [showInstructions, setShowInstructions] = React.useState(false);
+  const [unsupported, setUnsupported] = React.useState(false);
 
   function closeInstructions() {
     setShowInstructions(false);
@@ -146,6 +149,25 @@ export default function FirstVisitDialog() {
             </div>
             <div className="mt-4 flex justify-end">
               <Button variant="ghost" onClick={closeInstructions}>Close</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {unsupported && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => { localStorage.setItem('notif_prompt_shown', 'true'); setVisible(false); setUnsupported(false); }} />
+          <div className="relative bg-white dark:bg-slate-900 rounded-lg shadow-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold">Notifications not supported</h3>
+            <div className="mt-3 text-sm text-slate-600 dark:text-slate-300">
+              <p>Your browser does not support web push notifications (this is common on Safari and some mobile browsers). To receive Azkar & Salat reminders you can:</p>
+              <ul className="list-disc list-inside mt-2">
+                <li>Use Chrome or Firefox on desktop or Android for full web notifications.</li>
+                <li>Use the in-app reminders toggle (available in the navbar) to receive reminders while you keep the site open.</li>
+              </ul>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <Button variant="ghost" onClick={() => { localStorage.setItem('notif_prompt_shown', 'true'); setVisible(false); setUnsupported(false); }}>OK</Button>
             </div>
           </div>
         </div>
