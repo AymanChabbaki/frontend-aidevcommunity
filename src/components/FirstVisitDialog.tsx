@@ -10,8 +10,13 @@ export default function FirstVisitDialog() {
     try {
       const shown = localStorage.getItem('notif_prompt_shown');
       if (shown === 'true') return;
-      // Only prompt if notifications are available and not already granted/denied
+      // Only prompt if notifications and push are available and not already granted/denied
       if (!('Notification' in window)) return;
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        // Not supported (e.g. some Safari versions). Do not repeatedly prompt.
+        localStorage.setItem('notif_prompt_shown', 'true');
+        return;
+      }
       if (Notification.permission === 'granted') {
         localStorage.setItem('notif_prompt_shown', 'true');
         return;
