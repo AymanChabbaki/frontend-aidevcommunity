@@ -205,7 +205,7 @@ const Index = () => {
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://res.cloudinary.com/dmznisgxq/image/upload/v1764464065/ebaa0d7d-edec-4e5d-9bcb-d5202154e802_rurmmh.jpg" 
+            src="https://res.cloudinary.com/dmznisgxq/image/upload/v1772575667/ebaa0d7d-edec-4e5d-9bcb-d5202154e802_rurmmh_1_ti0uzu.jpg" 
             alt="" 
             className="w-full h-full object-cover"
           />
