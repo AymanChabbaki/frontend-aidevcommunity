@@ -20,7 +20,11 @@ export interface Comment {
   updatedAt: string;
   postId: string;
   userId: string;
+  parentId?: string | null;
   user: { id: string; displayName: string; photoUrl?: string | null };
+  likedByMe: boolean;
+  _count: { likes: number; replies: number };
+  replies?: Comment[];
 }
 
 export const blogService = {
@@ -57,12 +61,17 @@ export const blogService = {
     return res.data.data;
   },
 
-  async addComment(postId: string, content: string): Promise<Comment> {
-    const res = await api.post(`/blog/${postId}/comments`, { content });
+  async addComment(postId: string, content: string, parentId?: string): Promise<Comment> {
+    const res = await api.post(`/blog/${postId}/comments`, { content, ...(parentId ? { parentId } : {}) });
     return res.data.data;
   },
 
   async deleteComment(commentId: string): Promise<void> {
     await api.delete(`/blog/comments/${commentId}`);
+  },
+
+  async toggleCommentLike(commentId: string): Promise<{ liked: boolean; count: number }> {
+    const res = await api.post(`/blog/comments/${commentId}/like`);
+    return res.data;
   },
 };

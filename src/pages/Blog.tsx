@@ -17,6 +17,7 @@ export default function Blog() {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [newPostsAvailable, setNewPostsAvailable] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
@@ -33,6 +34,19 @@ export default function Blog() {
   }, []);
 
   useEffect(() => { fetchPosts(1, true); }, [fetchPosts]);
+
+  // Poll every 30 s for new posts
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await blogService.getPosts(1, 1);
+        if (res.data[0] && res.data[0].id !== posts[0]?.id) {
+          setNewPostsAvailable(true);
+        }
+      } catch { /* silent */ }
+    }, 30_000);
+    return () => clearInterval(interval);
+  }, [posts]);
 
   // Infinite scroll
   useEffect(() => {
@@ -92,6 +106,16 @@ export default function Blog() {
               <PenSquare className="w-4 h-4" />
             </Button>
           </div>
+        )}
+
+        {/* New posts banner */}
+        {newPostsAvailable && (
+          <button
+            onClick={() => { fetchPosts(1, true); setPage(1); setNewPostsAvailable(false); }}
+            className="w-full bg-indigo-500 hover:bg-indigo-600 text-white text-sm py-2 rounded-xl text-center transition-colors"
+          >
+            New posts available — click to refresh
+          </button>
         )}
 
         {/* Posts feed */}
