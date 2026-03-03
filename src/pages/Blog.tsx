@@ -113,7 +113,7 @@ export default function Blog() {
 
         {/* End of feed */}
         {!loading && !hasMore && posts.length > 0 && (
-          <p className="text-center text-xs text-slate-400 py-4">You've reached the end 🎉</p>
+          <p className="text-center text-xs text-slate-400 py-4">You've reached the end </p>
         )}
 
         {/* Empty state */}
