@@ -26,6 +26,12 @@ export default function PostFormModal({ post, onClose, onSaved }: Props) {
   function pickImage(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) return;
+    if (f.size > 5 * 1024 * 1024) {
+      setError('Image must be 5 MB or less.');
+      e.target.value = '';
+      return;
+    }
+    setError('');
     setImageFile(f);
     setImagePreview(URL.createObjectURL(f));
     setRemoveImage(false);
@@ -34,6 +40,12 @@ export default function PostFormModal({ post, onClose, onSaved }: Props) {
   function pickVideo(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) return;
+    if (f.size > 100 * 1024 * 1024) {
+      setError('Video must be 100 MB or less.');
+      e.target.value = '';
+      return;
+    }
+    setError('');
     setVideoFile(f);
     setVideoPreview(URL.createObjectURL(f));
     setRemoveVideo(false);
