@@ -10,6 +10,7 @@ import { useAuth } from '@/context/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import CommentsSection from './CommentsSection';
 import PostFormModal from './PostFormModal';
+import UserProfileModal from './UserProfileModal';
 
 interface Props {
   post: Post;
@@ -25,6 +26,7 @@ export default function PostCard({ post, onDeleted, onUpdated }: Props) {
   const [toggling, setToggling] = useState(false);
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [profileUserId, setProfileUserId] = useState<string | null>(null);
 
   const isOwner = user?.id === post.authorId;
   const canManage = isOwner || user?.role === 'ADMIN';
@@ -58,13 +60,16 @@ export default function PostCard({ post, onDeleted, onUpdated }: Props) {
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
         {/* Header */}
         <div className="flex items-start justify-between px-4 pt-4 pb-2">
-          <div className="flex items-center gap-3">
-            <Avatar className="w-10 h-10">
+          <div
+            className="flex items-center gap-3 cursor-pointer group"
+            onClick={() => setProfileUserId(post.authorId)}
+          >
+            <Avatar className="w-10 h-10 group-hover:ring-2 group-hover:ring-indigo-400 transition-all">
               <AvatarImage src={post.author.photoUrl || undefined} />
               <AvatarFallback>{post.author.displayName[0]}</AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-semibold text-sm text-slate-800 dark:text-slate-100 leading-tight">
+              <p className="font-semibold text-sm text-slate-800 dark:text-slate-100 leading-tight group-hover:underline">
                 {post.author.displayName}
               </p>
               <p className="text-xs text-slate-400">
@@ -151,6 +156,11 @@ export default function PostCard({ post, onDeleted, onUpdated }: Props) {
           onCountChange={setCommentCount}
         />
       </div>
+
+      {/* Profile modal */}
+      {profileUserId && (
+        <UserProfileModal userId={profileUserId} onClose={() => setProfileUserId(null)} />
+      )}
 
       {/* Edit modal */}
       {editing && (
