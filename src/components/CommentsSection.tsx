@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { blogService, Comment } from '@/services/blog.service';
 import { useAuth } from '@/context/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
+import UserProfileModal from './UserProfileModal';
 
 interface Props {
   postId: string;
@@ -20,6 +21,7 @@ export default function CommentsSection({ postId, commentCount, onCountChange }:
   const [loading, setLoading] = useState(false);
   const [text, setText] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [profileUserId, setProfileUserId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -67,13 +69,21 @@ export default function CommentsSection({ postId, commentCount, onCountChange }:
           {loading && <p className="text-xs text-slate-400">Loading…</p>}
           {comments.map((c) => (
             <div key={c.id} className="flex gap-2.5">
-              <Avatar className="w-7 h-7 flex-shrink-0">
+              <Avatar
+                className="w-7 h-7 flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-indigo-400 transition-all"
+                onClick={() => setProfileUserId(c.user.id)}
+              >
                 <AvatarImage src={c.user.photoUrl || undefined} />
                 <AvatarFallback className="text-xs">{c.user.displayName[0]}</AvatarFallback>
               </Avatar>
               <div className="flex-1 bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2 text-sm">
                 <div className="flex justify-between items-start gap-2">
-                  <span className="font-medium text-slate-800 dark:text-slate-200">{c.user.displayName}</span>
+                  <span
+                    className="font-medium text-slate-800 dark:text-slate-200 cursor-pointer hover:underline"
+                    onClick={() => setProfileUserId(c.user.id)}
+                  >
+                    {c.user.displayName}
+                  </span>
                   <span className="text-xs text-slate-400 whitespace-nowrap">
                     {formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })}
                   </span>
@@ -116,6 +126,10 @@ export default function CommentsSection({ postId, commentCount, onCountChange }:
             <p className="text-xs text-slate-400">Log in to comment.</p>
           )}
         </div>
+      )}
+
+      {profileUserId && (
+        <UserProfileModal userId={profileUserId} onClose={() => setProfileUserId(null)} />
       )}
     </div>
   );
