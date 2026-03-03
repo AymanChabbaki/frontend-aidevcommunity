@@ -139,35 +139,41 @@ export default function PostFormModal({ post, onClose, onSaved }: Props) {
         {error && <p className="text-sm text-red-500">{error}</p>}
 
         {/* Media buttons + submit */}
-        <div className="flex items-center gap-2 pt-1">
-          <input ref={imageRef} type="file" accept="image/*" className="hidden" onChange={pickImage} />
-          <input ref={videoRef} type="file" accept="video/*" className="hidden" onChange={pickVideo} />
+        <div className="flex flex-col gap-2 pt-1">
+          <div className="flex items-center gap-2">
+            <input ref={imageRef} type="file" accept="image/*" className="hidden" onChange={pickImage} />
+            <input ref={videoRef} type="file" accept="video/*" className="hidden" onChange={pickVideo} />
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => imageRef.current?.click()}
-            className="gap-1.5"
-            disabled={!!videoFile || !!videoPreview}
-          >
-            <Image className="w-4 h-4" /> Photo
-          </Button>
+            <div className="flex flex-col items-center gap-0.5">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => imageRef.current?.click()}
+                className="gap-1.5"
+              >
+                <Image className="w-4 h-4" /> Photo
+              </Button>
+              <span className="text-[10px] text-slate-400">optional · max 5 MB</span>
+            </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => videoRef.current?.click()}
-            className="gap-1.5"
-            disabled={!!imageFile || !!imagePreview}
-          >
-            <Video className="w-4 h-4" /> Video
-          </Button>
+            <div className="flex flex-col items-center gap-0.5">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => videoRef.current?.click()}
+                className="gap-1.5"
+              >
+                <Video className="w-4 h-4" /> Video
+              </Button>
+              <span className="text-[10px] text-slate-400">optional · max 100 MB</span>
+            </div>
 
-          <Button type="submit" className="ml-auto" disabled={loading || !content.trim()}>
-            {loading ? 'Saving…' : post ? 'Save changes' : 'Post'}
-          </Button>
+            <Button type="submit" className="ml-auto" disabled={loading || !content.trim()}>
+              {loading ? 'Saving…' : post ? 'Save changes' : 'Post'}
+            </Button>
+          </div>
         </div>
       </form>
     </div>
