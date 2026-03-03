@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import api from '@/lib/api';
 
 export default function NotificationModal() {
   const [open, setOpen] = useState(false);
@@ -12,31 +13,54 @@ export default function NotificationModal() {
       const params = new URLSearchParams(window.location.search);
       if (params.get('notif')) {
         const t = params.get('title') ? decodeURIComponent(params.get('title') as string) : '';
-        // Prefer full base64 param if provided
+        // If a messageId is present, fetch the full text from the backend
+        const messageId = params.get('messageId');
         let b = '';
-        const fullB64 = params.get('full');
-        if (fullB64) {
+        if (messageId) {
           try {
-            const decoded = decodeURIComponent(Array.prototype.map.call(atob(decodeURIComponent(fullB64)), function(c: string) {
-              return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-            b = decoded;
+            api.get(`/fcm/message/${encodeURIComponent(messageId)}`).then((res) => {
+              const ft = res.data?.data?.fullText;
+              setTitle(t);
+              setBody(ft || '');
+              setOpen(true);
+            }).catch(() => {
+              // fallback to snippet or body param
+              const snippet = params.get('body') ? decodeURIComponent(params.get('body') as string) : '';
+              setTitle(t);
+              setBody(snippet);
+              setOpen(true);
+            });
+            // cleanup url params below
           } catch (e) {
-            // fallback to body param
-            b = params.get('body') ? decodeURIComponent(params.get('body') as string) : '';
+            // fallback below
           }
         } else {
-          b = params.get('body') ? decodeURIComponent(params.get('body') as string) : '';
+          // Prefer full base64 param if provided
+          const fullB64 = params.get('full');
+          if (fullB64) {
+            try {
+              const decoded = decodeURIComponent(Array.prototype.map.call(atob(decodeURIComponent(fullB64)), function(c: string) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+              }).join(''));
+              b = decoded;
+            } catch (e) {
+              // fallback to body param
+              b = params.get('body') ? decodeURIComponent(params.get('body') as string) : '';
+            }
+          } else {
+            b = params.get('body') ? decodeURIComponent(params.get('body') as string) : '';
+          }
+          setTitle(t);
+          setBody(b);
+          setOpen(true);
         }
-        setTitle(t);
-        setBody(b);
-        setOpen(true);
         // remove params from URL
         const url = new URL(window.location.href);
         url.searchParams.delete('notif');
         url.searchParams.delete('title');
         url.searchParams.delete('body');
         url.searchParams.delete('full');
+        url.searchParams.delete('messageId');
         window.history.replaceState({}, document.title, url.toString());
       }
     } catch (e) {
@@ -50,9 +74,25 @@ export default function NotificationModal() {
         if (!data) return;
         if (data.type === 'fcm-notification') {
           setTitle(data.title || 'AI Dev Community');
-          // Prefer fullText if provided in data
-          setBody(data.data?.fullText || data.body || data.data?.body || '');
-          setOpen(true);
+          // If messageId provided in postMessage, fetch fullText, otherwise prefer provided snippet/body
+          const mid = data.data?.messageId;
+          if (mid) {
+            try {
+              api.get(`/fcm/message/${encodeURIComponent(mid)}`).then((res) => {
+                setBody(res.data?.data?.fullText || data.body || data.data?.snippet || '');
+                setOpen(true);
+              }).catch(() => {
+                setBody(data.data?.snippet || data.body || '');
+                setOpen(true);
+              });
+            } catch (e) {
+              setBody(data.data?.snippet || data.body || '');
+              setOpen(true);
+            }
+          } else {
+            setBody(data.data?.fullText || data.body || data.data?.body || data.data?.snippet || '');
+            setOpen(true);
+          }
         }
       } catch (err) {
         // ignore
@@ -65,8 +105,19 @@ export default function NotificationModal() {
       const detail = (ev as CustomEvent).detail;
       if (detail && detail.type === 'fcm-notification') {
         setTitle(detail.title || 'AI Dev Community');
-        setBody(detail.data?.fullText || detail.body || detail.data?.body || '');
-        setOpen(true);
+        const mid = detail.data?.messageId;
+        if (mid) {
+          api.get(`/fcm/message/${encodeURIComponent(mid)}`).then((res) => {
+            setBody(res.data?.data?.fullText || detail.body || detail.data?.snippet || '');
+            setOpen(true);
+          }).catch(() => {
+            setBody(detail.data?.snippet || detail.body || '');
+            setOpen(true);
+          });
+        } else {
+          setBody(detail.data?.fullText || detail.body || detail.data?.body || detail.data?.snippet || '');
+          setOpen(true);
+        }
       }
     };
     window.addEventListener('fcm-notification', customHandler as EventListener);

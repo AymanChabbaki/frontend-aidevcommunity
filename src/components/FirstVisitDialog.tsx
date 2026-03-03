@@ -10,15 +10,8 @@ export default function FirstVisitDialog() {
     try {
       const shown = localStorage.getItem('notif_prompt_shown');
       if (shown === 'true') return;
-      // Only prompt if notifications and push are available and not already granted/denied
       if (!('Notification' in window)) return;
-      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        // Not supported (e.g. Safari / iOS). Show an informational dialog
-        // instead of silently skipping so users understand why notifications don't work.
-        setUnsupported(true);
-        setVisible(true);
-        return;
-      }
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
       if (Notification.permission === 'granted') {
         localStorage.setItem('notif_prompt_shown', 'true');
         return;
@@ -29,74 +22,19 @@ export default function FirstVisitDialog() {
       }
       setVisible(true);
     } catch (e) {
-      // ignore storage errors
+      // ignore
     }
   }, []);
 
   async function handleYes() {
     setLoading(true);
     try {
-      // Open a small popup that will call Notification.requestPermission()
-      // and postMessage the result back. This sometimes avoids the browser
-      // treating the prompt as indirect when the flow is complex.
-      const popup = window.open('/enable-notifications.html', 'enable-notifs', 'width=480,height=360');
-
-      let result: NotificationPermission | 'timeout' | 'unsupported' | 'error' = 'timeout';
-
-      if (popup) {
-        result = await new Promise((resolve) => {
-          const onMessage = (e: MessageEvent) => {
-            try {
-              if (e.origin !== window.location.origin) return;
-              if (e.data && 'permission' in e.data) {
-                resolve(e.data.permission);
-              }
-            } catch (err) {
-              // ignore
-            }
-          };
-          window.addEventListener('message', onMessage);
-          // safety timeout in case popup was blocked or user took too long
-          const t = setTimeout(() => {
-            window.removeEventListener('message', onMessage);
-            resolve('timeout');
-          }, 12000);
-          // If popup is closed manually, treat as timeout
-          const interval = setInterval(() => {
-            if (popup.closed) {
-              clearInterval(interval);
-              clearTimeout(t);
-              window.removeEventListener('message', onMessage);
-              resolve('timeout');
-            }
-          }, 300);
-        });
-      } else {
-        // popup blocked — fall back to direct permission request
-        try {
-          result = await Notification.requestPermission();
-        } catch (e) {
-          // eslint-disable-next-line no-console
-          console.error('Direct permission request failed', e);
-          result = 'error';
-        }
-      }
-
-      if (result === 'granted') {
-        await requestPermissionAndRegisterToken();
-        localStorage.setItem('notif_prompt_shown', 'true');
-        setVisible(false);
-      } else if (result === 'denied') {
-        setShowInstructions(true);
-        localStorage.setItem('notif_prompt_shown', 'true');
-      } else {
-        // timeout, unsupported or dismissed — mark shown and close prompt
-        localStorage.setItem('notif_prompt_shown', 'true');
-        setVisible(false);
-      }
+      const result = await requestPermissionAndRegisterToken();
+      localStorage.setItem('notif_prompt_shown', 'true');
+      setVisible(false);
+      if (result === 'denied') setShowInstructions(true);
     } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error('Permission request failed', e);
+      // ignore
     } finally {
       setLoading(false);
     }
@@ -108,7 +46,6 @@ export default function FirstVisitDialog() {
   }
 
   const [showInstructions, setShowInstructions] = React.useState(false);
-  const [unsupported, setUnsupported] = React.useState(false);
 
   function closeInstructions() {
     setShowInstructions(false);
@@ -154,24 +91,7 @@ export default function FirstVisitDialog() {
         </div>
       )}
 
-      {unsupported && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={() => { localStorage.setItem('notif_prompt_shown', 'true'); setVisible(false); setUnsupported(false); }} />
-          <div className="relative bg-white dark:bg-slate-900 rounded-lg shadow-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold">Notifications not supported</h3>
-            <div className="mt-3 text-sm text-slate-600 dark:text-slate-300">
-              <p>Your browser does not support web push notifications (this is common on Safari and some mobile browsers). To receive Azkar & Salat reminders you can:</p>
-              <ul className="list-disc list-inside mt-2">
-                <li>Use Chrome or Firefox on desktop or Android for full web notifications.</li>
-                <li>Use the in-app reminders toggle (available in the navbar) to receive reminders while you keep the site open.</li>
-              </ul>
-            </div>
-            <div className="mt-4 flex justify-end">
-              <Button variant="ghost" onClick={() => { localStorage.setItem('notif_prompt_shown', 'true'); setVisible(false); setUnsupported(false); }}>OK</Button>
-            </div>
-          </div>
-        </div>
-      )}
+
     </>
   );
 }
