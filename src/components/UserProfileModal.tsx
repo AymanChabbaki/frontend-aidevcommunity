@@ -132,21 +132,27 @@ export default function UserProfileModal({ userId, onClose }: Props) {
               {(user.github || user.linkedin || user.twitter) && (
                 <div className="flex gap-2 pt-1">
                   {user.github && (
-                    <a href={`${user.github}`} target="_blank" rel="noreferrer"
+                    <a
+                      href={user.github.startsWith('https://') ? user.github : `https://github.com/${user.github}`}
+                      target="_blank" rel="noreferrer"
                       className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-300"
                     >
                       <Github className="w-4 h-4" />
                     </a>
                   )}
                   {user.linkedin && (
-                    <a href={`${user.linkedin}`} target="_blank" rel="noreferrer"
+                    <a
+                      href={user.linkedin.startsWith('https://') ? user.linkedin : `https://linkedin.com/in/${user.linkedin}`}
+                      target="_blank" rel="noreferrer"
                       className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-300"
                     >
                       <Linkedin className="w-4 h-4" />
                     </a>
                   )}
                   {user.twitter && (
-                    <a href={`${user.twitter}`} target="_blank" rel="noreferrer"
+                    <a
+                      href={user.twitter.startsWith('https://') ? user.twitter : `https://twitter.com/${user.twitter}`}
+                      target="_blank" rel="noreferrer"
                       className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-300"
                     >
                       <Twitter className="w-4 h-4" />
