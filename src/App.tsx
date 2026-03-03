@@ -8,7 +8,8 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import { Navbar } from "@/components/Navbar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { OnboardingCheck } from "@/components/OnboardingCheck";
-import FirstVisitDialog from "@/components/FirstVisitDialog";
+import { useEffect } from "react";
+import { requestPermissionAndRegisterToken } from "@/requestNotificationPermission";
 
 // Public Pages
 import Index from "./pages/Index";
@@ -66,6 +67,19 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+function useNotificationInit() {
+  useEffect(() => {
+    try {
+      if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
+      if (Notification.permission === 'granted' || Notification.permission === 'denied') return;
+      const shown = localStorage.getItem('notif_prompt_shown');
+      if (shown === 'true') return;
+      localStorage.setItem('notif_prompt_shown', 'true');
+      requestPermissionAndRegisterToken();
+    } catch (e) { /* ignore */ }
+  }, []);
+}
+
 // Layout wrapper for non-admin routes with Navbar
 const MainLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="min-h-screen flex flex-col">
@@ -79,7 +93,9 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="min-h-screen">{children}</div>
 );
 
-const App = () => (
+const App = () => {
+  useNotificationInit();
+  return (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
@@ -87,7 +103,6 @@ const App = () => (
           <Toaster />
           <Sonner />
           <OnboardingCheck />
-          <FirstVisitDialog />
           <BrowserRouter>
             <Routes>
               {/* Public Routes with Navbar */}
@@ -253,6 +268,6 @@ const App = () => (
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
-);
-
+  );
+};
 export default App;
