@@ -216,13 +216,6 @@ const QRScanner = () => {
 
 export default QRScanner;
 
-const QRScanner = () => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [scanning, setScanning] = useState(false);
-  const [lastScanned, setLastScanned] = useState<string | null>(null);
-  const [scanResult, setScanResult] = useState<'success' | 'error' | null>(null);
-
   useEffect(() => {
     if (scanning && videoRef.current) {
       startCamera();
