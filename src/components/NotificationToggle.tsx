@@ -14,7 +14,7 @@ export default function NotificationToggle() {
   const toast = useToast();
 
   useEffect(() => {
-    setGranted(Notification.permission === 'granted');
+    setGranted(typeof Notification !== 'undefined' && Notification.permission === 'granted');
   }, []);
 
   async function enable() {

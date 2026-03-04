@@ -48,7 +48,7 @@ export async function registerOnMessageHandler() {
         };
 
         // Show a notification even when page is focused
-        if (Notification.permission === 'granted') {
+        if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
           // If service worker is available, use it to show notification
           if (navigator.serviceWorker && navigator.serviceWorker.controller) {
             navigator.serviceWorker.getRegistration().then((reg) => {
