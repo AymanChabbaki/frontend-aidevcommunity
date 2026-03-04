@@ -50,6 +50,11 @@ export const authService = {
     return response.data;
   },
 
+  async validateResetToken(token: string) {
+    const response = await api.get(`/auth/validate-reset-token?token=${encodeURIComponent(token)}`);
+    return response.data;
+  },
+
   async resetPassword(token: string, newPassword: string) {
     const response = await api.post('/auth/reset-password', { token, newPassword });
     return response.data;
