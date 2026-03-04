@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps } from 'firebase/app';
 import { getMessaging, onMessage, isSupported } from 'firebase/messaging';
 
 const firebaseConfig = {
@@ -10,9 +10,17 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
 };
 
-const app = initializeApp(firebaseConfig);
+// Safely initialize Firebase — avoid crashing the entire app if env vars are missing
+let app: ReturnType<typeof initializeApp> | null = null;
+try {
+  app = getApps().length > 0 ? getApps()[0] : initializeApp(firebaseConfig);
+} catch (e) {
+  // eslint-disable-next-line no-console
+  console.warn('[Firebase] Failed to initialize app. Push notifications will be disabled.', e);
+}
 
 export async function getFcmMessaging() {
+  if (!app) return null;
   const supported = await isSupported().catch(() => false);
   if (!supported) return null;
   return getMessaging(app);
@@ -23,6 +31,7 @@ export default app;
 // Register a foreground message handler that logs and displays notifications
 export async function registerOnMessageHandler() {
   try {
+    if (!app) return;
     const supported = await isSupported().catch(() => false);
     if (!supported) return;
     const messaging = getMessaging(app);

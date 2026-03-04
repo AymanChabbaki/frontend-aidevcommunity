@@ -40,11 +40,10 @@ export class ErrorBoundary extends Component<Props, State> {
           >
             Refresh page
           </button>
-          {import.meta.env.DEV && this.state.error && (
-            <pre className="mt-4 text-xs text-left bg-muted p-4 rounded max-w-lg overflow-auto">
-              {this.state.error.message}
-            </pre>
-          )}
+          <pre className="mt-4 text-xs text-left bg-muted p-4 rounded max-w-lg overflow-auto">
+            {this.state.error?.message}
+            {import.meta.env.DEV && this.state.error?.stack ? '\n\n' + this.state.error.stack : ''}
+          </pre>
         </div>
       );
     }
