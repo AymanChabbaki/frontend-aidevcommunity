@@ -59,14 +59,8 @@ const StaffApproveRegistrations = () => {
   const fetchPendingRegistrations = async () => {
     try {
       setLoading(true);
-      const response = await eventService.getPendingRegistrations('ALL');
-      
-      // Filter to only show registrations for events organized by this staff member
-      const staffRegistrations = response.data.filter(
-        (reg: Registration) => reg.event.organizerId === currentUser?.id
-      );
-      
-      setRegistrations(staffRegistrations);
+      const response = await eventService.getPendingRegistrations('ALL', currentUser?.id);
+      setRegistrations(response.data);
     } catch (error) {
       toast.error('Failed to load pending registrations');
       console.error(error);
