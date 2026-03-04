@@ -20,6 +20,7 @@ const EventDetail = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [isRegistered, setIsRegistered] = useState(false);
+  const [registrationStatus, setRegistrationStatus] = useState<string>('');
   const [badgeToken, setBadgeToken] = useState('');
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -51,6 +52,7 @@ const EventDetail = () => {
           if (registered) {
             const registration = registrationsRes.data.find((r: any) => r.eventId === id);
             setBadgeToken(registration?.id || '');
+            setRegistrationStatus(registration?.status || '');
           }
         }
       }
@@ -157,9 +159,10 @@ const EventDetail = () => {
       
       if (response.success) {
         setIsRegistered(true);
+        setRegistrationStatus(response.data.status || 'PENDING');
         setBadgeToken(response.data.id);
-        toast.success('Successfully registered for the event!', {
-          description: 'You will receive a confirmation email shortly',
+        toast.success('Registration submitted!', {
+          description: 'Your request is pending approval by staff.',
         });
         
         // Refresh event data to update registration count
@@ -424,15 +427,25 @@ const EventDetail = () => {
 
               {isRegistered ? (
                 <div className="space-y-4">
-                  <div className="bg-success/10 border border-success/20 rounded-lg p-6 text-center">
-                    <p className="text-lg font-medium mb-4">✓ You're registered for this event!</p>
-                    <div className="flex justify-center mb-4 registration-qr">
-                      <QRCodeSVG value={badgeToken} size={200} />
+                  {registrationStatus === 'PENDING' ? (
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-6 text-center space-y-2">
+                      <p className="text-lg font-semibold text-yellow-700 dark:text-yellow-300">⏳ Registration Pending</p>
+                      <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                        Your registration is awaiting approval from our staff. You will be notified once it is reviewed.
+                      </p>
+                      <p className="text-xs text-yellow-500">Badge download will be available after approval.</p>
                     </div>
-                    <Button onClick={generateBadge} className="gradient-primary">
-                      {t.events.getTicket}
-                    </Button>
-                  </div>
+                  ) : (
+                    <div className="bg-success/10 border border-success/20 rounded-lg p-6 text-center">
+                      <p className="text-lg font-medium mb-4">✓ You're registered for this event!</p>
+                      <div className="flex justify-center mb-4 registration-qr">
+                        <QRCodeSVG value={badgeToken} size={200} />
+                      </div>
+                      <Button onClick={generateBadge} className="gradient-primary">
+                        {t.events.getTicket}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <Button
