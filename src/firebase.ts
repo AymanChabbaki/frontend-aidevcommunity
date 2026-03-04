@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getMessaging, onMessage } from 'firebase/messaging';
+import { getMessaging, onMessage, isSupported } from 'firebase/messaging';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
@@ -12,15 +12,19 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-export function getFcmMessaging() {
+export async function getFcmMessaging() {
+  const supported = await isSupported().catch(() => false);
+  if (!supported) return null;
   return getMessaging(app);
 }
 
 export default app;
 
 // Register a foreground message handler that logs and displays notifications
-export function registerOnMessageHandler() {
+export async function registerOnMessageHandler() {
   try {
+    const supported = await isSupported().catch(() => false);
+    if (!supported) return;
     const messaging = getMessaging(app);
     onMessage(messaging, (payload) => {
       try {

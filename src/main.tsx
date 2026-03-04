@@ -14,7 +14,7 @@ if ('serviceWorker' in navigator) {
 			// Attempt to request notification permission and register token.
 				requestPermissionAndRegisterToken().catch(() => {});
 				// Register foreground message handler after service worker ready
-				registerOnMessageHandler();
+				registerOnMessageHandler().catch(() => {});
 		})
 		.catch(() => {});
 } else {

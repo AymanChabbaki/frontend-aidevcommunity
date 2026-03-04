@@ -34,7 +34,8 @@ export async function requestPermissionAndRegisterToken(userId?: string) {
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') return null;
 
-  const messaging = getFcmMessaging();
+  const messaging = await getFcmMessaging();
+  if (!messaging) return null;
   try {
     // Try to get an existing registration for our SW, otherwise register it ourselves.
     let swRegistration: ServiceWorkerRegistration | undefined;
