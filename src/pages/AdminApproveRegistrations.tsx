@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { eventService } from '@/services/event.service';
-import { CheckCircle, XCircle, Calendar, User, Mail, GraduationCap, Clock, Search, Filter, X, AlertCircle } from 'lucide-react';
+import { CheckCircle, XCircle, Calendar, User, Mail, GraduationCap, Clock, Search, Filter, X, AlertCircle, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Registration {
@@ -41,7 +41,7 @@ const AdminApproveRegistrations = () => {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
-  const [actionType, setActionType] = useState<'approve' | 'reject' | null>(null);
+  const [actionType, setActionType] = useState<'approve' | 'reject' | 'delete' | null>(null);
   const [comment, setComment] = useState('');
   const [processing, setProcessing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -65,7 +65,7 @@ const AdminApproveRegistrations = () => {
     }
   };
 
-  const handleAction = (registration: Registration, type: 'approve' | 'reject') => {
+  const handleAction = (registration: Registration, type: 'approve' | 'reject' | 'delete') => {
     setSelectedRegistration(registration);
     setActionType(type);
     setComment('');
@@ -80,9 +80,12 @@ const AdminApproveRegistrations = () => {
       if (actionType === 'approve') {
         await eventService.approveRegistration(selectedRegistration.id, comment);
         toast.success('Registration approved successfully');
-      } else {
+      } else if (actionType === 'reject') {
         await eventService.rejectRegistration(selectedRegistration.id, comment);
         toast.success('Registration rejected');
+      } else {
+        await eventService.deleteRegistration(selectedRegistration.id);
+        toast.success('Registration deleted');
       }
 
       // Remove from list
@@ -430,6 +433,13 @@ const AdminApproveRegistrations = () => {
                           <XCircle className="h-4 w-4 mr-2" />
                           Reject
                         </Button>
+                        <Button
+                          onClick={() => handleAction(registration, 'delete')}
+                          variant="outline"
+                          className="border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -445,7 +455,7 @@ const AdminApproveRegistrations = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {actionType === 'approve' ? 'Approve Registration' : 'Reject Registration'}
+              {actionType === 'approve' ? 'Approve Registration' : actionType === 'reject' ? 'Reject Registration' : 'Delete Registration'}
             </DialogTitle>
           </DialogHeader>
           
@@ -458,8 +468,9 @@ const AdminApproveRegistrations = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="comment">
-                  {actionType === 'approve' ? 'Comment (Optional)' : 'Reason (Optional)'}
+                  {actionType === 'approve' ? 'Comment (Optional)' : actionType === 'reject' ? 'Reason (Optional)' : 'This will permanently remove the registration.'}
                 </Label>
+                {actionType !== 'delete' && (
                 <Textarea
                   id="comment"
                   placeholder={
@@ -471,6 +482,7 @@ const AdminApproveRegistrations = () => {
                   onChange={(e) => setComment(e.target.value)}
                   rows={4}
                 />
+                )}
               </div>
 
               <div className="flex gap-3">
@@ -478,9 +490,9 @@ const AdminApproveRegistrations = () => {
                   onClick={confirmAction}
                   disabled={processing}
                   className={actionType === 'approve' ? 'flex-1 bg-green-600 hover:bg-green-700' : 'flex-1'}
-                  variant={actionType === 'reject' ? 'destructive' : 'default'}
+                  variant={actionType === 'reject' || actionType === 'delete' ? 'destructive' : 'default'}
                 >
-                  {processing ? 'Processing...' : `Confirm ${actionType === 'approve' ? 'Approval' : 'Rejection'}`}
+                  {processing ? 'Processing...' : actionType === 'approve' ? 'Confirm Approval' : actionType === 'reject' ? 'Confirm Rejection' : 'Delete'}
                 </Button>
                 <Button onClick={closeDialog} variant="outline" disabled={processing}>
                   Cancel

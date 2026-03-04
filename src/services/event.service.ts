@@ -88,6 +88,11 @@ export const eventService = {
     return response.data;
   },
 
+  async deleteRegistration(id: string) {
+    const response = await api.delete(`/events/registrations/${id}`);
+    return response.data;
+  },
+
   async uploadEventImage(file: File) {
     const formData = new FormData();
     formData.append('image', file);
