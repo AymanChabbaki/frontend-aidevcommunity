@@ -73,8 +73,8 @@ export const eventService = {
     return response.data;
   },
 
-  async getPendingRegistrations() {
-    const response = await api.get('/events/registrations/pending');
+  async getPendingRegistrations(status?: string) {
+    const response = await api.get('/events/registrations/pending', { params: status ? { status } : {} });
     return response.data;
   },
 

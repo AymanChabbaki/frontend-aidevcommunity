@@ -50,6 +50,7 @@ const StaffApproveRegistrations = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEvent, setSelectedEvent] = useState<string>('all');
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
   useEffect(() => {
     fetchPendingRegistrations();
@@ -58,7 +59,7 @@ const StaffApproveRegistrations = () => {
   const fetchPendingRegistrations = async () => {
     try {
       setLoading(true);
-      const response = await eventService.getPendingRegistrations();
+      const response = await eventService.getPendingRegistrations('ALL');
       
       // Filter to only show registrations for events organized by this staff member
       const staffRegistrations = response.data.filter(
@@ -146,18 +147,20 @@ const StaffApproveRegistrations = () => {
 
       const matchesEvent = selectedEvent === 'all' || reg.event.id === selectedEvent;
       const matchesLevel = selectedLevel === 'all' || reg.user.studyLevel === selectedLevel;
+      const matchesStatus = selectedStatus === 'all' || reg.status === selectedStatus;
 
-      return matchesSearch && matchesEvent && matchesLevel;
+      return matchesSearch && matchesEvent && matchesLevel && matchesStatus;
     });
-  }, [registrations, searchQuery, selectedEvent, selectedLevel]);
+  }, [registrations, searchQuery, selectedEvent, selectedLevel, selectedStatus]);
 
   const clearFilters = () => {
     setSearchQuery('');
     setSelectedEvent('all');
     setSelectedLevel('all');
+    setSelectedStatus('all');
   };
 
-  const hasActiveFilters = searchQuery || selectedEvent !== 'all' || selectedLevel !== 'all';
+  const hasActiveFilters = searchQuery || selectedEvent !== 'all' || selectedLevel !== 'all' || selectedStatus !== 'all';
 
   // Check eligibility
   const checkEligibility = (registration: Registration) => {
@@ -187,7 +190,7 @@ const StaffApproveRegistrations = () => {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading pending registrations...</p>
+          <p className="text-muted-foreground">Loading registrations...</p>
         </div>
       </div>
     );
@@ -197,9 +200,9 @@ const StaffApproveRegistrations = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold mb-2">Approve Registrations</h1>
+        <h1 className="text-3xl font-bold mb-2">Manage Registrations</h1>
         <p className="text-muted-foreground">
-          Review and approve event registrations for your events ({filteredRegistrations.length} pending)
+          Review and manage event registrations for your events ({filteredRegistrations.length} registration{filteredRegistrations.length !== 1 ? 's' : ''})
         </p>
       </div>
 
@@ -217,7 +220,7 @@ const StaffApproveRegistrations = () => {
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -228,6 +231,20 @@ const StaffApproveRegistrations = () => {
                 className="pl-9"
               />
             </div>
+
+            {/* Status Filter */}
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="PENDING">PENDING</SelectItem>
+                <SelectItem value="APPROVED">APPROVED</SelectItem>
+                <SelectItem value="REGISTERED">REGISTERED</SelectItem>
+                <SelectItem value="REJECTED">REJECTED</SelectItem>
+              </SelectContent>
+            </Select>
 
             {/* Event Filter */}
             <Select value={selectedEvent} onValueChange={setSelectedEvent}>
@@ -268,11 +285,11 @@ const StaffApproveRegistrations = () => {
           <div className="flex flex-col items-center gap-4">
             <CheckCircle className="h-16 w-16 text-muted-foreground" />
             <div>
-              <h3 className="text-xl font-semibold mb-2">No Pending Registrations</h3>
+              <h3 className="text-xl font-semibold mb-2">No Registrations Found</h3>
               <p className="text-muted-foreground">
                 {hasActiveFilters 
                   ? 'No registrations match your filters. Try adjusting your search criteria.'
-                  : 'All registrations for your events have been processed.'}
+                  : 'There are no registrations for your events yet.'}
               </p>
             </div>
           </div>
@@ -303,6 +320,15 @@ const StaffApproveRegistrations = () => {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="font-semibold text-lg">{registration.user.displayName}</h3>
+                            <Badge variant="outline" className={
+                              registration.status === 'APPROVED' || registration.status === 'REGISTERED'
+                                ? 'bg-green-100 text-green-800 border-green-200 text-xs'
+                                : registration.status === 'PENDING'
+                                ? 'bg-yellow-100 text-yellow-800 border-yellow-200 text-xs'
+                                : 'bg-red-100 text-red-800 border-red-200 text-xs'
+                            }>
+                              {registration.status}
+                            </Badge>
                             {!eligibility.isEligible && (
                               <Badge variant="destructive" className="text-xs">
                                 <AlertCircle className="h-3 w-3 mr-1" />
@@ -358,23 +384,27 @@ const StaffApproveRegistrations = () => {
 
                     {/* Actions */}
                     <div className="flex lg:flex-col gap-2 justify-end">
-                      <Button
-                        size="sm"
-                        onClick={() => handleAction(registration, 'approve')}
-                        className="flex-1 lg:flex-initial"
-                      >
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Approve
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handleAction(registration, 'reject')}
-                        className="flex-1 lg:flex-initial"
-                      >
-                        <XCircle className="h-4 w-4 mr-2" />
-                        Reject
-                      </Button>
+                      {registration.status === 'PENDING' && (
+                        <>
+                          <Button
+                            size="sm"
+                            onClick={() => handleAction(registration, 'approve')}
+                            className="flex-1 lg:flex-initial"
+                          >
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleAction(registration, 'reject')}
+                            className="flex-1 lg:flex-initial"
+                          >
+                            <XCircle className="h-4 w-4 mr-2" />
+                            Reject
+                          </Button>
+                        </>
+                      )}
                       <Button
                         size="sm"
                         variant="outline"

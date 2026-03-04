@@ -47,6 +47,7 @@ const AdminApproveRegistrations = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEvent, setSelectedEvent] = useState<string>('all');
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
   useEffect(() => {
     fetchPendingRegistrations();
@@ -55,7 +56,7 @@ const AdminApproveRegistrations = () => {
   const fetchPendingRegistrations = async () => {
     try {
       setLoading(true);
-      const response = await eventService.getPendingRegistrations();
+      const response = await eventService.getPendingRegistrations('ALL');
       setRegistrations(response.data);
     } catch (error) {
       toast.error('Failed to load pending registrations');
@@ -183,27 +184,17 @@ const AdminApproveRegistrations = () => {
   // Filter registrations based on search and filters
   const filteredRegistrations = useMemo(() => {
     return registrations.filter(registration => {
-      // Search filter
       const matchesSearch = 
         registration.user.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         registration.user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
         registration.event.title.toLowerCase().includes(searchQuery.toLowerCase());
-
       if (!matchesSearch) return false;
-
-      // Event filter
-      if (selectedEvent !== 'all' && registration.event.id !== selectedEvent) {
-        return false;
-      }
-
-      // Study level filter
-      if (selectedLevel !== 'all' && registration.user.studyLevel !== selectedLevel) {
-        return false;
-      }
-
+      if (selectedEvent !== 'all' && registration.event.id !== selectedEvent) return false;
+      if (selectedLevel !== 'all' && registration.user.studyLevel !== selectedLevel) return false;
+      if (selectedStatus !== 'all' && registration.status !== selectedStatus) return false;
       return true;
     });
-  }, [registrations, searchQuery, selectedEvent, selectedLevel]);
+  }, [registrations, searchQuery, selectedEvent, selectedLevel, selectedStatus]);
 
   if (loading) {
     return (
@@ -218,9 +209,9 @@ const AdminApproveRegistrations = () => {
   return (
     <div className="p-4 lg:p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Pending Registrations</h1>
+        <h1 className="text-3xl font-bold mb-2">Manage Registrations</h1>
         <p className="text-muted-foreground">
-          Review and approve or reject event registration requests
+          Review, approve, reject or delete event registrations
         </p>
       </div>
 
@@ -275,8 +266,25 @@ const AdminApproveRegistrations = () => {
             </SelectContent>
           </Select>
 
+          {/* Status Filter */}
+          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <SelectTrigger className="w-full lg:w-[180px]">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4" />
+                <SelectValue placeholder="All Statuses" />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="APPROVED">Approved</SelectItem>
+              <SelectItem value="REGISTERED">Registered</SelectItem>
+              <SelectItem value="REJECTED">Rejected</SelectItem>
+            </SelectContent>
+          </Select>
+
           {/* Clear Filters */}
-          {(searchQuery !== '' || selectedEvent !== 'all' || selectedLevel !== 'all') && (
+          {(searchQuery !== '' || selectedEvent !== 'all' || selectedLevel !== 'all' || selectedStatus !== 'all') && (
             <Button
               variant="outline"
               size="icon"
@@ -284,6 +292,7 @@ const AdminApproveRegistrations = () => {
                 setSearchQuery('');
                 setSelectedEvent('all');
                 setSelectedLevel('all');
+                setSelectedStatus('all');
               }}
               title="Clear filters"
             >
@@ -301,9 +310,9 @@ const AdminApproveRegistrations = () => {
       {registrations.length === 0 ? (
         <Card className="p-12 text-center">
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-semibold mb-2">All Caught Up!</h2>
+          <h2 className="text-2xl font-semibold mb-2">No Registrations Found</h2>
           <p className="text-muted-foreground">
-            There are no pending registrations to review at this time.
+            There are no registrations to display.
           </p>
         </Card>
       ) : filteredRegistrations.length === 0 ? (
@@ -348,9 +357,25 @@ const AdminApproveRegistrations = () => {
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
-                          <h3 className="text-xl font-semibold mb-1">
-                            {registration.user.displayName}
-                          </h3>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="text-xl font-semibold">
+                              {registration.user.displayName}
+                            </h3>
+                            <Badge variant={
+                              registration.status === 'APPROVED' ? 'default' :
+                              registration.status === 'REJECTED' ? 'destructive' :
+                              registration.status === 'REGISTERED' ? 'default' :
+                              'secondary'
+                            } className={
+                              registration.status === 'APPROVED' || registration.status === 'REGISTERED'
+                                ? 'bg-green-100 text-green-800 border-green-200'
+                                : registration.status === 'PENDING'
+                                ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                                : 'bg-red-100 text-red-800 border-red-200'
+                            }>
+                              {registration.status}
+                            </Badge>
+                          </div>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                             <Mail className="h-4 w-4" />
                             {registration.user.email}
@@ -418,21 +443,25 @@ const AdminApproveRegistrations = () => {
                       )}
 
                       <div className="flex gap-3 pt-4">
-                        <Button
-                          onClick={() => handleAction(registration, 'approve')}
-                          className="flex-1 bg-green-600 hover:bg-green-700"
-                        >
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          Approve
-                        </Button>
-                        <Button
-                          onClick={() => handleAction(registration, 'reject')}
-                          variant="destructive"
-                          className="flex-1"
-                        >
-                          <XCircle className="h-4 w-4 mr-2" />
-                          Reject
-                        </Button>
+                        {registration.status === 'PENDING' && (
+                          <>
+                            <Button
+                              onClick={() => handleAction(registration, 'approve')}
+                              className="flex-1 bg-green-600 hover:bg-green-700"
+                            >
+                              <CheckCircle className="h-4 w-4 mr-2" />
+                              Approve
+                            </Button>
+                            <Button
+                              onClick={() => handleAction(registration, 'reject')}
+                              variant="destructive"
+                              className="flex-1"
+                            >
+                              <XCircle className="h-4 w-4 mr-2" />
+                              Reject
+                            </Button>
+                          </>
+                        )}
                         <Button
                           onClick={() => handleAction(registration, 'delete')}
                           variant="outline"
