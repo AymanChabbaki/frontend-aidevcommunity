@@ -56,6 +56,11 @@ export const eventService = {
     return response.data;
   },
 
+  async checkInByToken(token: string) {
+    const response = await api.post('/events/registrations/check-in', { token });
+    return response.data;
+  },
+
   async getEventRegistrations(id: string) {
     const response = await api.get(`/events/${id}/registrations`);
     return response.data;
