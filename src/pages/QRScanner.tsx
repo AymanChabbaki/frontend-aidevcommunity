@@ -1,7 +1,7 @@
 ﻿import { useState, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Camera, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Camera, CheckCircle, XCircle, AlertCircle, ScanLine } from 'lucide-react';
 import { toast } from 'sonner';
 import jsQR from 'jsqr';
 import { eventService } from '@/services/event.service';
@@ -96,7 +96,7 @@ const QRScanner = () => {
       const result = await eventService.checkInByToken(token);
       setLastResult({ name: result.data?.name, eventTitle: result.data?.eventTitle });
       setScanResult('success');
-      toast.success(`✓“ ${result.data?.name ?? 'Attendee'} checked in!`);
+      toast.success(`✓ ${result.data?.name ?? 'Attendee'} checked in!`);
     } catch (err: any) {
       const msg: string = err?.response?.data?.error || 'Invalid QR code';
       const alreadyCheckedIn = msg.toLowerCase().includes('already');
@@ -200,11 +200,11 @@ const QRScanner = () => {
           <Card className="p-6 shadow-card">
             <h3 className="font-bold mb-4">Instructions</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>â€¢ Point your camera at the attendeeâ€™s QR code badge</li>
-              <li>â€¢ The system will automatically scan and validate</li>
-              <li>â€¢ Green check = successful check-in</li>
-              <li>â€¢ Yellow = already checked in</li>
-              <li>â€¢ Red X = invalid or unrecognized code</li>
+              <li className="flex items-center gap-2"><Camera className="h-4 w-4 shrink-0" /> Point your camera at the attendee's QR code badge</li>
+              <li className="flex items-center gap-2"><ScanLine className="h-4 w-4 shrink-0" /> The system will automatically scan and validate</li>
+              <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 shrink-0 text-green-500" /> Green check = successful check-in</li>
+              <li className="flex items-center gap-2"><AlertCircle className="h-4 w-4 shrink-0 text-yellow-500" /> Yellow = already checked in</li>
+              <li className="flex items-center gap-2"><XCircle className="h-4 w-4 shrink-0 text-red-500" /> Red X = invalid or unrecognized code</li>
             </ul>
           </Card>
         </div>
