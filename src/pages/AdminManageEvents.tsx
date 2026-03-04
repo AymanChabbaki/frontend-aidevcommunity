@@ -336,6 +336,26 @@ const AdminManageEvents = () => {
     }
   };
 
+  const handleDeleteRegistration = async (registrationId: string) => {
+    if (!confirm('Delete this registration? This cannot be undone.')) return;
+    try {
+      await eventService.deleteRegistration(registrationId);
+      toast({
+        title: 'Success',
+        description: 'Registration deleted',
+      });
+      if (registrationsDialog.event) {
+        handleViewRegistrations(registrationsDialog.event);
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete registration',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleExportRegistrations = async (eventId: string, eventTitle: string) => {
     try {
       const response = await eventService.getEventRegistrations(eventId);
@@ -882,33 +902,44 @@ const AdminManageEvents = () => {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        {reg.status === 'PENDING' && (
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleApproveRegistration(reg.id)}
-                              className="text-green-600 hover:text-green-700"
-                              title="Approve"
-                            >
-                              <Check className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleRejectRegistration(reg.id)}
-                              className="text-red-600 hover:text-red-700"
-                              title="Reject"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        )}
+                        <div className="flex justify-end gap-2">
+                          {reg.status === 'PENDING' && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleApproveRegistration(reg.id)}
+                                className="text-green-600 hover:text-green-700"
+                                title="Approve"
+                              >
+                                <Check className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleRejectRegistration(reg.id)}
+                                className="text-red-600 hover:text-red-700"
+                                title="Reject"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteRegistration(reg.id)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            title="Delete"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                         {(reg.status === 'APPROVED' || reg.status === 'REGISTERED') && (
-                          <Badge variant="default" className="bg-green-500">Approved</Badge>
+                          <span className="sr-only">Approved</span>
                         )}
                         {reg.status === 'REJECTED' && (
-                          <Badge variant="destructive">Rejected</Badge>
+                          <span className="sr-only">Rejected</span>
                         )}
                       </TableCell>
                     </TableRow>
