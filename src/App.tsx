@@ -26,6 +26,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import WomensDay from "./pages/WomensDay";
 
 // User Pages
 import Dashboard from "./pages/Dashboard";
@@ -126,6 +127,7 @@ const App = () => {
               <Route path="/podcasts" element={<MainLayout><Podcasts /></MainLayout>} />
               <Route path="/blog" element={<MainLayout><Blog /></MainLayout>} />
               <Route path="/forms" element={<MainLayout><Forms /></MainLayout>} />
+              <Route path="/womens-day" element={<MainLayout><WomensDay /></MainLayout>} />
 
               {/* Quiz Routes */}
               <Route
