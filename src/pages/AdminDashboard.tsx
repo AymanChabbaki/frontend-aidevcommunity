@@ -21,7 +21,8 @@ import {
   Send,
   Trophy,
   Globe,
-  Podcast
+  Podcast,
+  Heart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { adminService } from '@/services/admin.service';
@@ -114,6 +115,11 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
       title: 'Contact Messages',
       icon: Mail,
       path: '/admin/contact-messages',
+    },
+    {
+      title: 'Women\'s Day Gallery',
+      icon: Heart,
+      path: '/admin/womens-day-gallery',
     },
     {
       title: 'Approve Registrations',

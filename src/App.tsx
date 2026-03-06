@@ -62,6 +62,7 @@ import SendMessage from "./pages/SendMessage";
 import AdminManageQuizzes from "./pages/AdminManageQuizzes";
 import AdminManagePodcasts from "./pages/AdminManagePodcasts";
 import AdminCreatePodcast from "./pages/AdminCreatePodcast";
+import WomensDayGallery from "./pages/WomensDayGallery";
 
 // Staff Pages (Dashboard)
 import StaffDashboard from "./pages/StaffDashboard";
@@ -260,6 +261,7 @@ const App = () => {
                         <Route path="contact-messages" element={<AdminDashboard><AdminContactMessages /></AdminDashboard>} />
                         <Route path="approve-registrations" element={<AdminDashboard><AdminApproveRegistrations /></AdminDashboard>} />
                         <Route path="send-message" element={<AdminDashboard><SendMessage /></AdminDashboard>} />
+                        <Route path="womens-day-gallery" element={<AdminDashboard><WomensDayGallery /></AdminDashboard>} />
                       </Routes>
                     </ProtectedRoute>
                   </AdminLayout>

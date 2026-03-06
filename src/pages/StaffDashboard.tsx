@@ -43,7 +43,8 @@ import {
   Send,
   Trophy,
   Globe,
-  Podcast
+  Podcast,
+  Heart
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -79,6 +80,7 @@ import StaffProfile from './StaffProfile';
 import StaffApproveRegistrations from './StaffApproveRegistrations';
 import StaffCollaborations from './StaffCollaborations';
 import SendMessage from './SendMessage';
+import WomensDayGallery from './WomensDayGallery';
 
 const StaffDashboard = () => {
   const { user, logout } = useAuth();
@@ -207,6 +209,11 @@ const StaffDashboard = () => {
       title: 'Send Messages',
       icon: Send,
       path: '/staff/send-message',
+    },
+    {
+      title: "Women's Day Gallery",
+      icon: Heart,
+      path: '/staff/womens-day-gallery',
     },
     {
       title: 'Profile',
@@ -811,6 +818,7 @@ const StaffDashboard = () => {
             <Route path="/approve-registrations" element={<StaffApproveRegistrations />} />
             <Route path="/collaborations" element={<StaffCollaborations />} />
             <Route path="/send-message" element={<SendMessage />} />
+            <Route path="/womens-day-gallery" element={<WomensDayGallery />} />
             <Route path="/profile" element={<StaffProfile />} />
           </Routes>
         </div>
