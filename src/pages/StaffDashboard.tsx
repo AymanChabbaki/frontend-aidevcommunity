@@ -81,6 +81,7 @@ import StaffApproveRegistrations from './StaffApproveRegistrations';
 import StaffCollaborations from './StaffCollaborations';
 import SendMessage from './SendMessage';
 import WomensDayGallery from './WomensDayGallery';
+import EidGallery from './EidGallery';
 
 const StaffDashboard = () => {
   const { user, logout } = useAuth();
@@ -824,6 +825,7 @@ const StaffDashboard = () => {
             <Route path="/collaborations" element={<StaffCollaborations />} />
             <Route path="/send-message" element={<SendMessage />} />
             <Route path="/womens-day-gallery" element={<WomensDayGallery />} />
+            <Route path="/eid-gallery" element={<EidGallery />} />
             <Route path="/profile" element={<StaffProfile />} />
           </Routes>
         </div>
