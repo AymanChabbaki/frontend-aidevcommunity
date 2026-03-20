@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import {
   Sparkles, Upload, X, Download, Copy, RefreshCw,
   ImageIcon, MessageSquareQuote, Rocket, Bot, Star, Heart,
-  Loader2, Camera, Share2, CheckCheck, Moon
+  Loader2, Camera, Share2, CheckCheck, Moon, Instagram, Linkedin, Share
 } from 'lucide-react';
 import { generateEidAll, uploadEidPhoto, fileToBase64 } from '@/services/gemini.service';
 
@@ -142,6 +142,35 @@ const EidCelebration = () => {
     } catch {
       toast.error('Could not copy text. Please copy it manually.');
     }
+  };
+
+  const handleShareNative = async () => {
+    if (!result) return;
+    try {
+      const response = await fetch(result.imageDataUrl);
+      const blob = await response.blob();
+      const file = new File([blob], 'eid_2030.png', { type: blob.type });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: 'My Eid in 2030',
+          text: result.compliment + '\n\n#EidMubarak #AiDevCommunity',
+          files: [file],
+        });
+      } else {
+        toast.error('Native sharing not supported on this browser. Try downloading.');
+      }
+    } catch (err) {
+      toast.error('Could not share. Please download instead.');
+    }
+  };
+
+  const handleLinkedInShare = () => {
+    if (!result) return;
+    // We need a public URL to share on LinkedIn; if imageDataUrl is Cloudinary URL, it works.
+    // If it's base64, LinkedIn won't accept it, so we fallback to the app URL
+    const publicUrl = result.imageDataUrl.startsWith('http') ? result.imageDataUrl : window.location.href;
+    const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(publicUrl)}`;
+    window.open(linkedInUrl, '_blank');
   };
 
   const handleReset = () => {
@@ -338,7 +367,7 @@ const EidCelebration = () => {
                 ) : (
                   <>
                     <Sparkles className="mr-2 h-5 w-5" />
-                    Wri daba nti f Eid 2030
+                    Kifash ghatkoun f Eid 2030
                   </>
                 )}
               </Button>
@@ -389,7 +418,7 @@ const EidCelebration = () => {
                   className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-400/30 rounded-full px-4 py-1.5 text-sm font-medium mb-3"
                 >
                   <Sparkles className="h-4 w-4 text-yellow-300" />
-                  Version dyalek f Eid 2030 wasat!
+                  Version dyalek f Eid 2030 wajda!
                 </motion.div>
                 <h2 className="text-2xl font-bold">
                   Bshetk,{' '}
@@ -436,7 +465,7 @@ const EidCelebration = () => {
                   </blockquote>
                   <div className="mt-4 flex items-center gap-1 text-xs text-white/40">
                     <Moon className="h-3 w-3 fill-amber-400 text-amber-400" />
-                    Sna3 b l7ob f occasion d Eid Nhar l Mar2a l3alamia
+                    Sna3 b l7ob f occasion d Eid
                   </div>
                 </div>
               </Card>
@@ -468,6 +497,22 @@ const EidCelebration = () => {
                       Copy Message
                     </>
                   )}
+                </Button>
+
+                <Button
+                  onClick={handleShareNative}
+                  className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl gap-2 border-0"
+                >
+                  <Instagram className="h-4 w-4" />
+                  IG Story / Share
+                </Button>
+
+                <Button
+                  onClick={handleLinkedInShare}
+                  className="bg-[#0A66C2] hover:bg-[#004182] text-white rounded-xl gap-2 border-0"
+                >
+                  <Linkedin className="h-4 w-4" />
+                  LinkedIn Post
                 </Button>
 
                 <Button

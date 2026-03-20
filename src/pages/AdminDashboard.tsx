@@ -116,10 +116,15 @@ const AdminDashboard = ({ children }: { children?: React.ReactNode }) => {
       icon: Mail,
       path: '/admin/contact-messages',
     },
+    // {
+    //   title: 'Women\'s Day Gallery',
+    //   icon: Heart,
+    //   path: '/admin/womens-day-gallery',
+    // },
     {
-      title: 'Women\'s Day Gallery',
+      title: "Eid Gallery",
       icon: Heart,
-      path: '/admin/womens-day-gallery',
+      path: '/admin/eid-gallery',
     },
     {
       title: 'Approve Registrations',

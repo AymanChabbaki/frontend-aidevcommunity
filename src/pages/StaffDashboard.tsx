@@ -210,10 +210,15 @@ const StaffDashboard = () => {
       icon: Send,
       path: '/staff/send-message',
     },
+    // {
+    //   title: "Women's Day Gallery",
+    //   icon: Heart,
+    //   path: '/staff/womens-day-gallery',
+    // },
     {
-      title: "Women's Day Gallery",
+      title: "Eid Gallery",
       icon: Heart,
-      path: '/staff/womens-day-gallery',
+      path: '/staff/eid-gallery',
     },
     {
       title: 'Profile',
