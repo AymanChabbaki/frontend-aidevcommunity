@@ -27,6 +27,7 @@ import ResetPassword from "./pages/ResetPassword";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import WomensDay from "./pages/WomensDay";
+import EidCelebration from "./pages/Eid";
 
 // User Pages
 import Dashboard from "./pages/Dashboard";
@@ -63,6 +64,7 @@ import AdminManageQuizzes from "./pages/AdminManageQuizzes";
 import AdminManagePodcasts from "./pages/AdminManagePodcasts";
 import AdminCreatePodcast from "./pages/AdminCreatePodcast";
 import WomensDayGallery from "./pages/WomensDayGallery";
+import EidGallery from "./pages/EidGallery";
 
 // Staff Pages (Dashboard)
 import StaffDashboard from "./pages/StaffDashboard";
@@ -129,7 +131,8 @@ const App = () => {
               <Route path="/blog" element={<MainLayout><Blog /></MainLayout>} />
               <Route path="/forms" element={<MainLayout><Forms /></MainLayout>} />
               <Route path="/womens-day" element={<MainLayout><WomensDay /></MainLayout>} />
-
+              <Route path="/eid" element={<MainLayout><EidCelebration /></MainLayout>} />
+          
               {/* Quiz Routes */}
               <Route
                 path="/quizzes"
@@ -262,6 +265,7 @@ const App = () => {
                         <Route path="approve-registrations" element={<AdminDashboard><AdminApproveRegistrations /></AdminDashboard>} />
                         <Route path="send-message" element={<AdminDashboard><SendMessage /></AdminDashboard>} />
                         <Route path="womens-day-gallery" element={<AdminDashboard><WomensDayGallery /></AdminDashboard>} />
+                        <Route path="eid-gallery" element={<AdminDashboard><EidGallery /></AdminDashboard>} />
                       </Routes>
                     </ProtectedRoute>
                   </AdminLayout>

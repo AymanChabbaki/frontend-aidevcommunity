@@ -49,3 +49,19 @@ export function fileToBase64(file: File): Promise<{ base64: string; mimeType: st
   });
 }
 
+// ─── Eid specific integrations ───────────────────────────────────────────────
+
+export async function generateEidAll(input: GenerationInput): Promise<GenerationResult> {
+  const response = await api.post<GenerationResult>('/eid/generate', input);
+  return response.data;
+}
+
+export async function uploadEidPhoto(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append('photo', file);
+  const response = await api.post<{ url: string }>('/eid/upload-photo', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data.url;
+}
+
