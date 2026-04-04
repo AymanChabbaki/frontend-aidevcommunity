@@ -41,8 +41,6 @@ export const Navbar = () => {
     { to: '/polls', label: 'Polls' },
     { to: '/forms', label: 'Forms' },
     { to: '/quizzes', label: 'Quizzes' },
-    //{ to: '/womens-day', label: "Women's Day" },
-    { to: '/eid', label: 'Eid' },
     { to: '/contact', label: t.nav.contact },
   ];
 
