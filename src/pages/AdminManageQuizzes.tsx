@@ -13,6 +13,7 @@ import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
 import { useToast } from '../hooks/use-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
+import { formatDateForInput } from '@/lib/utils';
 
 interface QuizFormData {
   title: string;
@@ -102,8 +103,8 @@ const AdminManageQuizzes = () => {
         description: quiz.description,
         coverImage: quiz.coverImage || '',
         timeLimit: quiz.timeLimit,
-        startAt: new Date(quiz.startAt).toISOString().slice(0, 16),
-        endAt: new Date(quiz.endAt).toISOString().slice(0, 16),
+        startAt: formatDateForInput(quiz.startAt),
+        endAt: formatDateForInput(quiz.endAt),
         questions: quiz.questions?.map((q, idx) => ({
           question: q.question,
           options: q.options,

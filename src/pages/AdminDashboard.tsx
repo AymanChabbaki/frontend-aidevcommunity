@@ -28,6 +28,7 @@ import { cn } from '@/lib/utils';
 import { adminService } from '@/services/admin.service';
 import { eventService } from '@/services/event.service';
 import { pollService } from '@/services/poll.service';
+import EidGallery from './EidGallery';
 import {
   BarChart,
   Bar,

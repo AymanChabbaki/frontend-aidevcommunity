@@ -45,6 +45,7 @@ import { eventService } from '@/services/event.service';
 import { Calendar, MapPin, Users, Edit, Trash2, Search, Plus, Download, Eye, ChevronLeft, ChevronRight, Shield, X, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
+import { formatDateForInput } from '@/lib/utils';
 
 const AdminManageEvents = () => {
   const navigate = useNavigate();
@@ -180,8 +181,8 @@ const AdminManageEvents = () => {
       category: event.category || '',
       locationType: event.locationType || 'PHYSICAL',
       locationText: event.locationText || '',
-      startAt: event.startAt ? new Date(event.startAt).toISOString().slice(0, 16) : '',
-      endAt: event.endAt ? new Date(event.endAt).toISOString().slice(0, 16) : '',
+      startAt: formatDateForInput(event.startAt),
+      endAt: formatDateForInput(event.endAt),
       capacity: event.capacity?.toString() || '',
       speaker: event.speaker || '',
       imageUrl: event.imageUrl || '',

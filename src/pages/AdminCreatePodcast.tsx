@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from '@/hooks/use-toast';
 import { podcastService } from '@/services/podcast.service';
 import { ArrowLeft, Image as ImageIcon, Upload, Youtube, MessageSquare, Calendar, Loader2 } from 'lucide-react';
+import { formatDateForInput } from '@/lib/utils';
 
 const AdminCreatePodcast = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const AdminCreatePodcast = () => {
     youtubeUrl: '',
     thumbnailUrl: '',
     duration: '',
-    publishedAt: new Date().toISOString().slice(0, 16),
+    publishedAt: formatDateForInput(new Date()),
     discordLink: '',
     status: 'published',
   });
@@ -42,7 +43,7 @@ const AdminCreatePodcast = () => {
         youtubeUrl: podcast.youtubeUrl || '',
         thumbnailUrl: podcast.thumbnailUrl || '',
         duration: podcast.duration?.toString() || '',
-        publishedAt: new Date(podcast.publishedAt).toISOString().slice(0, 16),
+        publishedAt: formatDateForInput(podcast.publishedAt),
         discordLink: podcast.discordLink || '',
         status: podcast.status,
       });

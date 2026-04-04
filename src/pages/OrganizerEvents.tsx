@@ -47,6 +47,7 @@ import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
 import EventCollaborators from './EventCollaborators';
+import { formatDateForInput } from '@/lib/utils';
 
 interface OrganizerEventsProps {
   onCreateEvent?: () => void;
@@ -252,8 +253,8 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
       description: event.description,
       locationType: event.locationType || 'PHYSICAL',
       locationText: event.locationText,
-      startAt: event.startAt ? new Date(event.startAt).toISOString().slice(0, 16) : '',
-      endAt: event.endAt ? new Date(event.endAt).toISOString().slice(0, 16) : '',
+      startAt: formatDateForInput(event.startAt),
+      endAt: formatDateForInput(event.endAt),
       capacity: event.capacity,
       category: event.category || '',
       speaker: event.speaker || '',
