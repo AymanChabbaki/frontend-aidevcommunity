@@ -124,6 +124,7 @@ const StaffDashboard = () => {
     speaker: '',
     tags: '',
     requiresApproval: false,
+    allowGuestRegistration: false,
     eligibleLevels: [] as string[],
     eligiblePrograms: [] as string[]
   });
@@ -1053,6 +1054,25 @@ const StaffDashboard = () => {
                 </Label>
               </div>
 
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="staff-allowGuestRegistration"
+                  checked={eventFormData.allowGuestRegistration}
+                  onCheckedChange={(checked) => setEventFormData({ 
+                    ...eventFormData, 
+                    allowGuestRegistration: checked as boolean
+                  })}
+                />
+                <div>
+                  <Label htmlFor="staff-allowGuestRegistration" className="cursor-pointer">
+                    Allow visitor registration (no account required)
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Visitors without an account can register — a new account will be created for them automatically.
+                  </p>
+                </div>
+              </div>
+
               {eventFormData.requiresApproval && (
                 <div className="space-y-4 pl-6 border-l-2 border-primary/20">
                   <p className="text-sm text-muted-foreground">
@@ -1145,6 +1165,7 @@ const StaffDashboard = () => {
                   speaker: eventFormData.speaker || undefined,
                   tags: eventFormData.tags.split(',').map(t => t.trim()).filter(Boolean),
                   requiresApproval: eventFormData.requiresApproval,
+                  allowGuestRegistration: eventFormData.allowGuestRegistration,
                   eligibleLevels: eventFormData.requiresApproval ? eventFormData.eligibleLevels : undefined,
                   eligiblePrograms: eventFormData.requiresApproval ? eventFormData.eligiblePrograms : undefined
                 });
@@ -1163,6 +1184,7 @@ const StaffDashboard = () => {
                   speaker: '',
                   tags: '',
                   requiresApproval: false,
+                  allowGuestRegistration: false,
                   eligibleLevels: [],
                   eligiblePrograms: []
                 });

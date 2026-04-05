@@ -104,7 +104,7 @@ const GuestRegistrationModal = ({ open, onClose, onSuccess, eventId, eventTitle 
         // Hydrate auth context with the new user's tokens
         loginWithTokens(response.data.user, response.data.accessToken, response.data.refreshToken);
 
-        toast.success('🎉 Welcome! Account created & registration submitted!', {
+        toast.success('Welcome! Account created & registration submitted!', {
           description: 'Your registration is pending staff approval. Check your dashboard for updates.',
           duration: 6000,
         });
@@ -711,7 +711,7 @@ const EventDetail = () => {
                 <Alert className="mb-6 border-emerald-500/40 bg-emerald-50 dark:bg-emerald-950/30">
                   <UserPlus className="h-4 w-4 text-emerald-600" />
                   <AlertDescription className="text-emerald-800 dark:text-emerald-300">
-                    <strong>No account needed!</strong> You can register as a visitor — we'll create your AI Dev Community account automatically.
+                    <strong>No account needed!</strong> You can register as a visitor and we'll create your AI Dev Community account automatically.
                   </AlertDescription>
                 </Alert>
               )}
@@ -781,7 +781,7 @@ const EventDetail = () => {
                 <div className="space-y-4">
                   {registrationStatus === 'PENDING' ? (
                     <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-6 text-center space-y-2">
-                      <p className="text-lg font-semibold text-yellow-700 dark:text-yellow-300">⏳ Registration Pending</p>
+                      <p className="text-lg font-semibold text-yellow-700 dark:text-yellow-300">Registration Pending</p>
                       <p className="text-sm text-yellow-600 dark:text-yellow-400">
                         Your registration is awaiting approval from our staff. You will be notified once it is reviewed.
                       </p>
@@ -809,7 +809,7 @@ const EventDetail = () => {
                   {event.registrations >= event.capacity
                     ? 'Event Full'
                     : !isAuthenticated && event.allowGuestRegistration
-                    ? '🎟️ Register as Visitor'
+                    ? 'Register as Visitor'
                     : t.events.register}
                 </Button>
               )}
