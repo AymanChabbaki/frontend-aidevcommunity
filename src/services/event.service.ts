@@ -51,6 +51,20 @@ export const eventService = {
     return response.data;
   },
 
+  async registerAsGuest(id: string, data: {
+    displayName: string;
+    email: string;
+    password: string;
+    phone?: string;
+    studyLevel?: string;
+    studyProgram?: string;
+    github?: string;
+    linkedin?: string;
+  }) {
+    const response = await api.post(`/events/${id}/register-guest`, data);
+    return response.data;
+  },
+
   async checkIn(id: string, qrToken: string) {
     const response = await api.post(`/events/${id}/checkin`, { qrToken });
     return response.data;

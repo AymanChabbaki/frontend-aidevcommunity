@@ -80,6 +80,7 @@ const AdminManageEvents = () => {
     imageUrl: '',
     tags: '',
     requiresApproval: false,
+    allowGuestRegistration: false,
     eligibleLevels: [] as string[],
     eligiblePrograms: [] as string[],
   });
@@ -188,6 +189,7 @@ const AdminManageEvents = () => {
       imageUrl: event.imageUrl || '',
       tags: event.tags?.join(', ') || '',
       requiresApproval: event.requiresApproval || false,
+      allowGuestRegistration: event.allowGuestRegistration || false,
       eligibleLevels: event.eligibleLevels || [],
       eligiblePrograms: event.eligiblePrograms || [],
     });
@@ -212,6 +214,7 @@ const AdminManageEvents = () => {
         imageUrl: editFormData.imageUrl || undefined,
         tags: editFormData.tags ? editFormData.tags.split(',').map(tag => tag.trim()) : [],
         requiresApproval: editFormData.requiresApproval,
+        allowGuestRegistration: editFormData.allowGuestRegistration,
         eligibleLevels: editFormData.requiresApproval ? editFormData.eligibleLevels : undefined,
         eligiblePrograms: editFormData.requiresApproval ? editFormData.eligiblePrograms : undefined,
       };
@@ -763,6 +766,25 @@ const AdminManageEvents = () => {
                 <Label htmlFor="edit-requiresApproval" className="cursor-pointer">
                   Require approval for registrations
                 </Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="edit-allowGuestRegistration"
+                  checked={editFormData.allowGuestRegistration}
+                  onCheckedChange={(checked) => setEditFormData({ 
+                    ...editFormData, 
+                    allowGuestRegistration: checked as boolean
+                  })}
+                />
+                <div>
+                  <Label htmlFor="edit-allowGuestRegistration" className="cursor-pointer">
+                    Allow visitor registration (no account required)
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Visitors without an account can register — a new account will be created automatically.
+                  </p>
+                </div>
               </div>
 
               {editFormData.requiresApproval && (

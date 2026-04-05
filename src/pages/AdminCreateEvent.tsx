@@ -29,6 +29,7 @@ const AdminCreateEvent = () => {
     speaker: '',
     tags: '',
     requiresApproval: false,
+    allowGuestRegistration: false,
     eligibleLevels: [] as string[],
     eligiblePrograms: [] as string[],
   });
@@ -91,6 +92,7 @@ const AdminCreateEvent = () => {
         tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
         eligibleLevels: formData.requiresApproval ? formData.eligibleLevels : undefined,
         eligiblePrograms: formData.requiresApproval ? formData.eligiblePrograms : undefined,
+        allowGuestRegistration: formData.allowGuestRegistration,
       };
 
       await eventService.createEvent(eventData);
@@ -308,6 +310,25 @@ const AdminCreateEvent = () => {
                 <Label htmlFor="requiresApproval" className="cursor-pointer">
                   Require approval for registrations
                 </Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="allowGuestRegistration"
+                  checked={formData.allowGuestRegistration}
+                  onCheckedChange={(checked) => setFormData({ 
+                    ...formData, 
+                    allowGuestRegistration: checked as boolean
+                  })}
+                />
+                <div>
+                  <Label htmlFor="allowGuestRegistration" className="cursor-pointer">
+                    Allow visitor registration (no account required)
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Visitors without an account can register — a new account will be created for them automatically.
+                  </p>
+                </div>
               </div>
 
               {formData.requiresApproval && (

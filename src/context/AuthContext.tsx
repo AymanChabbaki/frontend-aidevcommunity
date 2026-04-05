@@ -23,6 +23,7 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
   register: (name: string, email: string, password: string, studyLevel?: string, studyProgram?: string) => Promise<boolean>;
+  loginWithTokens: (userData: any, accessToken: string, refreshToken: string) => void;
   logout: () => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -200,6 +201,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  /**
+   * Called by guest registration flow to hydrate auth state
+   * after a combined register+register-for-event request.
+   */
+  const loginWithTokens = (userData: any, accessToken: string, refreshToken: string) => {
+    const mappedUser: User = {
+      id: userData.id,
+      displayName: userData.displayName,
+      email: userData.email,
+      role: userData.role,
+      photoUrl: userData.photoUrl,
+      bio: userData.bio,
+      skills: userData.skills,
+      github: userData.github,
+      linkedin: userData.linkedin,
+      twitter: userData.twitter,
+      publicProfile: userData.publicProfile,
+      studyLevel: userData.studyLevel,
+      studyProgram: userData.studyProgram,
+    };
+    setUser(mappedUser);
+    setIsAuthenticated(true);
+    localStorage.setItem('user', JSON.stringify(mappedUser));
+    localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('refreshToken', refreshToken);
+  };
+
   const refreshUser = async () => {
     try {
       const response = await userService.getMe();
@@ -256,6 +284,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         login,
         register,
+        loginWithTokens,
         logout,
         updateProfile,
         refreshUser,
