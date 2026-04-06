@@ -44,7 +44,10 @@ import {
   Trophy,
   Globe,
   Podcast,
-  Heart
+  Heart,
+  Award,
+  Trash2,
+  GripVertical
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -128,6 +131,31 @@ const StaffDashboard = () => {
     eligibleLevels: [] as string[],
     eligiblePrograms: [] as string[]
   });
+
+  // Custom registration fields for staff create event
+  interface StaffCustomField {
+    id: string;
+    label: string;
+    type: 'text' | 'textarea' | 'select' | 'number' | 'email' | 'phone';
+    required: boolean;
+    options: string[];
+    optionsInput: string;
+  }
+  const [staffCustomFields, setStaffCustomFields] = useState<StaffCustomField[]>([]);
+  const [staffUseCustomBadge, setStaffUseCustomBadge] = useState(false);
+
+  const addStaffField = () => {
+    setStaffCustomFields(prev => [...prev, {
+      id: `field_${Date.now()}`,
+      label: '', type: 'text', required: false, options: [], optionsInput: ''
+    }]);
+  };
+  const updateStaffField = (id: string, changes: Partial<StaffCustomField>) => {
+    setStaffCustomFields(prev => prev.map(f => f.id === id ? { ...f, ...changes } : f));
+  };
+  const removeStaffField = (id: string) => {
+    setStaffCustomFields(prev => prev.filter(f => f.id !== id));
+  };
 
   // Poll Form State
   const [pollFormData, setPollFormData] = useState({
@@ -1137,6 +1165,102 @@ const StaffDashboard = () => {
                 </div>
               )}
             </div>
+
+            {/* Custom Registration Fields */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold">Custom Registration Fields</h3>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={addStaffField}>
+                  <Plus className="h-4 w-4 mr-1" /> Add Field
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Add extra questions attendees must fill out when registering.
+              </p>
+              {staffCustomFields.length === 0 && (
+                <p className="text-sm text-muted-foreground italic text-center py-2">No custom fields yet.</p>
+              )}
+              <div className="space-y-3">
+                {staffCustomFields.map((field, index) => (
+                  <div key={field.id} className="border rounded-lg p-3 space-y-3 bg-muted/20">
+                    <div className="flex items-center gap-2">
+                      <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-xs font-semibold text-muted-foreground">Field {index + 1}</span>
+                      <div className="flex-1" />
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id={`staff-req-${field.id}`}
+                          checked={field.required}
+                          onCheckedChange={(c) => updateStaffField(field.id, { required: !!c })}
+                        />
+                        <Label htmlFor={`staff-req-${field.id}`} className="text-xs cursor-pointer">Required</Label>
+                      </div>
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => removeStaffField(field.id)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Label *</Label>
+                        <Input
+                          placeholder="e.g. Company name"
+                          value={field.label}
+                          onChange={(e) => updateStaffField(field.id, { label: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Type</Label>
+                        <Select value={field.type} onValueChange={(v: any) => updateStaffField(field.id, { type: v })}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="text">Text</SelectItem>
+                            <SelectItem value="textarea">Long text</SelectItem>
+                            <SelectItem value="select">Select (dropdown)</SelectItem>
+                            <SelectItem value="number">Number</SelectItem>
+                            <SelectItem value="email">Email</SelectItem>
+                            <SelectItem value="phone">Phone</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    {field.type === 'select' && (
+                      <div className="space-y-1">
+                        <Label className="text-xs">Options (comma-separated) *</Label>
+                        <Input
+                          placeholder="Option A, Option B, Option C"
+                          value={field.optionsInput}
+                          onChange={(e) => updateStaffField(field.id, { optionsInput: e.target.value })}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Badge Settings */}
+            <div className="border rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Award className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold">Badge Settings</h3>
+              </div>
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="staff-useCustomBadge"
+                  checked={staffUseCustomBadge}
+                  onCheckedChange={(c) => setStaffUseCustomBadge(!!c)}
+                />
+                <div>
+                  <Label htmlFor="staff-useCustomBadge" className="cursor-pointer">Use custom badge template (badge.png)</Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    When enabled, the badge PDF will use the <code className="bg-muted px-1 rounded">badge.png</code> in <code className="bg-muted px-1 rounded">/public</code> as its A4 background.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateEventDialog(false)} disabled={submitting}>
@@ -1167,7 +1291,12 @@ const StaffDashboard = () => {
                   requiresApproval: eventFormData.requiresApproval,
                   allowGuestRegistration: eventFormData.allowGuestRegistration,
                   eligibleLevels: eventFormData.requiresApproval ? eventFormData.eligibleLevels : undefined,
-                  eligiblePrograms: eventFormData.requiresApproval ? eventFormData.eligiblePrograms : undefined
+                  eligiblePrograms: eventFormData.requiresApproval ? eventFormData.eligiblePrograms : undefined,
+                  customFields: staffCustomFields.filter(f => f.label.trim()).map(({ optionsInput, ...rest }) => ({
+                    ...rest,
+                    options: rest.type === 'select' ? optionsInput.split(',').map(o => o.trim()).filter(Boolean) : []
+                  })),
+                  useCustomBadge: staffUseCustomBadge,
                 });
                 toast.success('Event created successfully');
                 setCreateEventDialog(false);
@@ -1188,6 +1317,8 @@ const StaffDashboard = () => {
                   eligibleLevels: [],
                   eligiblePrograms: []
                 });
+                setStaffCustomFields([]);
+                setStaffUseCustomBadge(false);
                 // Refresh events if on events page
                 if (location.pathname === '/staff/events') {
                   window.location.reload();

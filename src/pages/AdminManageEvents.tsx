@@ -42,7 +42,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/hooks/use-toast';
 import { eventService } from '@/services/event.service';
-import { Calendar, MapPin, Users, Edit, Trash2, Search, Plus, Download, Eye, ChevronLeft, ChevronRight, Shield, X, Check } from 'lucide-react';
+import { Calendar, MapPin, Users, Edit, Trash2, Search, Plus, Download, Eye, ChevronLeft, ChevronRight, Shield, X, Check, Award, FileText, GripVertical } from 'lucide-react';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
 import { formatDateForInput } from '@/lib/utils';
@@ -86,6 +86,31 @@ const AdminManageEvents = () => {
   });
   const [submitting, setSubmitting] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  // Custom fields for edit dialog
+  interface EditCustomField {
+    id: string;
+    label: string;
+    type: 'text' | 'textarea' | 'select' | 'number' | 'email' | 'phone';
+    required: boolean;
+    options: string[];
+    optionsInput: string;
+  }
+  const [editCustomFields, setEditCustomFields] = useState<EditCustomField[]>([]);
+  const [editUseCustomBadge, setEditUseCustomBadge] = useState(false);
+
+  const addEditField = () => {
+    setEditCustomFields(prev => [...prev, {
+      id: `field_${Date.now()}`,
+      label: '', type: 'text', required: false, options: [], optionsInput: ''
+    }]);
+  };
+  const updateEditField = (id: string, changes: Partial<EditCustomField>) => {
+    setEditCustomFields(prev => prev.map(f => f.id === id ? { ...f, ...changes } : f));
+  };
+  const removeEditField = (id: string) => {
+    setEditCustomFields(prev => prev.filter(f => f.id !== id));
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -193,6 +218,13 @@ const AdminManageEvents = () => {
       eligibleLevels: event.eligibleLevels || [],
       eligiblePrograms: event.eligiblePrograms || [],
     });
+    // Load custom fields: convert stored options[] to optionsInput string
+    const existingFields = (event.customFields || []).map((f: any) => ({
+      ...f,
+      optionsInput: Array.isArray(f.options) ? f.options.join(', ') : ''
+    }));
+    setEditCustomFields(existingFields);
+    setEditUseCustomBadge(event.useCustomBadge || false);
     setEditDialog({ open: true, event });
   };
 
@@ -217,6 +249,11 @@ const AdminManageEvents = () => {
         allowGuestRegistration: editFormData.allowGuestRegistration,
         eligibleLevels: editFormData.requiresApproval ? editFormData.eligibleLevels : undefined,
         eligiblePrograms: editFormData.requiresApproval ? editFormData.eligiblePrograms : undefined,
+        customFields: editCustomFields.filter(f => f.label.trim()).map(({ optionsInput, ...rest }) => ({
+          ...rest,
+          options: rest.type === 'select' ? optionsInput.split(',').map(o => o.trim()).filter(Boolean) : []
+        })),
+        useCustomBadge: editUseCustomBadge,
       };
 
       await eventService.updateEvent(editDialog.event.id, eventData);
@@ -850,6 +887,102 @@ const AdminManageEvents = () => {
                   )}
                 </div>
               )}
+            </div>
+
+            {/* Custom Registration Fields */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold">Custom Registration Fields</h3>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={addEditField}>
+                  <Plus className="h-4 w-4 mr-1" /> Add Field
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Add extra questions attendees must fill out when registering.
+              </p>
+              {editCustomFields.length === 0 && (
+                <p className="text-sm text-muted-foreground italic text-center py-2">No custom fields yet.</p>
+              )}
+              <div className="space-y-3">
+                {editCustomFields.map((field, index) => (
+                  <div key={field.id} className="border rounded-lg p-3 space-y-3 bg-muted/20">
+                    <div className="flex items-center gap-2">
+                      <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-xs font-semibold text-muted-foreground">Field {index + 1}</span>
+                      <div className="flex-1" />
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id={`edit-cf-req-${field.id}`}
+                          checked={field.required}
+                          onCheckedChange={(c) => updateEditField(field.id, { required: !!c })}
+                        />
+                        <Label htmlFor={`edit-cf-req-${field.id}`} className="text-xs cursor-pointer">Required</Label>
+                      </div>
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => removeEditField(field.id)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Label *</Label>
+                        <Input
+                          placeholder="e.g. Company name"
+                          value={field.label}
+                          onChange={(e) => updateEditField(field.id, { label: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Type</Label>
+                        <Select value={field.type} onValueChange={(v: any) => updateEditField(field.id, { type: v })}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="text">Text</SelectItem>
+                            <SelectItem value="textarea">Long text</SelectItem>
+                            <SelectItem value="select">Select (dropdown)</SelectItem>
+                            <SelectItem value="number">Number</SelectItem>
+                            <SelectItem value="email">Email</SelectItem>
+                            <SelectItem value="phone">Phone</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    {field.type === 'select' && (
+                      <div className="space-y-1">
+                        <Label className="text-xs">Options (comma-separated) *</Label>
+                        <Input
+                          placeholder="Option A, Option B, Option C"
+                          value={field.optionsInput}
+                          onChange={(e) => updateEditField(field.id, { optionsInput: e.target.value })}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Badge Settings */}
+            <div className="border rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Award className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold">Badge Settings</h3>
+              </div>
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="edit-useCustomBadge"
+                  checked={editUseCustomBadge}
+                  onCheckedChange={(c) => setEditUseCustomBadge(!!c)}
+                />
+                <div>
+                  <Label htmlFor="edit-useCustomBadge" className="cursor-pointer">Use custom badge template (badge.png)</Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    When enabled, the badge PDF will use the <code className="bg-muted px-1 rounded">badge.png</code> in <code className="bg-muted px-1 rounded">/public</code> as its A4 background.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
           <DialogFooter>
