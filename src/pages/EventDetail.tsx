@@ -489,13 +489,13 @@ const EventDetail = () => {
   const generateBadge = () => {
     if (!badgeToken) { toast.error('Registration token not available'); return; }
 
-    // ── PATH A: Custom badge.png template (canvas pixel-perfect) ────────
+    // ── PATH A: Custom badge.png template (Premium Overlay Design) ────────
     if (event.useCustomBadge) {
       const imgLoad = new Image();
       imgLoad.crossOrigin = 'anonymous';
       imgLoad.onload = () => {
         try {
-          // 1. Work at badge's native resolution (1414 × 2000, A4 @ ~170 dpi)
+          // 1. Target high-resolution canvas (1414 × 2000 px = A4 @ 170 DPI)
           const BW = imgLoad.naturalWidth  || 1414;
           const BH = imgLoad.naturalHeight || 2000;
           const canvas = document.createElement('canvas');
@@ -503,131 +503,156 @@ const EventDetail = () => {
           const ctx = canvas.getContext('2d')!;
           ctx.drawImage(imgLoad, 0, 0, BW, BH);
 
-          // 2. mm → px helper  (A4 = 210 mm = BW px)
+          // 2. mm-to-pixel scaling helper (A4 width = 210mm)
           const mm = (v: number) => Math.round(v * BW / 210);
 
-          // 3. Event title  ─ above name, lighter weight, wrapped to 2 lines
-          const eventTitle = displayTitle || event.title || '';
+          // 3. Attendee Full Name ── The Hero Element
+          const nameText = (user?.displayName || user?.email || 'Valued Attendee').toUpperCase();
           ctx.save();
-          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-          ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = mm(1.5);
-          ctx.fillStyle = 'rgba(255,255,255,0.88)';
-          ctx.font = `${mm(9.5)}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
-          const maxTW = mm(165);
-          const titleLines: string[] = [];
-          let tLine = '';
-          for (const w of eventTitle.split(' ')) {
-            const t = tLine ? `${tLine} ${w}` : w;
-            if (ctx.measureText(t).width > maxTW && tLine) { titleLines.push(tLine); tLine = w; }
-            else tLine = t;
-          }
-          if (tLine) titleLines.push(tLine);
-          const titleY = mm(140);
-          titleLines.slice(0, 2).forEach((l, i) => ctx.fillText(l, BW / 2, titleY + i * mm(12)));
-          ctx.restore();
-
-          // 4. Attendee Name  ─ large bold white with drop-shadow
-          const nameText = user?.displayName || user?.email || 'Guest';
-          ctx.save();
-          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-          ctx.shadowColor = 'rgba(0,0,0,0.55)'; ctx.shadowBlur = mm(2.5); ctx.shadowOffsetY = mm(0.5);
+          ctx.textAlign = 'center'; 
+          ctx.textBaseline = 'middle';
+          
+          // Premium Font Styling: Bold, High-Impact
           ctx.fillStyle = '#FFFFFF';
-          ctx.font = `bold ${mm(17)}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
-          ctx.fillText(nameText, BW / 2, mm(156));
+          // Use modern sans font with significant letter spacing for "magic" look
+          // @ts-ignore (letterSpacing is a newer canvas property)
+          if ('letterSpacing' in ctx) ctx.letterSpacing = 'mm(1.2)px'; 
+          ctx.font = `900 ${mm(16)}px "Inter Variable", "Inter", "Helvetica Neue", Arial, sans-serif`;
+          
+          // Professional Shadow for "Floating" effect
+          ctx.shadowColor = 'rgba(0,0,0,0.65)'; 
+          ctx.shadowBlur = mm(3); 
+          ctx.shadowOffsetY = mm(0.8);
+          
+          // Position: Center-mid zone (adjusting to avoid typical headers)
+          ctx.fillText(nameText, BW / 2, mm(150));
           ctx.restore();
 
-          // 5. Thin divider below name
+          // 4. Subtle Decorative Divider
           ctx.save();
-          ctx.strokeStyle = 'rgba(255,255,255,0.28)'; ctx.lineWidth = mm(0.35);
-          ctx.beginPath(); ctx.moveTo(mm(42), mm(164)); ctx.lineTo(mm(168), mm(164)); ctx.stroke();
+          const gradient = ctx.createLinearGradient(mm(50), 0, mm(160), 0);
+          gradient.addColorStop(0, 'rgba(255,255,255,0)');
+          gradient.addColorStop(0.5, 'rgba(255,255,255,0.4)');
+          gradient.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.strokeStyle = gradient;
+          ctx.lineWidth = mm(0.4);
+          ctx.beginPath(); 
+          ctx.moveTo(mm(50), mm(158)); 
+          ctx.lineTo(mm(160), mm(158)); 
+          ctx.stroke();
           ctx.restore();
 
-          // 6. Date  (formatted nicely)
-          const dateStr = format(new Date(event.startAt), "EEEE, d MMMM yyyy  ·  HH:mm");
+          // 5. Event Title & Date Info (Elegant & Slim)
+          const eventTitle = (displayTitle || event.title || 'Official Event').toUpperCase();
+          const dateStr = format(new Date(event.startAt), "MMM dd, yyyy  •  HH:mm").toUpperCase();
+          
           ctx.save();
-          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-          ctx.shadowColor = 'rgba(0,0,0,0.25)'; ctx.shadowBlur = mm(1);
-          ctx.fillStyle = 'rgba(255,255,255,0.80)';
-          ctx.font = `${mm(6.8)}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
-          ctx.fillText(dateStr, BW / 2, mm(172));
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(255,255,255,0.85)';
+          
+          // Title
+          ctx.font = `600 ${mm(8)}px "Inter", "Helvetica Neue", Arial, sans-serif`;
+          ctx.fillText(eventTitle, BW / 2, mm(138));
+          
+          // Date
+          ctx.font = `400 ${mm(6.5)}px "Inter", "Helvetica Neue", Arial, sans-serif`;
+          ctx.fillText(dateStr, BW / 2, mm(168));
           ctx.restore();
 
-          // 7. Location
-          const locStr = (event.locationText || 'Location TBA').slice(0, 65);
-          ctx.save();
-          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-          ctx.shadowColor = 'rgba(0,0,0,0.2)'; ctx.shadowBlur = mm(1);
-          ctx.fillStyle = 'rgba(255,255,255,0.62)';
-          ctx.font = `${mm(6.0)}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
-          ctx.fillText(locStr, BW / 2, mm(181));
-          ctx.restore();
+          // 6. Styled verification QR Card (Minimalist & Modern)
+          const QR_PX    = mm(42); 
+          const CARD_PAD = mm(5);
+          const CARD_W   = QR_PX + CARD_PAD * 2;
+          const CARD_H   = QR_PX + CARD_PAD * 2 + mm(12); // Space for verification label
+          const CX       = (BW - CARD_W) / 2;
+          const CY       = mm(210); // Positioned in lower center
+          const RX       = mm(5);   // Modern rounded corners
 
-          // 8. QR code in a white rounded card
-          const QR   = mm(44);           // QR bitmap size
-          const PAD  = mm(4);            // inner padding
-          const CW   = QR + PAD * 2;
-          const CH   = QR + PAD * 2 + mm(9);   // extra for caption
-          const CX   = (BW - CW) / 2;   // horizontally centred
-          const CY   = mm(214);
-          const QX   = CX + PAD;
-          const QY   = CY + PAD;
-          const RX   = mm(3.5);
-          // White card
+          // Frosted white card background with soft shadow
           ctx.save();
-          ctx.shadowColor = 'rgba(0,0,0,0.20)'; ctx.shadowBlur = mm(3.5);
+          ctx.shadowColor = 'rgba(0,0,0,0.18)'; 
+          ctx.shadowBlur = mm(4);
           ctx.fillStyle = '#FFFFFF';
+          
+          // Rounded rect
           ctx.beginPath();
           ctx.moveTo(CX + RX, CY);
-          ctx.lineTo(CX + CW - RX, CY);
-          ctx.arcTo(CX + CW, CY,          CX + CW, CY + RX,        RX);
-          ctx.lineTo(CX + CW, CY + CH - RX);
-          ctx.arcTo(CX + CW, CY + CH,    CX + CW - RX, CY + CH,   RX);
-          ctx.lineTo(CX + RX, CY + CH);
-          ctx.arcTo(CX,       CY + CH,   CX, CY + CH - RX,         RX);
-          ctx.lineTo(CX,      CY + RX);
-          ctx.arcTo(CX,       CY,        CX + RX, CY,               RX);
-          ctx.closePath(); ctx.fill();
-          ctx.restore();
-          // Caption
-          ctx.save();
-          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-          ctx.fillStyle = '#64748B';
-          ctx.font = `${mm(5)}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
-          ctx.fillText('Scan to verify attendance', BW / 2, CY + CH - mm(4.5));
+          ctx.lineTo(CX + CARD_W - RX, CY);
+          ctx.arcTo(CX + CARD_W, CY, CX + CARD_W, CY + RX, RX);
+          ctx.lineTo(CX + CARD_W, CY + CARD_H - RX);
+          ctx.arcTo(CX + CARD_W, CY + CARD_H, CX + CARD_W - RX, CY + CARD_H, RX);
+          ctx.lineTo(CX + RX, CY + CARD_H);
+          ctx.arcTo(CX, CY + CARD_H, CX, CY + CARD_H - RX, RX);
+          ctx.lineTo(CX, CY + RX);
+          ctx.arcTo(CX, CY, CX + RX, CY, RX);
+          ctx.closePath();
+          ctx.fill();
           ctx.restore();
 
-          // 9. Paste QR bitmap, then export PDF
+          // "SCANNABLE VERIFICATION" Label inside card
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#94a3b8'; // Muted Slate-400
+          // @ts-ignore
+          if ('letterSpacing' in ctx) ctx.letterSpacing = 'mm(0.5)px';
+          ctx.font = `bold ${mm(4.2)}px "Inter", sans-serif`;
+          ctx.fillText('SECURE ATTENDEE VERIFICATION', BW / 2, CY + CARD_H - mm(6));
+          ctx.restore();
+
+          // 7. Render QR bitmap into the frame
           const savePDF = () => {
             const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-            doc.addImage(canvas.toDataURL('image/jpeg', 0.97), 'JPEG', 0, 0, 210, 297);
+            // High quality JPEG compression (0.98) for sharp PDF but smaller file size
+            doc.addImage(canvas.toDataURL('image/jpeg', 0.98), 'JPEG', 0, 0, 210, 297);
             doc.save(`badge-${event.id}.pdf`);
-            toast.success('Badge downloaded successfully!');
+            toast.success('Professional badge generated! Check your downloads.');
           };
-          const renderFinalPDF = (qrDataUrl?: string) => {
+
+          const finalizeWithQR = (qrDataUrl?: string) => {
             if (qrDataUrl) {
-              const qi = new Image();
-              qi.onload = () => { ctx.drawImage(qi, QX, QY, QR, QR); savePDF(); };
-              qi.src = qrDataUrl;
-            } else savePDF();
+              const qImg = new Image();
+              qImg.onload = () => {
+                // Draw QR with padding from card edges
+                ctx.drawImage(qImg, CX + CARD_PAD, CY + CARD_PAD, QR_PX, QR_PX);
+                savePDF();
+              };
+              qImg.src = qrDataUrl;
+            } else {
+              savePDF();
+            }
           };
-          const qrEl = document.querySelector('.registration-qr svg');
-          if (qrEl instanceof SVGElement) {
-            const qrCanvas = document.createElement('canvas');
-            qrCanvas.width = 400; qrCanvas.height = 400;
-            const qrCtx = qrCanvas.getContext('2d');
-            if (qrCtx) {
-              const svgD = new XMLSerializer().serializeToString(qrEl);
-              const blob = new Blob([svgD], { type: 'image/svg+xml;charset=utf-8' });
-              const url  = URL.createObjectURL(blob);
-              const ql   = new Image();
-              ql.onload = () => { qrCtx.drawImage(ql, 0, 0, 400, 400); URL.revokeObjectURL(url); renderFinalPDF(qrCanvas.toDataURL('image/png')); };
-              ql.src = url; return;
+
+          // Capture QR from DOM SVG
+          const qrSvg = document.querySelector('.registration-qr svg');
+          if (qrSvg instanceof SVGElement) {
+            const qCanvas = document.createElement('canvas');
+            qCanvas.width = 400; qCanvas.height = 400;
+            const qCtx = qCanvas.getContext('2d');
+            if (qCtx) {
+              const svgData = new XMLSerializer().serializeToString(qrSvg);
+              const blob    = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+              const url     = URL.createObjectURL(blob);
+              const qrLoader = new Image();
+              qrLoader.onload = () => { 
+                qCtx.drawImage(qrLoader, 0, 0, 400, 400); 
+                URL.revokeObjectURL(url); 
+                finalizeWithQR(qCanvas.toDataURL('image/png')); 
+              };
+              qrLoader.src = url;
+              return;
             }
           }
-          renderFinalPDF();
-        } catch (e) { console.error(e); toast.error('Failed to generate badge'); }
+          finalizeWithQR();
+        } catch (e) {
+          console.error('Badge scaling error:', e);
+          toast.error('Design rendering issue. Falling back to default.');
+          generateDefaultBadge();
+        }
       };
-      imgLoad.onerror = () => { toast.error('badge.png not found — falling back to default'); generateDefaultBadge(); };
+      imgLoad.onerror = () => {
+        toast.error('Template badge.png not found. Using default style.');
+        generateDefaultBadge();
+      };
       imgLoad.src = '/badge.png';
       return;
     }
