@@ -819,7 +819,7 @@ const AdminManageEvents = () => {
                     Allow visitor registration (no account required)
                   </Label>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Visitors without an account can register — a new account will be created automatically.
+                    Visitors without an account can register and a new account will be created automatically.
                   </p>
                 </div>
               </div>
