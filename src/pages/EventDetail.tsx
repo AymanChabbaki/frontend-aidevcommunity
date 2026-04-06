@@ -489,70 +489,145 @@ const EventDetail = () => {
   const generateBadge = () => {
     if (!badgeToken) { toast.error('Registration token not available'); return; }
 
-    // ── PATH A: Custom badge.png template ──────────────────────────────────
+    // ── PATH A: Custom badge.png template (canvas pixel-perfect) ────────
     if (event.useCustomBadge) {
       const imgLoad = new Image();
       imgLoad.crossOrigin = 'anonymous';
       imgLoad.onload = () => {
         try {
-          // Draw badge.png onto a canvas at A4 ratio (so we can get a data-URL)
-          const A4_W = 794;  // px at 96dpi ≈ A4 width
-          const A4_H = 1123; // px at 96dpi ≈ A4 height
+          // 1. Work at badge's native resolution (1414 × 2000, A4 @ ~170 dpi)
+          const BW = imgLoad.naturalWidth  || 1414;
+          const BH = imgLoad.naturalHeight || 2000;
           const canvas = document.createElement('canvas');
-          canvas.width = A4_W; canvas.height = A4_H;
+          canvas.width = BW; canvas.height = BH;
           const ctx = canvas.getContext('2d')!;
-          ctx.drawImage(imgLoad, 0, 0, A4_W, A4_H);
+          ctx.drawImage(imgLoad, 0, 0, BW, BH);
 
-          const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-          const bgData = canvas.toDataURL('image/png');
-          doc.addImage(bgData, 'PNG', 0, 0, 210, 297); // full A4
+          // 2. mm → px helper  (A4 = 210 mm = BW px)
+          const mm = (v: number) => Math.round(v * BW / 210);
 
-          // ── Overlay text — adjust Y coordinates to match your badge.png layout ──
-          // Attendee name  (centred, ~155mm from top)
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(22);
-          doc.setTextColor(255, 255, 255);
-          doc.text(user?.displayName || user?.email || 'Guest', 105, 157, { align: 'center' });
+          // 3. Event title  ─ above name, lighter weight, wrapped to 2 lines
+          const eventTitle = displayTitle || event.title || '';
+          ctx.save();
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = mm(1.5);
+          ctx.fillStyle = 'rgba(255,255,255,0.88)';
+          ctx.font = `${mm(9.5)}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
+          const maxTW = mm(165);
+          const titleLines: string[] = [];
+          let tLine = '';
+          for (const w of eventTitle.split(' ')) {
+            const t = tLine ? `${tLine} ${w}` : w;
+            if (ctx.measureText(t).width > maxTW && tLine) { titleLines.push(tLine); tLine = w; }
+            else tLine = t;
+          }
+          if (tLine) titleLines.push(tLine);
+          const titleY = mm(140);
+          titleLines.slice(0, 2).forEach((l, i) => ctx.fillText(l, BW / 2, titleY + i * mm(12)));
+          ctx.restore();
 
-          // Event title (centred, ~120mm)
-          doc.setFontSize(14);
-          doc.setFont('helvetica', 'normal');
-          const splitTitle = doc.splitTextToSize(displayTitle || event.title, 160);
-          doc.text(splitTitle, 105, 122, { align: 'center' });
+          // 4. Attendee Name  ─ large bold white with drop-shadow
+          const nameText = user?.displayName || user?.email || 'Guest';
+          ctx.save();
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.shadowColor = 'rgba(0,0,0,0.55)'; ctx.shadowBlur = mm(2.5); ctx.shadowOffsetY = mm(0.5);
+          ctx.fillStyle = '#FFFFFF';
+          ctx.font = `bold ${mm(17)}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
+          ctx.fillText(nameText, BW / 2, mm(156));
+          ctx.restore();
 
-          // Date (left, ~175mm)
-          doc.setFontSize(11);
-          doc.text(format(new Date(event.startAt), 'PPP p'), 105, 175, { align: 'center' });
+          // 5. Thin divider below name
+          ctx.save();
+          ctx.strokeStyle = 'rgba(255,255,255,0.28)'; ctx.lineWidth = mm(0.35);
+          ctx.beginPath(); ctx.moveTo(mm(42), mm(164)); ctx.lineTo(mm(168), mm(164)); ctx.stroke();
+          ctx.restore();
 
-          // Location (left, ~185mm)
-          doc.setFontSize(10);
-          doc.text(event.locationText || 'TBA', 105, 185, { align: 'center' });
+          // 6. Date  (formatted nicely)
+          const dateStr = format(new Date(event.startAt), "EEEE, d MMMM yyyy  ·  HH:mm");
+          ctx.save();
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.shadowColor = 'rgba(0,0,0,0.25)'; ctx.shadowBlur = mm(1);
+          ctx.fillStyle = 'rgba(255,255,255,0.80)';
+          ctx.font = `${mm(6.8)}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
+          ctx.fillText(dateStr, BW / 2, mm(172));
+          ctx.restore();
 
-          // QR code from DOM
-          const qrEl = document.querySelector('.registration-qr svg');
-          const finishWithQR = (qrDataUrl?: string) => {
-            if (qrDataUrl) doc.addImage(qrDataUrl, 'PNG', 80, 205, 50, 50); // centred ~210mm
+          // 7. Location
+          const locStr = (event.locationText || 'Location TBA').slice(0, 65);
+          ctx.save();
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.shadowColor = 'rgba(0,0,0,0.2)'; ctx.shadowBlur = mm(1);
+          ctx.fillStyle = 'rgba(255,255,255,0.62)';
+          ctx.font = `${mm(6.0)}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
+          ctx.fillText(locStr, BW / 2, mm(181));
+          ctx.restore();
+
+          // 8. QR code in a white rounded card
+          const QR   = mm(44);           // QR bitmap size
+          const PAD  = mm(4);            // inner padding
+          const CW   = QR + PAD * 2;
+          const CH   = QR + PAD * 2 + mm(9);   // extra for caption
+          const CX   = (BW - CW) / 2;   // horizontally centred
+          const CY   = mm(214);
+          const QX   = CX + PAD;
+          const QY   = CY + PAD;
+          const RX   = mm(3.5);
+          // White card
+          ctx.save();
+          ctx.shadowColor = 'rgba(0,0,0,0.20)'; ctx.shadowBlur = mm(3.5);
+          ctx.fillStyle = '#FFFFFF';
+          ctx.beginPath();
+          ctx.moveTo(CX + RX, CY);
+          ctx.lineTo(CX + CW - RX, CY);
+          ctx.arcTo(CX + CW, CY,          CX + CW, CY + RX,        RX);
+          ctx.lineTo(CX + CW, CY + CH - RX);
+          ctx.arcTo(CX + CW, CY + CH,    CX + CW - RX, CY + CH,   RX);
+          ctx.lineTo(CX + RX, CY + CH);
+          ctx.arcTo(CX,       CY + CH,   CX, CY + CH - RX,         RX);
+          ctx.lineTo(CX,      CY + RX);
+          ctx.arcTo(CX,       CY,        CX + RX, CY,               RX);
+          ctx.closePath(); ctx.fill();
+          ctx.restore();
+          // Caption
+          ctx.save();
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillStyle = '#64748B';
+          ctx.font = `${mm(5)}px "Helvetica Neue",Helvetica,Arial,sans-serif`;
+          ctx.fillText('Scan to verify attendance', BW / 2, CY + CH - mm(4.5));
+          ctx.restore();
+
+          // 9. Paste QR bitmap, then export PDF
+          const savePDF = () => {
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            doc.addImage(canvas.toDataURL('image/jpeg', 0.97), 'JPEG', 0, 0, 210, 297);
             doc.save(`badge-${event.id}.pdf`);
             toast.success('Badge downloaded successfully!');
           };
-
+          const renderFinalPDF = (qrDataUrl?: string) => {
+            if (qrDataUrl) {
+              const qi = new Image();
+              qi.onload = () => { ctx.drawImage(qi, QX, QY, QR, QR); savePDF(); };
+              qi.src = qrDataUrl;
+            } else savePDF();
+          };
+          const qrEl = document.querySelector('.registration-qr svg');
           if (qrEl instanceof SVGElement) {
             const qrCanvas = document.createElement('canvas');
-            qrCanvas.width = 200; qrCanvas.height = 200;
+            qrCanvas.width = 400; qrCanvas.height = 400;
             const qrCtx = qrCanvas.getContext('2d');
             if (qrCtx) {
-              const svgData = new XMLSerializer().serializeToString(qrEl);
-              const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-              const url = URL.createObjectURL(blob);
-              const qrImg = new Image();
-              qrImg.onload = () => { qrCtx.drawImage(qrImg, 0, 0); URL.revokeObjectURL(url); finishWithQR(qrCanvas.toDataURL('image/png')); };
-              qrImg.src = url; return;
+              const svgD = new XMLSerializer().serializeToString(qrEl);
+              const blob = new Blob([svgD], { type: 'image/svg+xml;charset=utf-8' });
+              const url  = URL.createObjectURL(blob);
+              const ql   = new Image();
+              ql.onload = () => { qrCtx.drawImage(ql, 0, 0, 400, 400); URL.revokeObjectURL(url); renderFinalPDF(qrCanvas.toDataURL('image/png')); };
+              ql.src = url; return;
             }
           }
-          finishWithQR();
-        } catch { toast.error('Failed to generate badge'); }
+          renderFinalPDF();
+        } catch (e) { console.error(e); toast.error('Failed to generate badge'); }
       };
-      imgLoad.onerror = () => { toast.error('badge.png not found in /public — falling back to default badge'); generateDefaultBadge(); };
+      imgLoad.onerror = () => { toast.error('badge.png not found — falling back to default'); generateDefaultBadge(); };
       imgLoad.src = '/badge.png';
       return;
     }
