@@ -511,7 +511,7 @@ const EventDetail = () => {
           
           // ── A. Event Title ──
           // cm: 0.7x, 5.13y, 14.37w, 2.8h  =>  mm: 7x, 51.3y, 143.7w, 28h
-          // Font: 31 pt (approx 10.93 mm)
+          // Base Font: 31 pt (approx 10.93 mm)
           const eventTitle = (displayTitle || event.title || '').toUpperCase();
           const titleBox = { x: mm(7), y: mm(51.3), w: mm(143.7), h: mm(28) };
           ctx.save();
@@ -520,10 +520,17 @@ const EventDetail = () => {
           ctx.fillStyle = '#FFFFFF';
           ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = mm(2);
           
-          // 31 pt = (31/72) * 25.4 mm ≈ 10.936 mm
-          const titleSizePt = 31;
-          const titleSizeMm = (titleSizePt / 72) * 25.4;
-          ctx.font = `600 ${mm(titleSizeMm)}px "Inter", "Helvetica Neue", sans-serif`;
+          // Start at 31 pt (approx 10.936 mm)
+          const baseSizePt = 31;
+          let currentSizeMm = (baseSizePt / 72) * 25.4;
+          ctx.font = `600 ${mm(currentSizeMm)}px "Inter", "Helvetica Neue", sans-serif`;
+          
+          // Shrink to fit the exact 14.37cm box width
+          const titleMaxWidth = titleBox.w * 0.98;
+          while (ctx.measureText(eventTitle).width > titleMaxWidth && currentSizeMm > 4) {
+            currentSizeMm -= 0.3;
+            ctx.font = `600 ${mm(currentSizeMm)}px "Inter", "Helvetica Neue", sans-serif`;
+          }
           
           ctx.fillText(eventTitle, titleBox.x + titleBox.w / 2, titleBox.y + titleBox.h / 2);
           ctx.restore();
