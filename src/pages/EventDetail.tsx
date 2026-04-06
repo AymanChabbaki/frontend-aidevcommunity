@@ -942,42 +942,6 @@ const EventDetail = () => {
                     </p>
                   </div>
 
-                  {/* Custom fields for authenticated users */}
-                  {isAuthenticated && (event.customFields || []).length > 0 && (
-                    <div className="border rounded-xl p-4 space-y-3 bg-muted/30">
-                      <p className="text-sm font-semibold">Additional Information</p>
-                      {(event.customFields as Array<{id:string;label:string;type:string;required:boolean;options:string[]}>).map((field) => (
-                        <div key={field.id} className="space-y-1.5">
-                          <Label htmlFor={`auth-cf-${field.id}`}>
-                            {field.label}
-                            {field.required && <span className="text-destructive ml-1">*</span>}
-                          </Label>
-                          {field.type === 'select' ? (
-                            <Select
-                              value={authCustomValues[field.id] || ''}
-                              onValueChange={(v) => setAuthCustomValues(prev => ({ ...prev, [field.id]: v }))}
-                            >
-                              <SelectTrigger id={`auth-cf-${field.id}`}><SelectValue placeholder="Select…" /></SelectTrigger>
-                              <SelectContent>
-                                {field.options.map((opt: string) => (
-                                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          ) : (
-                            <Input
-                              id={`auth-cf-${field.id}`}
-                              type={field.type}
-                              placeholder={`Enter ${field.label.toLowerCase()}…`}
-                              value={authCustomValues[field.id] || ''}
-                              onChange={(e) => setAuthCustomValues(prev => ({ ...prev, [field.id]: e.target.value }))}
-                            />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
                   <Button
                     onClick={handleRegister}
                     className="w-full gradient-primary h-12 text-base font-semibold"
@@ -1077,81 +1041,83 @@ const AuthenticatedRegistrationModal = ({ open, onClose, onSuccess, event, custo
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-xl p-0 overflow-hidden border-none bg-background/95 backdrop-blur-xl shadow-2xl rounded-2xl">
-        <div className="bg-gradient-to-br from-primary/10 via-background to-background p-8">
-          <div className="flex flex-col items-center text-center mb-8">
-            <div className="h-16 w-16 rounded-2xl bg-primary/20 flex items-center justify-center mb-4 border border-primary/20 animate-pulse">
-              <CheckCircle2 className="h-8 w-8 text-primary" />
+      <DialogContent className="sm:max-w-xl w-[95vw] p-0 overflow-hidden border-none bg-background/95 backdrop-blur-xl shadow-2xl rounded-2xl">
+        <div className="max-h-[85vh] overflow-y-auto scrollbar-hide">
+          <div className="bg-gradient-to-br from-primary/10 via-background to-background p-6 sm:p-8">
+            <div className="flex flex-col items-center text-center mb-8">
+              <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-primary/20 flex items-center justify-center mb-4 border border-primary/20 animate-pulse">
+                <CheckCircle2 className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">Ready to Join?</h2>
+              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+                <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                <span className="text-xs sm:text-sm font-semibold text-primary">{spotsLeft} SPOTS REMAINING</span>
+              </div>
             </div>
-            <h2 className="text-3xl font-bold tracking-tight mb-2">Ready to Join?</h2>
-            <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20">
-              <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-              <span className="text-sm font-semibold text-primary">{spotsLeft} SPOTS REMAINING</span>
-            </div>
-          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-2 text-muted-foreground">
-                <div className="h-1 w-8 bg-primary/30 rounded-full" />
-                <span className="text-xs font-bold uppercase tracking-widest">Additional Information</span>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-2 text-muted-foreground">
+                  <div className="h-1 w-8 bg-primary/30 rounded-full" />
+                  <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest">Additional Information</span>
+                </div>
+
+                {event.customFields?.map((f: any) => (
+                  <motion.div key={f.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
+                    <label className="text-sm font-semibold flex items-center gap-1.5 ml-1">
+                      {f.label} {f.required && <span className="text-destructive">*</span>}
+                    </label>
+                    {f.type === 'select' ? (
+                      <select
+                        className="w-full h-12 bg-muted/50 border border-border/50 rounded-xl px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer appearance-none"
+                        value={customValues[f.id] || ''}
+                        onChange={(e) => setCustomValues((prev: any) => ({ ...prev, [f.id]: e.target.value }))}
+                        required={f.required}
+                      >
+                        <option value="">Select...</option>
+                        {f.options?.map((o: string) => (
+                          <option key={o} value={o}>{o}</option>
+                        ))}
+                      </select>
+                    ) : f.type === 'textarea' ? (
+                      <textarea
+                        placeholder={`Enter ${f.label.toLowerCase()}...`}
+                        className="w-full h-28 bg-muted/50 border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+                        value={customValues[f.id] || ''}
+                        onChange={(e) => setCustomValues((prev: any) => ({ ...prev, [f.id]: e.target.value }))}
+                        required={f.required}
+                      />
+                    ) : (
+                      <input
+                        type={f.type === 'number' ? 'number' : 'text'}
+                        placeholder={`Enter ${f.label.toLowerCase()}...`}
+                        className="w-full h-12 bg-muted/50 border border-border/50 rounded-xl px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        value={customValues[f.id] || ''}
+                        onChange={(e) => setCustomValues((prev: any) => ({ ...prev, [f.id]: e.target.value }))}
+                        required={f.required}
+                      />
+                    )}
+                  </motion.div>
+                ))}
               </div>
 
-              {event.customFields?.map((f: any) => (
-                <motion.div key={f.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
-                  <label className="text-sm font-semibold flex items-center gap-1.5 ml-1">
-                    {f.label} {f.required && <span className="text-destructive">*</span>}
-                  </label>
-                  {f.type === 'select' ? (
-                    <select
-                      className="w-full h-12 bg-muted/50 border border-border/50 rounded-xl px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
-                      value={customValues[f.id] || ''}
-                      onChange={(e) => setCustomValues((prev: any) => ({ ...prev, [f.id]: e.target.value }))}
-                      required={f.required}
-                    >
-                      <option value="">Select...</option>
-                      {f.options?.map((o: string) => (
-                        <option key={o} value={o}>{o}</option>
-                      ))}
-                    </select>
-                  ) : f.type === 'textarea' ? (
-                    <textarea
-                      placeholder={`Enter ${f.label.toLowerCase()}...`}
-                      className="w-full h-28 bg-muted/50 border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"
-                      value={customValues[f.id] || ''}
-                      onChange={(e) => setCustomValues((prev: any) => ({ ...prev, [f.id]: e.target.value }))}
-                      required={f.required}
-                    />
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <Button type="button" variant="outline" onClick={onClose} className="order-2 sm:order-1 flex-1 h-12 rounded-xl text-foreground/70 font-semibold border-border/50">
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={submitting} className="order-1 sm:order-2 flex-[2] h-12 gradient-primary rounded-xl font-bold shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                  {submitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
                   ) : (
-                    <input
-                      type={f.type === 'number' ? 'number' : 'text'}
-                      placeholder={`Enter ${f.label.toLowerCase()}...`}
-                      className="w-full h-12 bg-muted/50 border border-border/50 rounded-xl px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                      value={customValues[f.id] || ''}
-                      onChange={(e) => setCustomValues((prev: any) => ({ ...prev, [f.id]: e.target.value }))}
-                      required={f.required}
-                    />
+                    'Confirm Registration'
                   )}
-                </motion.div>
-              ))}
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={onClose} className="flex-1 h-12 rounded-xl text-foreground/70 font-semibold border-border/50">
-                Cancel
-              </Button>
-              <Button type="submit" disabled={submitting} className="flex-[2] h-12 gradient-primary rounded-xl font-bold shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
-                {submitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  'Confirm Registration'
-                )}
-              </Button>
-            </div>
-          </form>
+                </Button>
+              </div>
+            </form>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
