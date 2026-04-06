@@ -489,13 +489,13 @@ const EventDetail = () => {
   const generateBadge = () => {
     if (!badgeToken) { toast.error('Registration token not available'); return; }
 
-    // ── PATH A: Custom badge.png template (Premium Overlay Design) ────────
+    // ── PATH A: Custom badge.png template (Precision Coordinate Design) ─
     if (event.useCustomBadge) {
       const imgLoad = new Image();
       imgLoad.crossOrigin = 'anonymous';
       imgLoad.onload = () => {
         try {
-          // 1. Target high-resolution canvas (1414 × 2000 px = A4 @ 170 DPI)
+          // 1. Target high-resolution canvas (A4 @ 170 DPI = 1414 × 2000 px)
           const BW = imgLoad.naturalWidth  || 1414;
           const BH = imgLoad.naturalHeight || 2000;
           const canvas = document.createElement('canvas');
@@ -506,114 +506,99 @@ const EventDetail = () => {
           // 2. mm-to-pixel scaling helper (A4 width = 210mm)
           const mm = (v: number) => Math.round(v * BW / 210);
 
-          // 3. Attendee Full Name ── The Hero Element
-          const nameText = (user?.displayName || user?.email || 'Valued Attendee').toUpperCase();
+          // 3. Helper: Position elements based on BOX (X, Y, W, H) in mm
+          // Titles/Text will be centered within their respective boxes
+          
+          // ── A. Event Title ──
+          // cm: 0.7x, 5.13y, 14.37w, 2.8h  =>  mm: 7x, 51.3y, 143.7w, 28h
+          const eventTitle = (displayTitle || event.title || '').toUpperCase();
+          const titleBox = { x: mm(7), y: mm(51.3), w: mm(143.7), h: mm(28) };
           ctx.save();
           ctx.textAlign = 'center'; 
           ctx.textBaseline = 'middle';
-          
-          // Premium Font Styling: Bold, High-Impact
           ctx.fillStyle = '#FFFFFF';
-          // Use modern sans font with significant letter spacing for "magic" look
-          // @ts-ignore (letterSpacing is a newer canvas property)
-          if ('letterSpacing' in ctx) ctx.letterSpacing = 'mm(1.2)px'; 
-          ctx.font = `900 ${mm(16)}px "Inter Variable", "Inter", "Helvetica Neue", Arial, sans-serif`;
+          ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = mm(2);
+          ctx.font = `600 ${mm(11)}px "Inter", "Helvetica Neue", sans-serif`;
           
-          // Professional Shadow for "Floating" effect
-          ctx.shadowColor = 'rgba(0,0,0,0.65)'; 
-          ctx.shadowBlur = mm(3); 
-          ctx.shadowOffsetY = mm(0.8);
-          
-          // Position: Center-mid zone (adjusting to avoid typical headers)
-          ctx.fillText(nameText, BW / 2, mm(150));
+          // Fit text within Title box width
+          const maxWidth = titleBox.w * 0.95;
+          let currentFontSize = 11;
+          while (ctx.measureText(eventTitle).width > maxWidth && currentFontSize > 5) {
+            currentFontSize -= 0.5;
+            ctx.font = `600 ${mm(currentFontSize)}px "Inter", "Helvetica Neue", sans-serif`;
+          }
+          ctx.fillText(eventTitle, titleBox.x + titleBox.w / 2, titleBox.y + titleBox.h / 2);
           ctx.restore();
 
-          // 4. Subtle Decorative Divider
-          ctx.save();
-          const gradient = ctx.createLinearGradient(mm(50), 0, mm(160), 0);
-          gradient.addColorStop(0, 'rgba(255,255,255,0)');
-          gradient.addColorStop(0.5, 'rgba(255,255,255,0.4)');
-          gradient.addColorStop(1, 'rgba(255,255,255,0)');
-          ctx.strokeStyle = gradient;
-          ctx.lineWidth = mm(0.4);
-          ctx.beginPath(); 
-          ctx.moveTo(mm(50), mm(158)); 
-          ctx.lineTo(mm(160), mm(158)); 
-          ctx.stroke();
-          ctx.restore();
-
-          // 5. Event Title & Date Info (Elegant & Slim)
-          const eventTitle = (displayTitle || event.title || 'Official Event').toUpperCase();
-          const dateStr = format(new Date(event.startAt), "MMM dd, yyyy  •  HH:mm").toUpperCase();
-          
+          // ── B. Attendee Name ──
+          // cm: 7.52x, 11.58y, 9.45w, 1.22h  =>  mm: 75.2x, 115.8y, 94.5w, 12.2h
+          const nameText = (user?.displayName || user?.email || 'Guest').toUpperCase();
+          const nameBox = { x: mm(75.2), y: mm(115.8), w: mm(94.5), h: mm(12.2) };
           ctx.save();
           ctx.textAlign = 'center';
-          ctx.fillStyle = 'rgba(255,255,255,0.85)';
-          
-          // Title
-          ctx.font = `600 ${mm(8)}px "Inter", "Helvetica Neue", Arial, sans-serif`;
-          ctx.fillText(eventTitle, BW / 2, mm(138));
-          
-          // Date
-          ctx.font = `400 ${mm(6.5)}px "Inter", "Helvetica Neue", Arial, sans-serif`;
-          ctx.fillText(dateStr, BW / 2, mm(168));
-          ctx.restore();
-
-          // 6. Styled verification QR Card (Minimalist & Modern)
-          const QR_PX    = mm(42); 
-          const CARD_PAD = mm(5);
-          const CARD_W   = QR_PX + CARD_PAD * 2;
-          const CARD_H   = QR_PX + CARD_PAD * 2 + mm(12); // Space for verification label
-          const CX       = (BW - CARD_W) / 2;
-          const CY       = mm(210); // Positioned in lower center
-          const RX       = mm(5);   // Modern rounded corners
-
-          // Frosted white card background with soft shadow
-          ctx.save();
-          ctx.shadowColor = 'rgba(0,0,0,0.18)'; 
-          ctx.shadowBlur = mm(4);
+          ctx.textBaseline = 'middle';
           ctx.fillStyle = '#FFFFFF';
-          
-          // Rounded rect
-          ctx.beginPath();
-          ctx.moveTo(CX + RX, CY);
-          ctx.lineTo(CX + CARD_W - RX, CY);
-          ctx.arcTo(CX + CARD_W, CY, CX + CARD_W, CY + RX, RX);
-          ctx.lineTo(CX + CARD_W, CY + CARD_H - RX);
-          ctx.arcTo(CX + CARD_W, CY + CARD_H, CX + CARD_W - RX, CY + CARD_H, RX);
-          ctx.lineTo(CX + RX, CY + CARD_H);
-          ctx.arcTo(CX, CY + CARD_H, CX, CY + CARD_H - RX, RX);
-          ctx.lineTo(CX, CY + RX);
-          ctx.arcTo(CX, CY, CX + RX, CY, RX);
-          ctx.closePath();
-          ctx.fill();
-          ctx.restore();
-
-          // "SCANNABLE VERIFICATION" Label inside card
-          ctx.save();
-          ctx.textAlign = 'center';
-          ctx.fillStyle = '#94a3b8'; // Muted Slate-400
+          ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = mm(2.5); ctx.shadowOffsetY = mm(0.5);
           // @ts-ignore
-          if ('letterSpacing' in ctx) ctx.letterSpacing = 'mm(0.5)px';
-          ctx.font = `bold ${mm(4.2)}px "Inter", sans-serif`;
-          ctx.fillText('SECURE ATTENDEE VERIFICATION', BW / 2, CY + CARD_H - mm(6));
+          if ('letterSpacing' in ctx) ctx.letterSpacing = 'mm(1)px';
+          ctx.font = `900 ${mm(15)}px "Inter", "Helvetica Neue", sans-serif`;
+          
+          // Scale Name to fit box height/width
+          let nameSize = 15;
+          while ((ctx.measureText(nameText).width > nameBox.w * 0.95 || mm(nameSize) > nameBox.h * 1.5) && nameSize > 6) {
+            nameSize -= 0.5;
+            ctx.font = `900 ${mm(nameSize)}px "Inter", "Helvetica Neue", sans-serif`;
+          }
+          ctx.fillText(nameText, nameBox.x + nameBox.w / 2, nameBox.y + nameBox.h / 2);
           ctx.restore();
 
-          // 7. Render QR bitmap into the frame
+          // ── C. Date Time ──
+          // cm: 1.83x, 25.16y, 6.53w, 0.57h  =>  mm: 18.3x, 251.6y, 65.3w, 5.7h
+          const dateStr = format(new Date(event.startAt), "MMM dd, yyyy • HH:mm").toUpperCase();
+          const dateBox = { x: mm(18.3), y: mm(251.6), w: mm(65.3), h: mm(5.7) };
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = 'rgba(255,255,255,0.85)';
+          ctx.font = `500 ${mm(5.5)}px "Inter", sans-serif`;
+          
+          let dateSize = 5.5;
+          while (ctx.measureText(dateStr).width > dateBox.w && dateSize > 3) {
+            dateSize -= 0.2;
+            ctx.font = `500 ${mm(dateSize)}px "Inter", sans-serif`;
+          }
+          ctx.fillText(dateStr, dateBox.x + dateBox.w / 2, dateBox.y + dateBox.h / 2);
+          ctx.restore();
+
+          // ── D. QR Code ──
+          // cm: 0.89x, 15.44y, 8.4w, 8.4h  =>  mm: 8.9x, 154.4y, 84w, 84h
+          const QR_SIZE = mm(84);
+          const QX = mm(8.9);
+          const QY = mm(154.4);
+
           const savePDF = () => {
             const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-            // High quality JPEG compression (0.98) for sharp PDF but smaller file size
             doc.addImage(canvas.toDataURL('image/jpeg', 0.98), 'JPEG', 0, 0, 210, 297);
             doc.save(`badge-${event.id}.pdf`);
-            toast.success('Professional badge generated! Check your downloads.');
+            toast.success('Precision-designed badge downloaded!');
           };
 
           const finalizeWithQR = (qrDataUrl?: string) => {
             if (qrDataUrl) {
               const qImg = new Image();
               qImg.onload = () => {
-                // Draw QR with padding from card edges
-                ctx.drawImage(qImg, CX + CARD_PAD, CY + CARD_PAD, QR_PX, QR_PX);
+                // Professional Touch: Soft white backing for the QR to ensure readability
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.15)'; ctx.shadowBlur = mm(3);
+                ctx.fillStyle = '#FFFFFF';
+                // Slight padding for the white board
+                const pad = mm(2);
+                ctx.beginPath();
+                ctx.roundRect(QX - pad, QY - pad, QR_SIZE + pad * 2, QR_SIZE + pad * 2, mm(3));
+                ctx.fill();
+                ctx.restore();
+                
+                ctx.drawImage(qImg, QX, QY, QR_SIZE, QR_SIZE);
                 savePDF();
               };
               qImg.src = qrDataUrl;
@@ -622,11 +607,11 @@ const EventDetail = () => {
             }
           };
 
-          // Capture QR from DOM SVG
+          // QR SVG Capture
           const qrSvg = document.querySelector('.registration-qr svg');
           if (qrSvg instanceof SVGElement) {
             const qCanvas = document.createElement('canvas');
-            qCanvas.width = 400; qCanvas.height = 400;
+            qCanvas.width = 600; qCanvas.height = 600; // High res QR
             const qCtx = qCanvas.getContext('2d');
             if (qCtx) {
               const svgData = new XMLSerializer().serializeToString(qrSvg);
@@ -634,7 +619,7 @@ const EventDetail = () => {
               const url     = URL.createObjectURL(blob);
               const qrLoader = new Image();
               qrLoader.onload = () => { 
-                qCtx.drawImage(qrLoader, 0, 0, 400, 400); 
+                qCtx.drawImage(qrLoader, 0, 0, 600, 600); 
                 URL.revokeObjectURL(url); 
                 finalizeWithQR(qCanvas.toDataURL('image/png')); 
               };
@@ -644,15 +629,12 @@ const EventDetail = () => {
           }
           finalizeWithQR();
         } catch (e) {
-          console.error('Badge scaling error:', e);
-          toast.error('Design rendering issue. Falling back to default.');
+          console.error(e);
+          toast.error('Coordinate rendering issue.');
           generateDefaultBadge();
         }
       };
-      imgLoad.onerror = () => {
-        toast.error('Template badge.png not found. Using default style.');
-        generateDefaultBadge();
-      };
+      imgLoad.onerror = () => generateDefaultBadge();
       imgLoad.src = '/badge.png';
       return;
     }
