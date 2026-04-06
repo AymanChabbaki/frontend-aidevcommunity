@@ -399,16 +399,31 @@ const AdminManageEvents = () => {
 
   const handleExportRegistrations = async (eventId: string, eventTitle: string) => {
     try {
-      const response = await eventService.getEventRegistrations(eventId);
-      const registrations = response.data || [];
+      // Fetch registrations + the event's custom field definitions
+      const [regResponse, eventsList] = await Promise.all([
+        eventService.getEventRegistrations(eventId),
+        eventService.getAllEvents(),
+      ]);
+      const registrations = regResponse.data || [];
+      const theEvent = eventsList.data?.find((e: any) => e.id === eventId);
+      const customFields: Array<{ id: string; label: string }> = theEvent?.customFields || [];
 
-      const exportData = registrations.map((reg: any) => ({
-        Name: reg.user?.displayName || 'N/A',
-        Email: reg.user?.email || 'N/A',
-        Status: reg.status,
-        'Registration Date': format(new Date(reg.createdAt), 'MMM dd, yyyy HH:mm'),
-        'Checked In': reg.checkedInAt ? format(new Date(reg.checkedInAt), 'MMM dd, yyyy HH:mm') : 'No',
-      }));
+      const exportData = registrations.map((reg: any) => {
+        const row: Record<string, any> = {
+          Name: reg.user?.displayName || 'N/A',
+          Email: reg.user?.email || 'N/A',
+          'Study Level': reg.user?.studyLevel || '',
+          'Study Program': reg.user?.studyProgram || '',
+          Status: reg.status,
+          'Registration Date': format(new Date(reg.createdAt), 'MMM dd, yyyy HH:mm'),
+          'Checked In': reg.checkedInAt ? format(new Date(reg.checkedInAt), 'MMM dd, yyyy HH:mm') : 'No',
+        };
+        // Append custom field answers with human-readable labels
+        customFields.forEach(f => {
+          row[f.label] = reg.customFieldValues?.[f.id] || '';
+        });
+        return row;
+      });
 
       const worksheet = XLSX.utils.json_to_sheet(exportData);
       const workbook = XLSX.utils.book_new();
