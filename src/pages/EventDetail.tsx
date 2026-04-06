@@ -355,6 +355,7 @@ const EventDetail = () => {
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showGuestModal, setShowGuestModal] = useState(false);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [registering, setRegistering] = useState(false);
   // custom field values for logged-in users
   const [authCustomValues, setAuthCustomValues] = useState<Record<string, string>>({});
@@ -437,6 +438,14 @@ const EventDetail = () => {
       setTimeout(() => navigate('/register'), 1000);
       return;
     }
+    
+    // If event has custom fields, show the collection modal
+    if (event.customFields && event.customFields.length > 0) {
+      setShowRegistrationModal(true);
+      return;
+    }
+
+    // Otherwise proceed with direct registration if eligibility is met
     if (event.requiresApproval) {
       const el = event.eligibleLevels || [];
       const ep = event.eligiblePrograms || [];
@@ -453,17 +462,10 @@ const EventDetail = () => {
         if (!ok) { toast.error('You are not eligible for this event', { description: 'Check the eligibility requirements below' }); return; }
       }
     }
-    // Validate required custom fields for authenticated users
-    const eventCustomFields: Array<{ id: string; label: string; required: boolean }> = event.customFields || [];
-    for (const f of eventCustomFields) {
-      if (f.required && !authCustomValues[f.id]?.trim()) {
-        toast.error(`Please fill in: ${f.label}`); return;
-      }
-    }
+
     try {
       setRegistering(true);
-      const cfv = Object.keys(authCustomValues).length > 0 ? authCustomValues : undefined;
-      const response = await eventService.registerForEvent(event.id, cfv);
+      const response = await eventService.registerForEvent(event.id, undefined);
       if (response.success) {
         setIsRegistered(true);
         setRegistrationStatus(response.data.status || 'PENDING');
@@ -1027,10 +1029,132 @@ const EventDetail = () => {
         onClose={() => setShowGuestModal(false)}
         onSuccess={handleGuestRegistrationSuccess}
         eventId={event.id}
-        eventTitle={displayTitle || event.title}
+        eventTitle={displayTitle}
         customFields={event.customFields || []}
       />
+
+      <AuthenticatedRegistrationModal
+        open={showRegistrationModal}
+        onClose={() => setShowRegistrationModal(false)}
+        onSuccess={() => { setIsRegistered(true); fetchEvent(); }}
+        event={event}
+        customValues={authCustomValues}
+        setCustomValues={setAuthCustomValues}
+      />
     </div>
+  );
+};
+
+// ─── Authenticated Member Registration Modal ──────────────────────────────────
+const AuthenticatedRegistrationModal = ({ open, onClose, onSuccess, event, customValues, setCustomValues }: any) => {
+  const [submitting, setSubmitting] = useState(false);
+  const spotsLeft = event.capacity - event.registrations;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // Validate required custom fields
+    const fields = event.customFields || [];
+    for (const f of fields) {
+      if (f.required && !customValues[f.id]?.trim()) {
+        toast.error(`Required: ${f.label}`); return;
+      }
+    }
+
+    setSubmitting(true);
+    try {
+      const response = await eventService.registerForEvent(event.id, customValues);
+      if (response.success) {
+        toast.success('Registration successful!', { description: 'Your application has been received' });
+        onSuccess();
+        onClose();
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Registration failed');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-xl p-0 overflow-hidden border-none bg-background/95 backdrop-blur-xl shadow-2xl rounded-2xl">
+        <div className="bg-gradient-to-br from-primary/10 via-background to-background p-8">
+          <div className="flex flex-col items-center text-center mb-8">
+            <div className="h-16 w-16 rounded-2xl bg-primary/20 flex items-center justify-center mb-4 border border-primary/20 animate-pulse">
+              <CheckCircle2 className="h-8 w-8 text-primary" />
+            </div>
+            <h2 className="text-3xl font-bold tracking-tight mb-2">Ready to Join?</h2>
+            <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+              <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+              <span className="text-sm font-semibold text-primary">{spotsLeft} SPOTS REMAINING</span>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-2 text-muted-foreground">
+                <div className="h-1 w-8 bg-primary/30 rounded-full" />
+                <span className="text-xs font-bold uppercase tracking-widest">Additional Information</span>
+              </div>
+
+              {event.customFields?.map((f: any) => (
+                <motion.div key={f.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
+                  <label className="text-sm font-semibold flex items-center gap-1.5 ml-1">
+                    {f.label} {f.required && <span className="text-destructive">*</span>}
+                  </label>
+                  {f.type === 'select' ? (
+                    <select
+                      className="w-full h-12 bg-muted/50 border border-border/50 rounded-xl px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
+                      value={customValues[f.id] || ''}
+                      onChange={(e) => setCustomValues((prev: any) => ({ ...prev, [f.id]: e.target.value }))}
+                      required={f.required}
+                    >
+                      <option value="">Select...</option>
+                      {f.options?.map((o: string) => (
+                        <option key={o} value={o}>{o}</option>
+                      ))}
+                    </select>
+                  ) : f.type === 'textarea' ? (
+                    <textarea
+                      placeholder={`Enter ${f.label.toLowerCase()}...`}
+                      className="w-full h-28 bg-muted/50 border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+                      value={customValues[f.id] || ''}
+                      onChange={(e) => setCustomValues((prev: any) => ({ ...prev, [f.id]: e.target.value }))}
+                      required={f.required}
+                    />
+                  ) : (
+                    <input
+                      type={f.type === 'number' ? 'number' : 'text'}
+                      placeholder={`Enter ${f.label.toLowerCase()}...`}
+                      className="w-full h-12 bg-muted/50 border border-border/50 rounded-xl px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                      value={customValues[f.id] || ''}
+                      onChange={(e) => setCustomValues((prev: any) => ({ ...prev, [f.id]: e.target.value }))}
+                      required={f.required}
+                    />
+                  )}
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button type="button" variant="outline" onClick={onClose} className="flex-1 h-12 rounded-xl text-foreground/70 font-semibold border-border/50">
+                Cancel
+              </Button>
+              <Button type="submit" disabled={submitting} className="flex-[2] h-12 gradient-primary rounded-xl font-bold shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                {submitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  'Confirm Registration'
+                )}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
