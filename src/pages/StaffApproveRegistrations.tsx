@@ -11,14 +11,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { eventService } from '@/services/event.service';
-import { CheckCircle, XCircle, Calendar, User, Mail, GraduationCap, Clock, Search, Filter, X, AlertCircle, Trash2 } from 'lucide-react';
+import { CheckCircle, XCircle, Calendar, User, Mail, GraduationCap, Clock, Search, Filter, X, AlertCircle, Trash2, Download, ListChecks } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
+import * as XLSX from 'xlsx';
 
 interface Registration {
   id: string;
   status: string;
   createdAt: string;
+  customFieldValues?: Record<string, string>;
   event: {
     id: string;
     title: string;
@@ -27,6 +29,7 @@ interface Registration {
     eligibleLevels?: string[];
     eligiblePrograms?: string[];
     organizerId: string;
+    customFields?: Array<{ id: string; label: string; type: string; required: boolean; options: string[] }>;
   };
   user: {
     id: string;
@@ -156,6 +159,34 @@ const StaffApproveRegistrations = () => {
 
   const hasActiveFilters = searchQuery || selectedEvent !== 'all' || selectedLevel !== 'all' || selectedStatus !== 'all';
 
+  // Excel Export
+  const exportToExcel = () => {
+    if (filteredRegistrations.length === 0) return;
+    const cfLabelMap = new Map<string, string>();
+    filteredRegistrations.forEach(reg => {
+      (reg.event.customFields || []).forEach(f => { if (!cfLabelMap.has(f.id)) cfLabelMap.set(f.id, f.label); });
+    });
+    const cfIds = Array.from(cfLabelMap.keys());
+    const rows = filteredRegistrations.map(reg => {
+      const base: Record<string, any> = {
+        'Event': reg.event.title,
+        'Event Date': format(new Date(reg.event.startAt), 'PPP'),
+        'Name': reg.user.displayName,
+        'Email': reg.user.email,
+        'Study Level': reg.user.studyLevel || '',
+        'Study Program': reg.user.studyProgram || '',
+        'Status': reg.status,
+        'Registered At': format(new Date(reg.createdAt), 'PPP p'),
+      };
+      cfIds.forEach(id => { base[cfLabelMap.get(id)!] = reg.customFieldValues?.[id] || ''; });
+      return base;
+    });
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Registrations');
+    XLSX.writeFile(wb, `registrations-${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+  };
+
   // Check eligibility
   const checkEligibility = (registration: Registration) => {
     const { event, user } = registration;
@@ -193,11 +224,16 @@ const StaffApproveRegistrations = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Manage Registrations</h1>
-        <p className="text-muted-foreground">
-          Review and manage event registrations for your events ({filteredRegistrations.length} registration{filteredRegistrations.length !== 1 ? 's' : ''})
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Manage Registrations</h1>
+          <p className="text-muted-foreground">
+            Review and manage event registrations for your events ({filteredRegistrations.length} registration{filteredRegistrations.length !== 1 ? 's' : ''})
+          </p>
+        </div>
+        <Button variant="outline" onClick={exportToExcel} disabled={filteredRegistrations.length === 0}>
+          <Download className="h-4 w-4 mr-2" /> Export Excel
+        </Button>
       </div>
 
       {/* Filters */}
@@ -360,6 +396,33 @@ const StaffApproveRegistrations = () => {
                           {format(new Date(registration.event.startAt), 'PPP')}
                         </p>
                       </div>
+
+                      {/* Custom field values */}
+                      {registration.customFieldValues && Object.keys(registration.customFieldValues).length > 0 && (
+                        <div className="pl-16">
+                          <div className="border rounded-lg p-3 space-y-2 bg-muted/30">
+                            <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                              <ListChecks className="h-3.5 w-3.5" /> Additional Responses
+                            </p>
+                            <div className="space-y-1.5">
+                              {(registration.event.customFields || []).map(field => (
+                                <div key={field.id} className="flex items-start gap-2 text-sm">
+                                  <span className="font-medium text-muted-foreground min-w-[110px] flex-shrink-0">{field.label}:</span>
+                                  <span className="break-all">{registration.customFieldValues?.[field.id] || <span className="italic text-muted-foreground">—</span>}</span>
+                                </div>
+                              ))}
+                              {Object.entries(registration.customFieldValues)
+                                .filter(([id]) => !(registration.event.customFields || []).some(f => f.id === id))
+                                .map(([id, val]) => (
+                                  <div key={id} className="flex items-start gap-2 text-sm">
+                                    <span className="font-medium text-muted-foreground min-w-[110px] flex-shrink-0">{id}:</span>
+                                    <span className="break-all">{val}</span>
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Eligibility Issues */}
                       {!eligibility.isEligible && (
