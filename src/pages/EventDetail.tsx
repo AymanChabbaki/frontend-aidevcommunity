@@ -509,30 +509,65 @@ const EventDetail = () => {
           // 3. Helper: Position elements based on BOX (X, Y, W, H) in mm
           // Titles/Text will be centered within their respective boxes
           
-          // ── A. Event Title ──
+          // ── A. Event Title (Multi-line Wrapping + Shrink Engine) ──
           // cm: 0.7x, 5.13y, 14.37w, 2.8h  =>  mm: 7x, 51.3y, 143.7w, 28h
-          // Base Font: 31 pt (approx 10.93 mm)
           const eventTitle = (displayTitle || event.title || '').toUpperCase();
           const titleBox = { x: mm(7), y: mm(51.3), w: mm(143.7), h: mm(28) };
+          const titleMaxWidth = titleBox.w * 0.96;
+          const titleMaxHeight = titleBox.h * 0.95;
+
           ctx.save();
           ctx.textAlign = 'center'; 
           ctx.textBaseline = 'middle';
           ctx.fillStyle = '#FFFFFF';
           ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = mm(2);
-          
-          // Start at 31 pt (approx 10.936 mm)
+
+          // Wrapping & Shrink Loop
           const baseSizePt = 31;
           let currentSizeMm = (baseSizePt / 72) * 25.4;
-          ctx.font = `600 ${mm(currentSizeMm)}px "Inter", "Helvetica Neue", sans-serif`;
-          
-          // Shrink to fit the exact 14.37cm box width
-          const titleMaxWidth = titleBox.w * 0.98;
-          while (ctx.measureText(eventTitle).width > titleMaxWidth && currentSizeMm > 4) {
-            currentSizeMm -= 0.3;
+          let finalLines: string[] = [];
+          let totalHeight = 0;
+
+          // Iterative Shrink Logic
+          while (currentSizeMm > 4) {
             ctx.font = `600 ${mm(currentSizeMm)}px "Inter", "Helvetica Neue", sans-serif`;
+            const words = eventTitle.split(' ');
+            const lines: string[] = [];
+            let currentLine = words[0];
+
+            // 1. Wrap words
+            for (let i = 1; i < words.length; i++) {
+              const testLine = currentLine + ' ' + words[i];
+              if (ctx.measureText(testLine).width > titleMaxWidth) {
+                lines.push(currentLine);
+                currentLine = words[i];
+              } else {
+                currentLine = testLine;
+              }
+            }
+            lines.push(currentLine);
+
+            // 2. Check if this font size fits
+            const lineHeight = mm(currentSizeMm * 1.15);
+            totalHeight = lines.length * lineHeight;
+            
+            // Check overflow: height OR any single word being too wide
+            const anyLineOverflows = lines.some(l => ctx.measureText(l).width > titleMaxWidth);
+            
+            if (totalHeight <= titleMaxHeight && !anyLineOverflows) {
+              finalLines = lines;
+              break;
+            }
+            currentSizeMm -= 0.4; // Shrink and try again
           }
+
+          // 3. Render final lines
+          const lineHeight = mm(currentSizeMm * 1.15);
+          const startY = titleBox.y + (titleBox.h - totalHeight) / 2 + lineHeight / 2;
           
-          ctx.fillText(eventTitle, titleBox.x + titleBox.w / 2, titleBox.y + titleBox.h / 2);
+          finalLines.forEach((line, i) => {
+            ctx.fillText(line, titleBox.x + titleBox.w / 2, startY + i * lineHeight);
+          });
           ctx.restore();
 
           // ── B. Attendee Name ──
