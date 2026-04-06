@@ -30,6 +30,10 @@ interface GuestModalProps {
   onSuccess: (registration: any) => void;
   eventId: string;
   eventTitle: string;
+  customFields?: Array<{
+    id: string; label: string; type: string;
+    required: boolean; options: string[];
+  }>;
 }
 
 const STUDY_LEVELS = ['BACHELOR', 'MASTER', 'DOCTORATE'];
@@ -51,7 +55,7 @@ const labelForProgram = (p: string) => {
   return map[p] || p;
 };
 
-const GuestRegistrationModal = ({ open, onClose, onSuccess, eventId, eventTitle }: GuestModalProps) => {
+const GuestRegistrationModal = ({ open, onClose, onSuccess, eventId, eventTitle, customFields = [] }: GuestModalProps) => {
   const { loginWithTokens } = useAuth();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
@@ -61,6 +65,8 @@ const GuestRegistrationModal = ({ open, onClose, onSuccess, eventId, eventTitle 
     displayName: '', email: '', password: '', confirmPassword: '',
     phone: '', studyLevel: '', studyProgram: '', github: '', linkedin: '',
   });
+  // Custom field values keyed by field id
+  const [customValues, setCustomValues] = useState<Record<string, string>>({});
 
   const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm(prev => ({ ...prev, [key]: e.target.value }));
@@ -78,6 +84,12 @@ const GuestRegistrationModal = ({ open, onClose, onSuccess, eventId, eventTitle 
     }
     setSubmitting(true);
     try {
+      // Validate required custom fields
+      for (const f of customFields) {
+        if (f.required && !customValues[f.id]?.trim()) {
+          toast.error(`Please fill in: ${f.label}`); setSubmitting(false); return;
+        }
+      }
       const response = await eventService.registerAsGuest(eventId, {
         displayName: form.displayName.trim(),
         email: form.email.trim().toLowerCase(),
@@ -87,6 +99,7 @@ const GuestRegistrationModal = ({ open, onClose, onSuccess, eventId, eventTitle 
         studyProgram: form.studyProgram || undefined,
         github: form.github || undefined,
         linkedin: form.linkedin || undefined,
+        customFieldValues: Object.keys(customValues).length > 0 ? customValues : undefined,
       });
       if (response.success) {
         loginWithTokens(response.data.user, response.data.accessToken, response.data.refreshToken);
@@ -214,6 +227,55 @@ const GuestRegistrationModal = ({ open, onClose, onSuccess, eventId, eventTitle 
             </div>
           </div>
 
+          {/* Dynamic custom fields from event config */}
+          {customFields.length > 0 && (
+            <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
+              <p className="text-sm font-medium">Additional Information</p>
+              <div className="space-y-3">
+                {customFields.map((field) => (
+                  <div key={field.id} className="space-y-1.5">
+                    <Label htmlFor={`cf-${field.id}`}>
+                      {field.label}
+                      {field.required && <span className="text-destructive ml-1">*</span>}
+                    </Label>
+                    {field.type === 'select' ? (
+                      <Select
+                        value={customValues[field.id] || ''}
+                        onValueChange={(v) => setCustomValues(prev => ({ ...prev, [field.id]: v }))}
+                        disabled={submitting}
+                      >
+                        <SelectTrigger id={`cf-${field.id}`}><SelectValue placeholder="Select…" /></SelectTrigger>
+                        <SelectContent>
+                          {field.options.map((opt: string) => (
+                            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : field.type === 'textarea' ? (
+                      <textarea
+                        id={`cf-${field.id}`}
+                        className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                        placeholder={`Enter ${field.label.toLowerCase()}…`}
+                        value={customValues[field.id] || ''}
+                        onChange={(e) => setCustomValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                        disabled={submitting}
+                      />
+                    ) : (
+                      <Input
+                        id={`cf-${field.id}`}
+                        type={field.type}
+                        placeholder={`Enter ${field.label.toLowerCase()}…`}
+                        value={customValues[field.id] || ''}
+                        onChange={(e) => setCustomValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                        disabled={submitting}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <Alert className="border-primary/30 bg-primary/5">
             <CheckCircle2 className="h-4 w-4 text-primary" />
             <AlertDescription className="text-sm">
@@ -294,6 +356,8 @@ const EventDetail = () => {
   const [loading, setLoading] = useState(true);
   const [showGuestModal, setShowGuestModal] = useState(false);
   const [registering, setRegistering] = useState(false);
+  // custom field values for logged-in users
+  const [authCustomValues, setAuthCustomValues] = useState<Record<string, string>>({});
 
   useEffect(() => { fetchEvent(); }, [id, isAuthenticated]);
 
@@ -389,9 +453,17 @@ const EventDetail = () => {
         if (!ok) { toast.error('You are not eligible for this event', { description: 'Check the eligibility requirements below' }); return; }
       }
     }
+    // Validate required custom fields for authenticated users
+    const eventCustomFields: Array<{ id: string; label: string; required: boolean }> = event.customFields || [];
+    for (const f of eventCustomFields) {
+      if (f.required && !authCustomValues[f.id]?.trim()) {
+        toast.error(`Please fill in: ${f.label}`); return;
+      }
+    }
     try {
       setRegistering(true);
-      const response = await eventService.registerForEvent(event.id);
+      const cfv = Object.keys(authCustomValues).length > 0 ? authCustomValues : undefined;
+      const response = await eventService.registerForEvent(event.id, cfv);
       if (response.success) {
         setIsRegistered(true);
         setRegistrationStatus(response.data.status || 'PENDING');
@@ -416,6 +488,80 @@ const EventDetail = () => {
   // ── Badge PDF ──
   const generateBadge = () => {
     if (!badgeToken) { toast.error('Registration token not available'); return; }
+
+    // ── PATH A: Custom badge.png template ──────────────────────────────────
+    if (event.useCustomBadge) {
+      const imgLoad = new Image();
+      imgLoad.crossOrigin = 'anonymous';
+      imgLoad.onload = () => {
+        try {
+          // Draw badge.png onto a canvas at A4 ratio (so we can get a data-URL)
+          const A4_W = 794;  // px at 96dpi ≈ A4 width
+          const A4_H = 1123; // px at 96dpi ≈ A4 height
+          const canvas = document.createElement('canvas');
+          canvas.width = A4_W; canvas.height = A4_H;
+          const ctx = canvas.getContext('2d')!;
+          ctx.drawImage(imgLoad, 0, 0, A4_W, A4_H);
+
+          const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+          const bgData = canvas.toDataURL('image/png');
+          doc.addImage(bgData, 'PNG', 0, 0, 210, 297); // full A4
+
+          // ── Overlay text — adjust Y coordinates to match your badge.png layout ──
+          // Attendee name  (centred, ~155mm from top)
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(22);
+          doc.setTextColor(255, 255, 255);
+          doc.text(user?.displayName || user?.email || 'Guest', 105, 157, { align: 'center' });
+
+          // Event title (centred, ~120mm)
+          doc.setFontSize(14);
+          doc.setFont('helvetica', 'normal');
+          const splitTitle = doc.splitTextToSize(displayTitle || event.title, 160);
+          doc.text(splitTitle, 105, 122, { align: 'center' });
+
+          // Date (left, ~175mm)
+          doc.setFontSize(11);
+          doc.text(format(new Date(event.startAt), 'PPP p'), 105, 175, { align: 'center' });
+
+          // Location (left, ~185mm)
+          doc.setFontSize(10);
+          doc.text(event.locationText || 'TBA', 105, 185, { align: 'center' });
+
+          // QR code from DOM
+          const qrEl = document.querySelector('.registration-qr svg');
+          const finishWithQR = (qrDataUrl?: string) => {
+            if (qrDataUrl) doc.addImage(qrDataUrl, 'PNG', 80, 205, 50, 50); // centred ~210mm
+            doc.save(`badge-${event.id}.pdf`);
+            toast.success('Badge downloaded successfully!');
+          };
+
+          if (qrEl instanceof SVGElement) {
+            const qrCanvas = document.createElement('canvas');
+            qrCanvas.width = 200; qrCanvas.height = 200;
+            const qrCtx = qrCanvas.getContext('2d');
+            if (qrCtx) {
+              const svgData = new XMLSerializer().serializeToString(qrEl);
+              const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+              const url = URL.createObjectURL(blob);
+              const qrImg = new Image();
+              qrImg.onload = () => { qrCtx.drawImage(qrImg, 0, 0); URL.revokeObjectURL(url); finishWithQR(qrCanvas.toDataURL('image/png')); };
+              qrImg.src = url; return;
+            }
+          }
+          finishWithQR();
+        } catch { toast.error('Failed to generate badge'); }
+      };
+      imgLoad.onerror = () => { toast.error('badge.png not found in /public — falling back to default badge'); generateDefaultBadge(); };
+      imgLoad.src = '/badge.png';
+      return;
+    }
+
+    // ── PATH B: Default generated badge ────────────────────────────────────
+    generateDefaultBadge();
+  };
+
+  const generateDefaultBadge = () => {
     setTimeout(() => {
       try {
         const doc = new jsPDF();
@@ -671,6 +817,43 @@ const EventDetail = () => {
                       {isFull ? 'This event is fully booked.' : `${spotsLeft} spot${spotsLeft !== 1 ? 's' : ''} remaining`}
                     </p>
                   </div>
+
+                  {/* Custom fields for authenticated users */}
+                  {isAuthenticated && (event.customFields || []).length > 0 && (
+                    <div className="border rounded-xl p-4 space-y-3 bg-muted/30">
+                      <p className="text-sm font-semibold">Additional Information</p>
+                      {(event.customFields as Array<{id:string;label:string;type:string;required:boolean;options:string[]}>).map((field) => (
+                        <div key={field.id} className="space-y-1.5">
+                          <Label htmlFor={`auth-cf-${field.id}`}>
+                            {field.label}
+                            {field.required && <span className="text-destructive ml-1">*</span>}
+                          </Label>
+                          {field.type === 'select' ? (
+                            <Select
+                              value={authCustomValues[field.id] || ''}
+                              onValueChange={(v) => setAuthCustomValues(prev => ({ ...prev, [field.id]: v }))}
+                            >
+                              <SelectTrigger id={`auth-cf-${field.id}`}><SelectValue placeholder="Select…" /></SelectTrigger>
+                              <SelectContent>
+                                {field.options.map((opt: string) => (
+                                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <Input
+                              id={`auth-cf-${field.id}`}
+                              type={field.type}
+                              placeholder={`Enter ${field.label.toLowerCase()}…`}
+                              value={authCustomValues[field.id] || ''}
+                              onChange={(e) => setAuthCustomValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   <Button
                     onClick={handleRegister}
                     className="w-full gradient-primary h-12 text-base font-semibold"
@@ -723,6 +906,7 @@ const EventDetail = () => {
         onSuccess={handleGuestRegistrationSuccess}
         eventId={event.id}
         eventTitle={displayTitle || event.title}
+        customFields={event.customFields || []}
       />
     </div>
   );

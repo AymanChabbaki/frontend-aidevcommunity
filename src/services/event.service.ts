@@ -46,8 +46,8 @@ export const eventService = {
     return response.data;
   },
 
-  async registerForEvent(id: string) {
-    const response = await api.post(`/events/${id}/register`);
+  async registerForEvent(id: string, customFieldValues?: Record<string, string>) {
+    const response = await api.post(`/events/${id}/register`, customFieldValues ? { customFieldValues } : {});
     return response.data;
   },
 
@@ -60,6 +60,7 @@ export const eventService = {
     studyProgram?: string;
     github?: string;
     linkedin?: string;
+    customFieldValues?: Record<string, string>;
   }) {
     const response = await api.post(`/events/${id}/register-guest`, data);
     return response.data;
