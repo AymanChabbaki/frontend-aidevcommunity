@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { userService } from '@/services/user.service';
 import { format } from 'date-fns';
+import { ImageCropperModal } from '@/components/ImageCropperModal';
 
 const StaffProfile = () => {
   const { user: authUser, refreshUser } = useAuth();
@@ -45,6 +46,10 @@ const StaffProfile = () => {
     twitter: '',
     locale: 'en',
   });
+
+  // Photo Crop State
+  const [photoToCrop, setPhotoToCrop] = useState<string | null>(null);
+  const [showCropModal, setShowCropModal] = useState(false);
 
   useEffect(() => {
     fetchUserData();
@@ -148,18 +153,31 @@ const StaffProfile = () => {
       return;
     }
 
+    const reader = new FileReader();
+    reader.addEventListener('load', () => {
+      setPhotoToCrop(reader.result as string);
+      setShowCropModal(true);
+    });
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleCropComplete = async (croppedFile: File) => {
     try {
       setUploading(true);
-      const response = await userService.uploadPhoto(file);
+      setShowCropModal(false);
+
+      const response = await userService.uploadPhoto(croppedFile);
       setUser({ ...user, photoUrl: response.data.photoUrl });
       await refreshUser();
-      await fetchUserData(); // Refetch to ensure photo is displayed
+      await fetchUserData();
       
       toast.success('Profile photo updated successfully');
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to upload photo');
+      toast.error(error.message || 'Failed to upload photo');
     } finally {
       setUploading(false);
+      setPhotoToCrop(null);
     }
   };
 
@@ -658,6 +676,17 @@ const StaffProfile = () => {
           </motion.div>
         </div>
       </div>
+
+      <ImageCropperModal
+        isOpen={showCropModal}
+        onClose={() => {
+          setShowCropModal(false);
+          setPhotoToCrop(null);
+        }}
+        imageSrc={photoToCrop}
+        onCropComplete={handleCropComplete}
+        isUploading={uploading}
+      />
     </div>
   );
 };

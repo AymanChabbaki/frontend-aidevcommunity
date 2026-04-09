@@ -28,15 +28,6 @@ interface Member {
 const Members = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Helper function to format social media URLs
-  const formatUrl = (url: string | null | undefined): string => {
-    if (!url) return '';
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      return url;
-    }
-    return `https://${url}`;
-  };
   const { toast } = useToast();
 
   useEffect(() => {
@@ -59,26 +50,14 @@ const Members = () => {
     }
   };
 
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case 'ADMIN':
-        return 'destructive';
-      case 'STAFF':
-        return 'default';
-      default:
-        return 'secondary';
+  const getImageUrl = (photoUrl: string | null | undefined) => {
+    if (!photoUrl) return null;
+    if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+      return photoUrl;
     }
-  };
-
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case 'ADMIN':
-        return 'Admin';
-      case 'STAFF':
-        return 'Staff';
-      default:
-        return 'Member';
-    }
+    const API_URL = import.meta.env.VITE_API_URL || 'https://backend-aidevcommunity.vercel.app/api';
+    const baseUrl = API_URL.replace('/api', '');
+    return `${baseUrl}${photoUrl}`;
   };
 
   const getInitials = (name: string) => {
@@ -90,310 +69,158 @@ const Members = () => {
       .slice(0, 2);
   };
 
-  const getImageUrl = (photoUrl: string | null | undefined) => {
-    if (!photoUrl) return null;
-    // If it's already a full URL, return it
-    if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
-      return photoUrl;
+  const formatUrl = (url: string | null | undefined): string => {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
     }
-    // Otherwise, prepend the backend URL
-    const API_URL = import.meta.env.VITE_API_URL || 'https://backend-aidevcommunity.vercel.app/api';
-    const baseUrl = API_URL.replace('/api', '');
-    return `${baseUrl}${photoUrl}`;
+    return `https://${url}`;
   };
 
   const { scrollY } = useScroll();
-  const y1 = useTransform(scrollY, [0, 300], [0, -50]);
-  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
+  const backgroundY = useTransform(scrollY, [0, 500], [0, 150]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0c]">
         <div className="text-center">
           <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            animate={{ 
+              scale: [1, 1.2, 1],
+              opacity: [0.5, 1, 0.5]
+            }}
+            transition={{ duration: 2, repeat: Infinity }}
           >
-            <Users className="h-16 w-16 mx-auto text-primary mb-4" />
+            <div className="w-24 h-24 rounded-full border-t-2 border-primary animate-spin" />
           </motion.div>
-          <p className="text-xl text-muted-foreground">Loading our amazing team...</p>
+          <p className="mt-8 text-primary font-medium tracking-widest uppercase text-sm">Initializing Nebula...</p>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative py-32 md:py-40 overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0 z-0">
-          <img 
-            src="https://res.cloudinary.com/dmznisgxq/image/upload/v1764464353/b38daf15-402d-440f-aad8-57731b39c047_ofosvj.jpg" 
-            alt="" 
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/30" />
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/15 to-accent/20" />
-        </div>
-        {/* Animated Background Elements */}
-        <motion.div style={{ y: y1, opacity }} className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-20 left-10 opacity-20">
-            <motion.div
-              animate={{ rotate: 360, scale: [1, 1.2, 1] }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            >
-              <Users className="h-32 w-32 text-white" />
-            </motion.div>
-          </div>
-          <div className="absolute top-40 right-20 opacity-20">
-            <motion.div
-              animate={{ rotate: -360, y: [0, -20, 0] }}
-              transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <Star className="h-24 w-24 text-white" />
-            </motion.div>
-          </div>
-          <div className="absolute bottom-20 left-1/4 opacity-20">
-            <motion.div
-              animate={{ scale: [1, 1.3, 1], rotate: [0, 180, 360] }}
-              transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-            >
-              <Award className="h-28 w-28 text-white" />
-            </motion.div>
-          </div>
-        </motion.div>
+  const leadership = members.filter(m => (m.role === 'ADMIN' || m.role === 'STAFF') && m.displayName !== 'Admin User');
+  const community = members.filter(m => m.role === 'USER' && m.displayName !== 'Admin User');
 
-        <div className="container mx-auto px-4 relative z-10">
+  return (
+    <div className="min-h-screen bg-[#0a0a0c] text-white selection:bg-primary selection:text-white overflow-hidden">
+      {/* Immersive Background */}
+      <div className="fixed inset-0 z-0">
+        <motion.div 
+          style={{ y: backgroundY }}
+          className="absolute inset-0 opacity-40 bg-[url('https://res.cloudinary.com/dmznisgxq/image/upload/v1764464353/b38daf15-402d-440f-aad8-57731b39c047_ofosvj.jpg')] bg-cover bg-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0c]/80 via-[#0a0a0c]/60 to-[#0a0a0c]" />
+        
+        {/* Animated Orbs */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-[120px] animate-pulse delay-1000" />
+      </div>
+
+      {/* Hero Section */}
+      <section className="relative pt-40 pb-20 z-10">
+        <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center max-w-4xl mx-auto -mt-20"
+            className="text-center max-w-5xl mx-auto"
           >
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            >
-              <Badge className="mb-6 bg-white/20 text-white border-white/30 text-lg px-6 py-2">
-                <Sparkles className="h-4 w-4 mr-2" />
-                Our Team
-              </Badge>
-            </motion.div>
-            
-            <motion.h1 
-              className="text-6xl md:text-8xl font-bold mb-6 text-white"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              Meet Our
-              <span className="block bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
-                Amazing Team
+            <Badge className="mb-6 bg-primary/10 text-primary border-primary/20 backdrop-blur-md px-4 py-1.5 rounded-full">
+              <Sparkles className="w-3.5 h-3.5 mr-2" />
+              The Community
+            </Badge>
+            <h1 className="text-6xl md:text-8xl font-black mb-8 tracking-tighter">
+              BEYOND THE <br />
+              <span className="bg-gradient-to-r from-primary via-white to-secondary bg-clip-text text-transparent">
+                CONSTELLATION
               </span>
-            </motion.h1>
-            
-            <motion.p 
-              className="text-xl md:text-2xl mb-8 text-white/90"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              Meet the passionate individuals driving our community forward and making innovation happen
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="flex justify-center gap-6 text-white"
-            >
-              <div className="text-center">
-                <div className="text-4xl font-bold">{members.filter(m => m.displayName !== 'Admin User').length}+</div>
-                <div className="text-sm text-white/70">Members</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold">{members.filter(m => (m.role === 'ADMIN' || m.role === 'STAFF') && m.displayName !== 'Admin User').length}</div>
-                <div className="text-sm text-white/70">Leaders</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold">{members.reduce((acc, m) => acc + (m.skills?.length || 0), 0)}+</div>
-                <div className="text-sm text-white/70">Skills</div>
-              </div>
-            </motion.div>
+            </h1>
+            <p className="text-xl text-white/60 max-w-2xl mx-auto font-light leading-relaxed">
+              We are not just a group of developers. We are the architects of the next digital era. 
+              Meet the minds behind AI Dev Community.
+            </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Team Showcase - Football Style */}
-      <section className="py-20 relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute inset-0" style={{
-            backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 35px, currentColor 35px, currentColor 36px), repeating-linear-gradient(90deg, transparent, transparent 35px, currentColor 35px, currentColor 36px)',
-            backgroundSize: '36px 36px'
-          }}></div>
-        </div>
+      {/* Main Grid */}
+      <section className="relative pb-40 z-10">
+        <div className="container mx-auto px-4 space-y-32">
+          
+          {/* Leadership - Focus Grid */}
+          <div>
+            <div className="flex items-center gap-4 mb-12">
+              <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-primary/30" />
+              <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-primary/80">Command Center</h2>
+              <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-primary/30" />
+            </div>
 
-        <div className="container mx-auto px-4 relative z-10">
-          {/* Leadership Team - Large Showcase */}
-          <div className="mb-24">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-16"
-            >
-              <Badge className="mb-4 bg-gradient-to-r from-primary to-secondary text-white border-0 text-base px-6 py-2">
-                <Award className="h-4 w-4 mr-2" />
-                Leadership Team
-              </Badge>
-              <h2 className="text-4xl md:text-5xl font-bold mb-4">Our Champions</h2>
-              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                Leading the community with vision, passion, and dedication
-              </p>
-            </motion.div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-              {members.filter(m => (m.role === 'ADMIN' || m.role === 'STAFF') && m.displayName !== 'Admin User').map((member, index) => (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
+              {leadership.map((member, i) => (
                 <motion.div
                   key={member.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="group"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: i * 0.1 }}
+                  whileHover={{ y: -10 }}
+                  className="group relative"
                 >
-                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-background via-muted/50 to-background border border-border shadow-xl hover:shadow-2xl transition-all duration-500">
-                    {/* Number Badge */}
-                    <div className="absolute top-4 left-4 z-20">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                        {index + 1}
-                      </div>
-                    </div>
-
-                    {/* Photo Section - Full Width */}
-                    <div className="relative h-80 overflow-hidden">
-                      <motion.div
-                        className="absolute inset-0"
-                        whileHover={{ scale: 1.05 }}
-                        transition={{ duration: 0.4 }}
-                      >
-                        {member.photoUrl ? (
-                          <img
-                            src={getImageUrl(member.photoUrl) || ''}
-                            alt={member.displayName}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const initials = getInitials(member.displayName);
-                              e.currentTarget.src = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><defs><linearGradient id="grad${index}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%2314b8a6;stop-opacity:1" /><stop offset="100%" style="stop-color:%236366f1;stop-opacity:1" /></linearGradient></defs><rect fill="url(%23grad${index})" width="400" height="400"/><text x="200" y="200" font-size="120" text-anchor="middle" dy=".3em" fill="white" font-weight="bold">${initials}</text></svg>`;
-                            }}
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-primary via-secondary to-accent flex items-center justify-center text-white text-7xl font-bold">
-                            {getInitials(member.displayName)}
-                          </div>
-                        )}
-                        {/* Overlay Gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
-                      </motion.div>
-
-                      {/* Info Overlay */}
-                      <div className="absolute bottom-0 left-0 right-0 p-6 text-white z-10">
-                        <motion.div
-                          initial={{ y: 20, opacity: 0 }}
-                          whileInView={{ y: 0, opacity: 1 }}
-                          transition={{ delay: index * 0.1 + 0.2 }}
-                        >
-                          <h3 className="text-2xl font-bold mb-2 drop-shadow-lg">
-                            {member.displayName}
-                          </h3>
-                          {member.staffRole && (
-                            <p className="text-sm font-medium text-primary-foreground/90 mb-2 drop-shadow">
-                              {member.staffRole}
-                            </p>
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/50 to-secondary/50 rounded-[2.5rem] blur opacity-0 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
+                  
+                  <div className="relative bg-[#111115]/80 backdrop-blur-2xl border border-white/5 p-8 rounded-[2.5rem] h-full flex flex-col items-center text-center">
+                    {/* Futuristic Avatar Frame */}
+                    <div className="relative mb-8 pt-4">
+                      <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl group-hover:bg-primary/40 transition-colors" />
+                      <div className="relative w-40 h-40 rounded-full p-1.5 bg-gradient-to-tr from-primary to-secondary overflow-hidden">
+                        <div className="w-full h-full rounded-full bg-[#111115] p-1 overflow-hidden">
+                          {member.photoUrl ? (
+                            <img 
+                              src={getImageUrl(member.photoUrl) || ''} 
+                              alt={member.displayName}
+                              className="w-full h-full rounded-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-110 group-hover:scale-100"
+                            />
+                          ) : (
+                            <div className="w-full h-full rounded-full flex items-center justify-center text-5xl font-black bg-[#1a1a20]">
+                              {getInitials(member.displayName)}
+                            </div>
                           )}
-                          {member.studyLevel && (
-                            <p className="text-xs text-primary-foreground/80 mb-3 drop-shadow">
-                              {member.studyLevel.charAt(0) + member.studyLevel.slice(1).toLowerCase()}
-                              {member.studyProgram && ` - ${member.studyProgram.replace(/_/g, ' ')}`}
-                            </p>
-                          )}
-                          <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                            {getRoleLabel(member.role)}
-                          </Badge>
-                        </motion.div>
-                      </div>
-                    </div>
-
-                    {/* Details Section */}
-                    <div className="p-6">
-                      {member.bio && (
-                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                          {member.bio}
-                        </p>
-                      )}
-
-                      {member.skills && member.skills.length > 0 && (
-                        <div className="mb-4">
-                          <div className="flex flex-wrap gap-2">
-                            {member.skills.slice(0, 3).map((skill, idx) => (
-                              <span
-                                key={idx}
-                                className="px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full"
-                              >
-                                {skill}
-                              </span>
-                            ))}
-                            {member.skills.length > 3 && (
-                              <span className="px-3 py-1 bg-muted text-muted-foreground text-xs font-medium rounded-full">
-                                +{member.skills.length - 3} more
-                              </span>
-                            )}
-                          </div>
                         </div>
-                      )}
-
-                      {/* Social Links */}
-                      <div className="flex items-center gap-2 pt-4 border-t">
-                        {member.linkedin && (
-                          <a
-                            href={formatUrl(member.linkedin)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 rounded-lg hover:bg-primary hover:text-white transition-all"
-                          >
-                            <Linkedin className="h-4 w-4" />
-                          </a>
-                        )}
-                        {member.github && (
-                          <a
-                            href={formatUrl(member.github)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 rounded-lg hover:bg-primary hover:text-white transition-all"
-                          >
-                            <Github className="h-4 w-4" />
-                          </a>
-                        )}
-                        {member.twitter && (
-                          <a
-                            href={formatUrl(member.twitter)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 rounded-lg hover:bg-primary hover:text-white transition-all"
-                          >
-                            <Twitter className="h-4 w-4" />
-                          </a>
-                        )}
-                        <a
-                          href={`mailto:${member.email}`}
-                          className="p-2 rounded-lg hover:bg-primary hover:text-white transition-all ml-auto"
-                        >
-                          <Mail className="h-4 w-4" />
-                        </a>
                       </div>
+                      <Badge className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-white text-black font-bold uppercase text-[10px] tracking-widest py-1 px-4 rounded-full border-4 border-[#111115]">
+                        {member.role}
+                      </Badge>
+                    </div>
+
+                    <h3 className="text-3xl font-bold mb-2 group-hover:text-primary transition-colors tracking-tight">
+                      {member.displayName}
+                    </h3>
+                    <p className="text-sm text-primary font-medium tracking-widest uppercase mb-4 opacity-70">
+                      {member.staffRole || 'Core Architect'}
+                    </p>
+                    
+                    <p className="text-white/40 text-sm font-light leading-relaxed mb-6 line-clamp-3">
+                      {member.bio || 'Architecting complex systems and fostering community innovation through advanced AI technologies.'}
+                    </p>
+
+                    <div className="mt-auto flex gap-4">
+                      {member.github && (
+                        <a href={formatUrl(member.github)} target="_blank" rel="noopener noreferrer" className="p-3 bg-white/5 rounded-2xl hover:bg-white/10 hover:scale-110 transition-all">
+                          <Github className="w-5 h-5" />
+                        </a>
+                      )}
+                      {member.linkedin && (
+                        <a href={formatUrl(member.linkedin)} target="_blank" rel="noopener noreferrer" className="p-3 bg-white/5 rounded-2xl hover:bg-white/10 hover:scale-110 transition-all">
+                          <Linkedin className="w-5 h-5" />
+                        </a>
+                      )}
+                      {member.twitter && (
+                        <a href={formatUrl(member.twitter)} target="_blank" rel="noopener noreferrer" className="p-3 bg-white/5 rounded-2xl hover:bg-white/10 hover:scale-110 transition-all">
+                          <Twitter className="w-5 h-5" />
+                        </a>
+                      )}
+                      <a href={`mailto:${member.email}`} className="p-3 bg-primary/10 text-primary rounded-2xl hover:bg-primary hover:text-white transition-all">
+                        <Mail className="w-5 h-5" />
+                      </a>
                     </div>
                   </div>
                 </motion.div>
@@ -401,111 +228,86 @@ const Members = () => {
             </div>
           </div>
 
-          {/* Community Members */}
-          {members.filter(m => m.role === 'USER').length > 0 && (
-            <div>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="text-center mb-16"
-              >
-                <Badge className="mb-4 bg-gradient-to-r from-secondary to-accent text-white border-0 text-base px-6 py-2">
-                  <Users className="h-4 w-4 mr-2" />
-                  Community Members
-                </Badge>
-                <h2 className="text-4xl md:text-5xl font-bold mb-4">The Squad</h2>
-                <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                  Talented individuals contributing to our mission
-                </p>
-              </motion.div>
+          {/* Community - The Grid */}
+          <div>
+            <div className="flex items-center gap-4 mb-12">
+              <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-white/10" />
+              <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-white/40">The Vanguard</h2>
+              <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-white/10" />
+            </div>
 
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-                {members.filter(m => m.role === 'USER' && m.displayName !== 'Admin User').map((member, index) => (
-                  <motion.div
-                    key={member.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.05 }}
-                    whileHover={{ y: -8 }}
-                    className="group"
-                  >
-                    <div className="relative overflow-hidden rounded-xl bg-card border shadow-lg hover:shadow-xl transition-all">
-                      {/* Compact Photo */}
-                      <div className="relative h-48 overflow-hidden">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {community.map((member, i) => (
+                <motion.div
+                  key={member.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="group relative"
+                >
+                  <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.05] p-6 rounded-[2rem] hover:bg-white/[0.07] transition-all duration-500 overflow-hidden">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="relative w-16 h-16 rounded-2xl overflow-hidden ring-1 ring-white/10">
                         {member.photoUrl ? (
-                          <img
-                            src={getImageUrl(member.photoUrl) || ''}
+                          <img 
+                            src={getImageUrl(member.photoUrl) || ''} 
                             alt={member.displayName}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                            onError={(e) => {
-                              const initials = getInitials(member.displayName);
-                              e.currentTarget.src = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"><defs><linearGradient id="grad${index}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%2314b8a6;stop-opacity:1" /><stop offset="100%" style="stop-color:%236366f1;stop-opacity:1" /></linearGradient></defs><rect fill="url(%23grad${index})" width="300" height="300"/><text x="150" y="150" font-size="80" text-anchor="middle" dy=".3em" fill="white" font-weight="bold">${initials}</text></svg>`;
-                            }}
+                            className="w-full h-full object-cover group-hover:scale-125 transition-transform duration-700"
                           />
                         ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-5xl font-bold">
+                          <div className="w-full h-full bg-[#1a1a20] flex items-center justify-center font-bold text-xl">
                             {getInitials(member.displayName)}
                           </div>
                         )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                       </div>
-
-                      {/* Compact Info */}
-                      <div className="p-4">
-                        <h4 className="font-bold text-base mb-1 truncate">{member.displayName}</h4>
-                        <p className="text-xs text-muted-foreground mb-3 truncate">
-                          {member.bio || 'Community Member'}
-                        </p>
-                        <div className="flex gap-2">
-                          {member.linkedin && (
-                            <a href={formatUrl(member.linkedin)} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded hover:bg-primary hover:text-white transition-all">
-                              <Linkedin className="h-3.5 w-3.5" />
-                            </a>
-                          )}
-                          {member.github && (
-                            <a href={formatUrl(member.github)} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded hover:bg-primary hover:text-white transition-all">
-                              <Github className="h-3.5 w-3.5" />
-                            </a>
-                          )}
-                          <a href={`mailto:${member.email}`} className="p-1.5 rounded hover:bg-primary hover:text-white transition-all ml-auto">
-                            <Mail className="h-3.5 w-3.5" />
-                          </a>
-                        </div>
+                      <div className="flex-1 overflow-hidden">
+                        <h4 className="font-bold truncate text-lg group-hover:text-primary transition-colors">{member.displayName}</h4>
+                        <p className="text-xs text-white/30 truncate uppercase tracking-tighter">Verified Member</p>
                       </div>
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
 
-        {/* Empty State */}
-        {members.length === 0 && !loading && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center py-20"
-          >
-            <Card className="p-12 max-w-md mx-auto">
-              <motion.div
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <Users className="h-20 w-20 mx-auto text-muted-foreground mb-6" />
-              </motion.div>
-              <h3 className="text-2xl font-bold mb-2">No Team Members Yet</h3>
-              <p className="text-muted-foreground">Check back soon to meet our amazing team!</p>
-            </Card>
-          </motion.div>
-        )}
+                    <p className="text-sm text-white/40 font-light mb-6 line-clamp-2 h-10">
+                      {member.bio || 'Active contributor and innovator within the AI ecosystem.'}
+                    </p>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                      <div className="flex gap-2">
+                        {member.github && (
+                          <a href={formatUrl(member.github)} target="_blank" rel="noopener noreferrer" className="text-white/20 hover:text-white transition-colors">
+                            <Github className="w-4 h-4" />
+                          </a>
+                        )}
+                        {member.linkedin && (
+                          <a href={formatUrl(member.linkedin)} target="_blank" rel="noopener noreferrer" className="text-white/20 hover:text-white transition-colors">
+                            <Linkedin className="w-4 h-4" />
+                          </a>
+                        )}
+                      </div>
+                      <a href={`mailto:${member.email}`} className="text-xs font-bold text-primary group-hover:tracking-widest transition-all">
+                        CONNECT
+                      </a>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+        </div>
       </section>
+
+      {/* Empty State */}
+      {members.length === 0 && !loading && (
+        <div className="relative z-10 py-40 text-center">
+          <Rocket className="w-20 h-20 mx-auto text-primary mb-8 opacity-20 animate-bounce" />
+          <h3 className="text-4xl font-black mb-4 tracking-tight">NEBULA IS CURRENTLY VOID</h3>
+          <p className="text-white/40">Deployment of the community fleet is pending.</p>
+        </div>
+      )}
 
       <Footer />
     </div>
   );
 };
 
-export default Members;
+export default Members;
