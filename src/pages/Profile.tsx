@@ -20,6 +20,15 @@ import {
 } from 'lucide-react';
 import { userService } from '@/services/user.service';
 import { format } from 'date-fns';
+import Cropper from 'react-easy-crop';
+import { Slider } from '@/components/ui/slider';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
 const Profile = () => {
   const { user: authUser, refreshUser } = useAuth();
@@ -50,6 +59,15 @@ const Profile = () => {
     studyLevel: '',
     studyProgram: '',
   });
+
+  // Photo Crop/Enhance State
+  const [photoToCrop, setPhotoToCrop] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+  const [brightness, setBrightness] = useState(100);
+  const [contrast, setContrast] = useState(100);
+  const [showCropModal, setShowCropModal] = useState(false);
 
   useEffect(() => {
     fetchUserData();
@@ -157,19 +175,103 @@ const Profile = () => {
       return;
     }
 
+    const reader = new FileReader();
+    reader.addEventListener('load', () => {
+      setPhotoToCrop(reader.result as string);
+      setShowCropModal(true);
+      // Reset enhancements
+      setBrightness(100);
+      setContrast(100);
+    });
+    reader.readAsDataURL(file);
+    
+    // Clear the input so the same file can be selected again
+    e.target.value = '';
+  };
+
+  const onCropComplete = (croppedArea: any, croppedAreaPixels: any) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  };
+
+  const createImage = (url: string): Promise<HTMLImageElement> =>
+    new Promise((resolve, reject) => {
+      const image = new Image();
+      image.addEventListener('load', () => resolve(image));
+      image.addEventListener('error', (error) => reject(error));
+      image.setAttribute('crossOrigin', 'anonymous');
+      image.src = url;
+    });
+
+  const getCroppedImg = async (
+    imageSrc: string,
+    pixelCrop: any,
+    brightness: number,
+    contrast: number
+  ): Promise<Blob | null> => {
+    const image = await createImage(imageSrc);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) return null;
+
+    canvas.width = pixelCrop.width;
+    canvas.height = pixelCrop.height;
+
+    // Apply enhancements to context
+    ctx.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
+
+    ctx.drawImage(
+      image,
+      pixelCrop.x,
+      pixelCrop.y,
+      pixelCrop.width,
+      pixelCrop.height,
+      0,
+      0,
+      pixelCrop.width,
+      pixelCrop.height
+    );
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        resolve(blob);
+      }, 'image/jpeg', 0.9);
+    });
+  };
+
+  const handleConfirmCrop = async () => {
+    if (!photoToCrop || !croppedAreaPixels) return;
+
     try {
       setUploading(true);
-      const response = await userService.uploadPhoto(file);
-      // Update only the photoUrl in the user state
+      setShowCropModal(false);
+
+      const croppedBlob = await getCroppedImg(
+        photoToCrop,
+        croppedAreaPixels,
+        brightness,
+        contrast
+      );
+
+      if (!croppedBlob) {
+        throw new Error('Failed to crop image');
+      }
+
+      const croppedFile = new File([croppedBlob], 'profile-photo.jpg', {
+        type: 'image/jpeg',
+      });
+
+      const response = await userService.uploadPhoto(croppedFile);
       setUser({ ...user, photoUrl: response.data.photoUrl });
       await refreshUser();
-      await fetchUserData(); // Refetch to ensure photo is displayed
+      await fetchUserData();
       
       toast.success('Profile photo updated successfully');
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to upload photo');
+      toast.error(error.message || 'Failed to upload photo');
     } finally {
       setUploading(false);
+      setPhotoToCrop(null);
     }
   };
 
@@ -793,6 +895,127 @@ const Profile = () => {
           )}
         </motion.div>
       </div>
+
+      {/* Profile Photo Crop & Enhance Modal */}
+      <Dialog open={showCropModal} onOpenChange={setShowCropModal}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Adjust Profile Photo
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            {/* Cropper Container */}
+            <div className="relative h-64 w-full bg-slate-100 rounded-lg overflow-hidden">
+              {photoToCrop && (
+                <Cropper
+                  image={photoToCrop}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={onCropComplete}
+                />
+              )}
+            </div>
+
+            {/* Enhancements */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <Label>Brightness</Label>
+                  <span className="text-xs text-muted-foreground">{brightness}%</span>
+                </div>
+                <Slider
+                  value={[brightness]}
+                  min={50}
+                  max={150}
+                  step={1}
+                  onValueChange={(vals) => setBrightness(vals[0])}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <Label>Contrast</Label>
+                  <span className="text-xs text-muted-foreground">{contrast}%</span>
+                </div>
+                <Slider
+                  value={[contrast]}
+                  min={50}
+                  max={150}
+                  step={1}
+                  onValueChange={(vals) => setContrast(vals[0])}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Zoom</Label>
+                <Slider
+                  value={[zoom]}
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  onValueChange={(vals) => setZoom(vals[0])}
+                />
+              </div>
+            </div>
+
+            {/* Preview Hint */}
+            <div className="flex items-center gap-4 p-4 bg-primary/5 rounded-lg border">
+              <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-primary/20">
+                <div 
+                  className="w-full h-full bg-cover bg-center"
+                  style={{ 
+                    backgroundImage: `url(${photoToCrop})`,
+                    filter: `brightness(${brightness}%) contrast(${contrast}%)`,
+                    transform: `scale(${zoom}) translate(${-crop.x / zoom}%, ${-crop.y / zoom}%)` // Note: Visual preview only, not exactly matching crop area precisely but gives an idea
+                  }}
+                />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Preview</p>
+                <p className="text-xs text-muted-foreground leading-tight">
+                  Drag the image to position. Your profile picture will be a perfect circle.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCropModal(false);
+                setPhotoToCrop(null);
+              }}
+              disabled={uploading}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="gradient-primary"
+              onClick={handleConfirmCrop}
+              disabled={uploading}
+            >
+              {uploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
