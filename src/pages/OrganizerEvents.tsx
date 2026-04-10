@@ -263,8 +263,15 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
           'Study Program': reg.user?.studyProgram || '',
           Status: reg.status,
           'Registration Date': format(new Date(reg.createdAt), 'MMM dd, yyyy HH:mm'),
-          'Checked In': reg.checkedInAt ? format(new Date(reg.checkedInAt), 'MMM dd, yyyy HH:mm') : 'No',
+          'Checked In (Main)': reg.checkedInAt ? format(new Date(reg.checkedInAt), 'MMM dd, yyyy HH:mm') : 'No',
         };
+
+        // Add columns for each sub-event
+        theEvent?.subEvents?.forEach((se: any) => {
+          const checkIn = reg.subEventCheckIns?.find((c: any) => c.subEventId === se.id);
+          row[`Session: ${se.title}`] = checkIn ? format(new Date(checkIn.checkedInAt), 'MMM dd, HH:mm') : 'No';
+        });
+
         customFields.forEach(f => {
           row[f.label] = reg.customFieldValues?.[f.id] || '';
         });
@@ -686,7 +693,7 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-xs font-mono opacity-40 group-hover/row:opacity-100 transition-opacity">
+                        <TableCell className="text-xs text-white/90 font-mono opacity-80 group-hover/row:opacity-100 transition-opacity">
                           {reg.user?.email || 'N/A'}
                         </TableCell>
                         <TableCell>
@@ -699,9 +706,9 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
                             {reg.status}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-[10px] tabular-nums opacity-40">
+                        <TableCell className="text-[10px] text-white/90 tabular-nums opacity-80">
                           {format(new Date(reg.createdAt), 'yyyy.MM.dd')}<br/>
-                          <span className="text-[9px] text-muted-foreground/50">{format(new Date(reg.createdAt), 'HH:mm:ss')}</span>
+                          <span className="text-[9px] text-white/90">{format(new Date(reg.createdAt), 'HH:mm:ss')}</span>
                         </TableCell>
                         <TableCell>
                           {reg.checkedInAt ? (
@@ -713,8 +720,8 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
                             </div>
                           ) : (
                             <div className="flex items-center gap-2 text-white/10 italic">
-                               <Clock className="w-3 h-3" />
-                               <span className="text-[9px] font-medium uppercase tracking-tighter">Standby</span>
+                               <Clock className="w-3 h-3 text-amber-400" />
+                               <span className="text-[9px] text-amber-400 font-medium uppercase tracking-tighter">Standby</span>
                             </div>
                           )}
                         </TableCell>
@@ -756,94 +763,9 @@ const OrganizerEvents = ({ onCreateEvent }: OrganizerEventsProps) => {
                 </TableBody>
               </Table>
             </div>
-
-            {/* Sessions check-in grid */}
-            {registrationsDialog.event?.subEvents?.length > 0 && registrationsDialog.registrations.length > 0 && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-6">
-                  <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-                  <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-primary/70 flex items-center gap-3">
-                    <Sparkles className="h-3.5 w-3.5 animate-pulse text-primary" /> SESSION SYNC CORE
-                  </h3>
-                  <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {registrationsDialog.event.subEvents.map((se: any) => {
-                    const checkedInCount = registrationsDialog.registrations.filter((reg: any) => 
-                      reg.subEventCheckIns?.some((check: any) => check.subEventId === se.id)
-                    ).length;
-
-                    return (
-                      <div key={se.id} className="relative group overflow-hidden rounded-2xl border border-white/5 bg-[#111115]/40 p-5 hover:border-primary/40 transition-all duration-500 hover:shadow-[0_0_25px_rgba(var(--primary-rgb),0.1)]">
-                        <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-10 transition-all duration-700 pointer-events-none group-hover:scale-125 transform-gpu">
-                          <Calendar className="h-16 w-16" />
-                        </div>
-                        
-                        <div className="relative z-10">
-                          <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <h4 className="font-bold text-base text-white/90 group-hover:text-primary transition-colors leading-tight">{se.title}</h4>
-                              <div className="flex items-center gap-2 mt-1">
-                                <MapPin className="h-3 w-3 text-muted-foreground/60" />
-                                <span className="text-[10px] text-muted-foreground/60 uppercase font-bold tracking-widest">{se.location || 'Nexus Hall'}</span>
-                              </div>
-                            </div>
-                            <div className="flex flex-col items-end">
-                              <Badge variant="outline" className="text-[9px] border-primary/30 bg-primary/10 text-primary font-black">
-                                {checkedInCount} ACTIVE
-                              </Badge>
-                              <span className="text-[8px] text-muted-foreground/40 mt-1 uppercase font-bold tracking-widest">Load Meter</span>
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-2 mt-4 max-h-[160px] overflow-y-auto scrollbar-hide pr-1 border-t border-white/5 pt-4">
-                            {registrationsDialog.registrations
-                              .filter((reg: any) => reg.status === 'APPROVED' || reg.status === 'REGISTERED')
-                              .map((reg: any) => {
-                                const isCheckedIn = reg.subEventCheckIns?.some((check: any) => check.subEventId === se.id);
-                                return (
-                                  <div key={reg.id} className="flex items-center justify-between gap-3 p-2 rounded-xl hover:bg-white/[0.03] transition-all group/attendee border border-transparent hover:border-white/5">
-                                    <span className="text-[11px] font-bold text-white/60 group-hover/attendee:text-white/90 transition-colors truncate flex-1 tracking-tight">
-                                      {reg.user?.displayName || 'Unknown Subject'}
-                                    </span>
-                                    {isCheckedIn ? (
-                                      <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 shadow-[0_0_12px_rgba(34,197,94,0.1)]">
-                                        <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
-                                        <span className="text-[9px] font-black uppercase tracking-tighter">SYNCED</span>
-                                      </div>
-                                    ) : (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 px-3 text-[9px] font-black uppercase tracking-widest bg-white/[0.03] hover:bg-primary/20 hover:text-primary border border-white/5 hover:border-primary/20 transition-all rounded-lg"
-                                        onClick={async () => {
-                                          try {
-                                            await eventService.checkInSubEvent(reg.id, se.id);
-                                            toast.success('Dossier Synchronized');
-                                            handleViewRegistrations(registrationsDialog.event);
-                                          } catch (err) {
-                                            toast.error('Sync Protocol Failed');
-                                          }
-                                        }}
-                                      >
-                                        INITIALIZE SYNC
-                                      </Button>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
           </div>
           <DialogFooter className="border-t border-white/5 pt-4">
-            <Button variant="outline" onClick={() => setRegistrationsDialog({ open: false, event: null, registrations: [] })} className="border-white/10 text-white hover:bg-white/5">
+            <Button variant="outline" onClick={() => setRegistrationsDialog({ open: false, event: null, registrations: [] })} className="border-white/10 text-white bg-white/5">
               Close
             </Button>
             {registrationsDialog.event && (
