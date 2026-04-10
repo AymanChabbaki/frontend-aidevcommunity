@@ -857,6 +857,64 @@ const EventDetail = () => {
                 </div>
               </motion.div>
             )}
+
+            {/* Agenda (Sub-events) */}
+            {event.subEvents && event.subEvents.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="bg-card border border-border rounded-2xl p-6 shadow-sm overflow-hidden relative group"
+              >
+                <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+                  <Calendar className="h-32 w-32 -mr-12 -mt-12" />
+                </div>
+                
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Clock className="h-4 w-4 text-primary" />
+                  </div>
+                  <h2 className="text-xl font-bold">Event Agenda</h2>
+                </div>
+
+                <div className="space-y-0 relative">
+                  {event.subEvents.map((session: any, idx: number) => (
+                    <div key={session.id || idx} className="flex gap-4 group/session">
+                      <div className="flex flex-col items-center">
+                        <div className="h-3.5 w-3.5 rounded-full bg-primary border-4 border-background ring-2 ring-primary/20 z-10" />
+                        {idx !== event.subEvents.length - 1 && (
+                          <div className="w-0.5 h-full bg-border group-hover/session:bg-primary/30 transition-colors -mt-0.5" />
+                        )}
+                      </div>
+                      <div className="pb-8 flex-1">
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1.5">
+                          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-primary/5 text-primary border border-primary/10">
+                            <Clock className="h-3 w-3" />
+                            <span className="text-xs font-bold tabular-nums">
+                              {format(new Date(session.startAt), 'HH:mm')} — {format(new Date(session.endAt), 'HH:mm')}
+                            </span>
+                          </div>
+                          {session.location && (
+                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border">
+                              <MapPin className="h-3 w-3" />
+                              <span className="text-xs font-medium">{session.location}</span>
+                            </div>
+                          )}
+                        </div>
+                        <h3 className="font-bold text-lg mb-1 group-hover/session:text-primary transition-colors">
+                          {session.title}
+                        </h3>
+                        {session.description && (
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {session.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
           </div>
 
           {/* ── RIGHT COLUMN ────────────────────────────── */}

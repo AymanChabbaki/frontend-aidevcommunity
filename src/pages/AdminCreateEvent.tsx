@@ -46,6 +46,29 @@ const AdminCreateEvent = () => {
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [useCustomBadge, setUseCustomBadge] = useState(false);
 
+  // Sub-events (Agenda)
+  interface SubEvent {
+    id?: string;
+    title: string;
+    description: string;
+    startAt: string;
+    endAt: string;
+    location: string;
+  }
+  const [subEvents, setSubEvents] = useState<SubEvent[]>([]);
+
+  const addSubEvent = () => {
+    setSubEvents(prev => [...prev, { title: '', description: '', startAt: '', endAt: '', location: '' }]);
+  };
+
+  const updateSubEvent = (index: number, changes: Partial<SubEvent>) => {
+    setSubEvents(prev => prev.map((se, i) => i === index ? { ...se, ...changes } : se));
+  };
+
+  const removeSubEvent = (index: number) => {
+    setSubEvents(prev => prev.filter((_, i) => i !== index));
+  };
+
   const addField = () => {
     const newField: CustomField = {
       id: `field_${Date.now()}`,
@@ -130,6 +153,11 @@ const AdminCreateEvent = () => {
           options: rest.type === 'select' ? optionsInput.split(',').map(o => o.trim()).filter(Boolean) : []
         })),
         useCustomBadge,
+        subEvents: subEvents.filter(se => se.title.trim()).map(se => ({
+          ...se,
+          startAt: new Date(se.startAt).toISOString(),
+          endAt: new Date(se.endAt).toISOString()
+        }))
       };
 
       await eventService.createEvent(eventData);
@@ -505,6 +533,93 @@ const AdminCreateEvent = () => {
                         />
                       </div>
                     )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Agenda (Sub-events) Section */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold">Event Agenda (Sessions/Workshops)</h3>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={addSubEvent}>
+                  <Plus className="h-4 w-4 mr-1" /> Add Session
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Break your event into multiple sessions or workshops. Leave empty if there's only the main event.
+              </p>
+
+              {subEvents.length === 0 && (
+                <p className="text-sm text-muted-foreground italic text-center py-3">No specific agenda items added yet.</p>
+              )}
+
+              <div className="space-y-4">
+                {subEvents.map((session, index) => (
+                  <div key={index} className="border rounded-lg p-4 space-y-4 bg-muted/10 relative">
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="icon" 
+                      className="absolute top-2 right-2 text-destructive h-8 w-8"
+                      onClick={() => removeSubEvent(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Session Title *</Label>
+                        <Input
+                          placeholder="e.g. Introduction to Neural Networks"
+                          value={session.title}
+                          onChange={(e) => updateSubEvent(index, { title: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Location</Label>
+                        <Input
+                          placeholder="e.g. Room 101 or Zoom Link"
+                          value={session.location}
+                          onChange={(e) => updateSubEvent(index, { location: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Start Time *</Label>
+                        <Input
+                          type="datetime-local"
+                          value={session.startAt}
+                          onChange={(e) => updateSubEvent(index, { startAt: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">End Time *</Label>
+                        <Input
+                          type="datetime-local"
+                          value={session.endAt}
+                          onChange={(e) => updateSubEvent(index, { endAt: e.target.value })}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-xs">Description (Optional)</Label>
+                      <Textarea
+                        placeholder="What will happen in this session?"
+                        value={session.description}
+                        onChange={(e) => updateSubEvent(index, { description: e.target.value })}
+                        rows={2}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>

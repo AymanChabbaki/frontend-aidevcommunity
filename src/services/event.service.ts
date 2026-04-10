@@ -71,8 +71,13 @@ export const eventService = {
     return response.data;
   },
 
-  async checkInByToken(token: string) {
-    const response = await api.post('/events/registrations/check-in', { token });
+  async checkInByToken(token: string, subEventId?: string) {
+    const response = await api.post('/events/registrations/check-in', { token, subEventId });
+    return response.data;
+  },
+
+  async checkInSubEvent(registrationId: string, subEventId: string) {
+    const response = await api.post('/events/registrations/sub-events/check-in', { registrationId, subEventId });
     return response.data;
   },
 

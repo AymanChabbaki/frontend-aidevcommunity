@@ -10,8 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
-import { 
-  User, Github, Linkedin, Twitter, Loader2, Camera, 
+import {
+  User, Github, Linkedin, Twitter, Loader2, Camera,
   Mail, Calendar, Shield, Sparkles, CheckCircle,
   Edit2, Save, X, Award, Briefcase, Key, Eye, EyeOff
 } from 'lucide-react';
@@ -81,7 +81,7 @@ const StaffProfile = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       setSubmitting(true);
       const updateData = {
@@ -101,7 +101,7 @@ const StaffProfile = () => {
       await refreshUser();
       await fetchUserData(); // Refetch to ensure all data is up to date
       setEditing(false);
-      
+
       toast.success('Profile updated successfully');
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to update profile');
@@ -171,7 +171,7 @@ const StaffProfile = () => {
       setUser({ ...user, photoUrl: response.data.photoUrl });
       await refreshUser();
       await fetchUserData();
-      
+
       toast.success('Profile photo updated successfully');
     } catch (error: any) {
       toast.error(error.message || 'Failed to upload photo');

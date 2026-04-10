@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Camera, CheckCircle, XCircle, AlertCircle, ScanLine } from 'lucide-react';
@@ -21,7 +21,33 @@ const QRScanner = () => {
   const [lastScanned, setLastScanned] = useState<string | null>(null);
   const [scanResult, setScanResult] = useState<ScanResult>(null);
   const [lastResult, setLastResult] = useState<LastResult>({});
+  
+  const [events, setEvents] = useState<any[]>([]);
+  const [selectedEventId, setSelectedEventId] = useState<string>('');
+  const [selectedSubEventId, setSelectedSubEventId] = useState<string>(''); // empty means "Main Event"
+  
   const processingRef = useRef(false);
+
+  useEffect(() => {
+    const fetchActiveEvents = async () => {
+      try {
+        const response = await eventService.getAllEvents();
+        // Filter for UPCOMING or ONGOING events
+        const active = (response.data || []).filter((e: any) => 
+          e.status === 'UPCOMING' || e.status === 'ONGOING'
+        );
+        setEvents(active);
+        if (active.length > 0) {
+          setSelectedEventId(active[0].id);
+        }
+      } catch (err) {
+        console.error('Failed to fetch events for scanner', err);
+      }
+    };
+    fetchActiveEvents();
+  }, []);
+
+  const selectedEvent = events.find(e => e.id === selectedEventId);
 
   useEffect(() => {
     if (scanning && videoRef.current) {
@@ -93,10 +119,14 @@ const QRScanner = () => {
     processingRef.current = true;
 
     try {
-      const result = await eventService.checkInByToken(token);
-      setLastResult({ name: result.data?.name, eventTitle: result.data?.eventTitle });
+      const result = await eventService.checkInByToken(token, selectedSubEventId || undefined);
+      setLastResult({ 
+        name: result.data?.name, 
+        eventTitle: result.data?.eventTitle,
+        subEventTitle: result.data?.subEventTitle 
+      });
       setScanResult('success');
-      toast.success(`✓ ${result.data?.name ?? 'Attendee'} checked in!`);
+      toast.success(`✓ ${result.data?.name ?? 'Attendee'} checked in! ${result.data?.subEventTitle ? `(${result.data.subEventTitle})` : ''}`);
     } catch (err: any) {
       const msg: string = err?.response?.data?.error || 'Invalid QR code';
       const alreadyCheckedIn = msg.toLowerCase().includes('already');
@@ -134,10 +164,46 @@ const QRScanner = () => {
                 <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-primary/10 mb-4">
                   <Camera className="h-12 w-12 text-primary" />
                 </div>
-                <p className="text-muted-foreground mb-6">
-                  Click the button below to start scanning QR codes
-                </p>
-                <Button onClick={() => setScanning(true)} size="lg" className="gradient-primary">
+                <div className="max-w-xs mx-auto space-y-4 mb-6 text-left">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase">Target Event</label>
+                    <select 
+                      className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                      value={selectedEventId}
+                      onChange={(e) => {
+                        setSelectedEventId(e.target.value);
+                        setSelectedSubEventId(''); // Reset sub-event when switching event
+                      }}
+                    >
+                      <option value="">Select an event...</option>
+                      {events.map(e => (
+                        <option key={e.id} value={e.id}>{e.title}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase">Check-in For</label>
+                    <select 
+                      className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                      value={selectedSubEventId}
+                      onChange={(e) => setSelectedSubEventId(e.target.value)}
+                      disabled={!selectedEventId}
+                    >
+                      <option value="">Main Event Check-in</option>
+                      {selectedEvent?.subEvents?.map((se: any) => (
+                        <option key={se.id} value={se.id}>{se.title}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <Button 
+                  onClick={() => setScanning(true)} 
+                  size="lg" 
+                  className="gradient-primary"
+                  disabled={!selectedEventId}
+                >
                   <Camera className="mr-2 h-5 w-5" />
                   Start Scanning
                 </Button>
@@ -165,6 +231,9 @@ const QRScanner = () => {
                           )}
                           {lastResult.eventTitle && (
                             <p className="text-sm text-white/70 mt-1">{lastResult.eventTitle}</p>
+                          )}
+                          {(lastResult as any).subEventTitle && (
+                            <p className="text-sm font-bold text-blue-300 mt-1">{(lastResult as any).subEventTitle}</p>
                           )}
                         </div>
                       ) : scanResult === 'already' ? (

@@ -99,6 +99,29 @@ const AdminManageEvents = () => {
   const [editCustomFields, setEditCustomFields] = useState<EditCustomField[]>([]);
   const [editUseCustomBadge, setEditUseCustomBadge] = useState(false);
 
+  // Sub-events (Agenda) for edit modal
+  interface EditSubEvent {
+    id?: string;
+    title: string;
+    description: string;
+    startAt: string;
+    endAt: string;
+    location: string;
+  }
+  const [editSubEvents, setEditSubEvents] = useState<EditSubEvent[]>([]);
+
+  const addEditSubEvent = () => {
+    setEditSubEvents(prev => [...prev, { title: '', description: '', startAt: '', endAt: '', location: '' }]);
+  };
+
+  const updateEditSubEvent = (index: number, changes: Partial<EditSubEvent>) => {
+    setEditSubEvents(prev => prev.map((se, i) => i === index ? { ...se, ...changes } : se));
+  };
+
+  const removeEditSubEvent = (index: number) => {
+    setEditSubEvents(prev => prev.filter((_, i) => i !== index));
+  };
+
   const addEditField = () => {
     setEditCustomFields(prev => [...prev, {
       id: `field_${Date.now()}`,
@@ -225,6 +248,15 @@ const AdminManageEvents = () => {
     }));
     setEditCustomFields(existingFields);
     setEditUseCustomBadge(event.useCustomBadge || false);
+    
+    // Load sub-events: format dates for input
+    const sessions = (event.subEvents || []).map((se: any) => ({
+      ...se,
+      startAt: formatDateForInput(se.startAt),
+      endAt: formatDateForInput(se.endAt)
+    }));
+    setEditSubEvents(sessions);
+
     setEditDialog({ open: true, event });
   };
 
@@ -254,6 +286,11 @@ const AdminManageEvents = () => {
           options: rest.type === 'select' ? optionsInput.split(',').map(o => o.trim()).filter(Boolean) : []
         })),
         useCustomBadge: editUseCustomBadge,
+        subEvents: editSubEvents.filter(se => se.title.trim()).map(se => ({
+          ...se,
+          startAt: new Date(se.startAt).toISOString(),
+          endAt: new Date(se.endAt).toISOString()
+        }))
       };
 
       await eventService.updateEvent(editDialog.event.id, eventData);
@@ -392,6 +429,26 @@ const AdminManageEvents = () => {
       toast({
         title: 'Error',
         description: 'Failed to delete registration',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleSubEventCheckIn = async (registrationId: string, subEventId: string) => {
+    try {
+      await eventService.checkInSubEvent(registrationId, subEventId);
+      toast({
+        title: 'Success',
+        description: 'Checked in for session',
+      });
+      // Refresh registrations to see updated check-in status
+      if (registrationsDialog.event) {
+        handleViewRegistrations(registrationsDialog.event);
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.error || 'Failed to check in',
         variant: 'destructive',
       });
     }
@@ -979,6 +1036,92 @@ const AdminManageEvents = () => {
               </div>
             </div>
 
+
+            {/* Agenda (Sub-events) Section */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold">Event Agenda (Sessions/Workshops)</h3>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={addEditSubEvent}>
+                  <Plus className="h-4 w-4 mr-1" /> Add Session
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Manage sessions, workshops, or activities for this event.
+              </p>
+
+              {editSubEvents.length === 0 && (
+                <p className="text-sm text-muted-foreground italic text-center py-2">No specific agenda items added yet.</p>
+              )}
+
+              <div className="space-y-4">
+                {editSubEvents.map((session, index) => (
+                  <div key={index} className="border rounded-lg p-3 space-y-3 bg-muted/10 relative">
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="icon" 
+                      className="absolute top-2 right-2 text-destructive h-7 w-7"
+                      onClick={() => removeEditSubEvent(index)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Session Title *</Label>
+                        <Input
+                          placeholder="e.g. Keynote Speech"
+                          value={session.title}
+                          onChange={(e) => updateEditSubEvent(index, { title: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Location</Label>
+                        <Input
+                          placeholder="e.g. Main Hall"
+                          value={session.location}
+                          onChange={(e) => updateEditSubEvent(index, { location: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Start Time *</Label>
+                        <Input
+                          type="datetime-local"
+                          value={session.startAt}
+                          onChange={(e) => updateEditSubEvent(index, { startAt: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">End Time *</Label>
+                        <Input
+                          type="datetime-local"
+                          value={session.endAt}
+                          onChange={(e) => updateEditSubEvent(index, { endAt: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-[10px] uppercase font-bold text-muted-foreground">Description</Label>
+                      <Textarea
+                        placeholder="Session description..."
+                        value={session.description}
+                        onChange={(e) => updateEditSubEvent(index, { description: e.target.value })}
+                        rows={1}
+                        className="min-h-[40px]"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Badge Settings */}
             <div className="border rounded-lg p-4 space-y-3">
               <div className="flex items-center gap-2">
@@ -1041,7 +1184,7 @@ const AdminManageEvents = () => {
                   <TableHead>Email</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Registration Date</TableHead>
-                  <TableHead>Checked In</TableHead>
+                  <TableHead>Check-In Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -1064,13 +1207,46 @@ const AdminManageEvents = () => {
                       </TableCell>
                       <TableCell>{format(new Date(reg.createdAt), 'MMM dd, yyyy HH:mm')}</TableCell>
                       <TableCell>
-                        {reg.checkedInAt ? (
-                          <Badge variant="default" className="bg-green-500">
-                            {format(new Date(reg.checkedInAt), 'MMM dd, yyyy HH:mm')}
-                          </Badge>
-                        ) : (
-                          <span className="text-muted-foreground">Not checked in</span>
-                        )}
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-semibold text-muted-foreground min-w-[40px]">MAIN:</span>
+                            {reg.checkedInAt ? (
+                              <Badge variant="outline" className="text-[9px] bg-green-50 text-green-700 border-green-200 py-0 h-4">
+                                {format(new Date(reg.checkedInAt), 'HH:mm')}
+                              </Badge>
+                            ) : (
+                              <span className="text-[9px] text-muted-foreground">Pending</span>
+                            )}
+                          </div>
+                          
+                          {registrationsDialog.event?.subEvents?.length > 0 && (
+                            <div className="mt-1 flex flex-col gap-1 pt-1 border-t border-dashed">
+                              {registrationsDialog.event.subEvents.map((se: any) => {
+                                const isCheckedIn = reg.subEventCheckIns?.some((sci: any) => sci.subEventId === se.id);
+                                return (
+                                  <div key={se.id} className="flex items-center justify-between gap-2">
+                                    <span className="text-[9px] truncate max-w-[80px] text-muted-foreground" title={se.title}>{se.title}</span>
+                                    {isCheckedIn ? (
+                                      <Badge variant="outline" className="text-[8px] bg-blue-50 text-blue-700 border-blue-200 py-0 h-3.5">
+                                        SET
+                                      </Badge>
+                                    ) : (
+                                      <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-3.5 w-3.5 text-primary hover:bg-primary/10"
+                                        onClick={() => handleSubEventCheckIn(reg.id, se.id)}
+                                        title={`Check in for ${se.title}`}
+                                      >
+                                        <Check className="h-2.5 w-2.5" />
+                                      </Button>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">

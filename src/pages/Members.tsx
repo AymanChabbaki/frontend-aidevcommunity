@@ -85,7 +85,7 @@ const Members = () => {
       <div className="min-h-screen flex items-center justify-center bg-[#0a0a0c]">
         <div className="text-center">
           <motion.div
-            animate={{ 
+            animate={{
               scale: [1, 1.2, 1],
               opacity: [0.5, 1, 0.5]
             }}
@@ -106,12 +106,12 @@ const Members = () => {
     <div className="min-h-screen bg-[#0a0a0c] text-white selection:bg-primary selection:text-white overflow-hidden">
       {/* Immersive Background */}
       <div className="fixed inset-0 z-0">
-        <motion.div 
+        <motion.div
           style={{ y: backgroundY }}
           className="absolute inset-0 opacity-40 bg-[url('https://res.cloudinary.com/dmznisgxq/image/upload/v1764464353/b38daf15-402d-440f-aad8-57731b39c047_ofosvj.jpg')] bg-cover bg-center"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0c]/80 via-[#0a0a0c]/60 to-[#0a0a0c]" />
-        
+
         {/* Animated Orbs */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[120px] animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-[120px] animate-pulse delay-1000" />
@@ -136,7 +136,7 @@ const Members = () => {
               </span>
             </h1>
             <p className="text-xl text-white/60 max-w-2xl mx-auto font-light leading-relaxed">
-              We are not just a group of developers. We are the architects of the next digital era. 
+              We are not just a group of developers. We are the architects of the next digital era.
               Meet the minds behind AI Dev Community.
             </p>
           </motion.div>
@@ -146,7 +146,7 @@ const Members = () => {
       {/* Main Grid */}
       <section className="relative pb-40 z-10">
         <div className="container mx-auto px-4 space-y-32">
-          
+
           {/* Leadership - Focus Grid */}
           <div>
             <div className="flex items-center gap-4 mb-12">
@@ -166,7 +166,7 @@ const Members = () => {
                   className="group relative"
                 >
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/50 to-secondary/50 rounded-[2.5rem] blur opacity-0 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-                  
+
                   <div className="relative bg-[#111115]/80 backdrop-blur-2xl border border-white/5 p-8 rounded-[2.5rem] h-full flex flex-col items-center text-center">
                     {/* Futuristic Avatar Frame */}
                     <div className="relative mb-8 pt-4">
@@ -174,8 +174,8 @@ const Members = () => {
                       <div className="relative w-40 h-40 rounded-full p-1.5 bg-gradient-to-tr from-primary to-secondary overflow-hidden">
                         <div className="w-full h-full rounded-full bg-[#111115] p-1 overflow-hidden">
                           {member.photoUrl ? (
-                            <img 
-                              src={getImageUrl(member.photoUrl) || ''} 
+                            <img
+                              src={getImageUrl(member.photoUrl) || ''}
                               alt={member.displayName}
                               className="w-full h-full rounded-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-110 group-hover:scale-100"
                             />
@@ -197,7 +197,7 @@ const Members = () => {
                     <p className="text-sm text-primary font-medium tracking-widest uppercase mb-4 opacity-70">
                       {member.staffRole || 'Core Architect'}
                     </p>
-                    
+
                     <p className="text-white/40 text-sm font-light leading-relaxed mb-6 line-clamp-3">
                       {member.bio || 'Architecting complex systems and fostering community innovation through advanced AI technologies.'}
                     </p>
@@ -249,8 +249,8 @@ const Members = () => {
                     <div className="flex items-center gap-4 mb-6">
                       <div className="relative w-16 h-16 rounded-2xl overflow-hidden ring-1 ring-white/10">
                         {member.photoUrl ? (
-                          <img 
-                            src={getImageUrl(member.photoUrl) || ''} 
+                          <img
+                            src={getImageUrl(member.photoUrl) || ''}
                             alt={member.displayName}
                             className="w-full h-full object-cover group-hover:scale-125 transition-transform duration-700"
                           />
@@ -310,4 +310,4 @@ const Members = () => {
   );
 };
 
-export default Members;
+export default Members;
