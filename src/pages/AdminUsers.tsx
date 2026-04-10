@@ -51,6 +51,20 @@ const AdminUsers = () => {
     open: false,
     user: null,
   });
+  const [formData, setFormData] = useState<any>({
+    displayName: '',
+    email: '',
+    role: '',
+    staffRole: '',
+    bio: '',
+    studyLevel: '',
+    studyProgram: '',
+    publicProfile: true,
+    github: '',
+    linkedin: '',
+    twitter: '',
+    locale: 'en'
+  });
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; userId: string | null }>({
     open: false,
     userId: null,
@@ -59,8 +73,6 @@ const AdminUsers = () => {
     open: false,
     user: null,
   });
-  const [editRole, setEditRole] = useState('');
-  const [editStaffRole, setEditStaffRole] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const fetchUsers = async () => {
@@ -95,26 +107,39 @@ const AdminUsers = () => {
   };
 
   const handleEditUser = (user: any) => {
-    setEditRole(user.role);
-    setEditStaffRole(user.staffRole || '');
+    setFormData({
+      displayName: user.displayName || '',
+      email: user.email || '',
+      role: user.role || 'USER',
+      staffRole: user.staffRole || '',
+      bio: user.bio || '',
+      studyLevel: user.studyLevel || '',
+      studyProgram: user.studyProgram || '',
+      publicProfile: user.publicProfile ?? true,
+      github: user.github || '',
+      linkedin: user.linkedin || '',
+      twitter: user.twitter || '',
+      locale: user.locale || 'en'
+    });
     setEditDialog({ open: true, user });
   };
-  const handleUpdateRole = async () => {
+
+  const handleUpdateUser = async () => {
     if (!editDialog.user) return;
 
     setSubmitting(true);
     try {
-      await adminService.updateUserRole(editDialog.user.id, editRole, editStaffRole || undefined);
+      await adminService.updateUser(editDialog.user.id, formData);
       toast({
         title: 'Success',
-        description: 'User role updated successfully',
+        description: 'User information updated successfully',
       });
       setEditDialog({ open: false, user: null });
       fetchUsers();
     } catch (error: any) {
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to update user role',
+        description: error.response?.data?.error || 'Failed to update user',
         variant: 'destructive',
       });
     } finally {
@@ -334,60 +359,189 @@ const AdminUsers = () => {
       )}
 
       <Dialog open={editDialog.open} onOpenChange={(open) => setEditDialog({ open, user: null })}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit User Role</DialogTitle>
+            <DialogTitle>Edit User Details</DialogTitle>
             <DialogDescription>
-              Change the role for {editDialog.user?.displayName}
+              Update all information for {editDialog.user?.displayName}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Current Email</Label>
-              <div className="flex items-center gap-2 p-2 bg-secondary rounded">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{editDialog.user?.email}</span>
+          <div className="space-y-6 py-4">
+            {/* Section 1: Basic Information */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-primary uppercase tracking-wider">Basic Information</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">Display Name</Label>
+                  <Input
+                    id="edit-name"
+                    value={formData.displayName}
+                    onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-email">Email Address</Label>
+                  <Input
+                    id="edit-email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  />
+                </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Select value={editRole} onValueChange={setEditRole}>
-                <SelectTrigger id="role">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="USER">User</SelectItem>
-                  <SelectItem value="STAFF">Staff</SelectItem>
-                  <SelectItem value="ADMIN">Admin</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                {editRole === 'ADMIN' && 'Admins have full access to all features'}
-                {editRole === 'STAFF' && 'Staff can manage events, polls, and forms'}
-                {editRole === 'USER' && 'Users can participate in events and polls'}
-              </p>
+
+            {/* Section 2: Permissions */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-primary uppercase tracking-wider">Roles & Permissions</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-role">System Role</Label>
+                  <Select 
+                    value={formData.role} 
+                    onValueChange={(value) => setFormData({ ...formData, role: value })}
+                  >
+                    <SelectTrigger id="edit-role">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USER">User</SelectItem>
+                      <SelectItem value="STAFF">Staff Member</SelectItem>
+                      <SelectItem value="ADMIN">Administrator</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {formData.role === 'STAFF' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-staffRole">Staff Position</Label>
+                    <Input
+                      id="edit-staffRole"
+                      placeholder="e.g., Content Manager"
+                      value={formData.staffRole}
+                      onChange={(e) => setFormData({ ...formData, staffRole: e.target.value })}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
-            {editRole === 'STAFF' && (
+
+            {/* Section 3: Academic Details */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-primary uppercase tracking-wider">Academic Information</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-studyLevel">Study Level</Label>
+                  <Select 
+                    value={formData.studyLevel} 
+                    onValueChange={(value) => setFormData({ ...formData, studyLevel: value })}
+                  >
+                    <SelectTrigger id="edit-studyLevel">
+                      <SelectValue placeholder="Select level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="BACHELOR">Bachelor</SelectItem>
+                      <SelectItem value="MASTER">Master</SelectItem>
+                      <SelectItem value="DOCTORATE">Doctorate</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-studyProgram">Study Program / Year</Label>
+                  <Select 
+                    value={formData.studyProgram} 
+                    onValueChange={(value) => setFormData({ ...formData, studyProgram: value })}
+                  >
+                    <SelectTrigger id="edit-studyProgram">
+                      <SelectValue placeholder="Select program" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="BACHELOR_S1">Bachelor S1</SelectItem>
+                      <SelectItem value="BACHELOR_S2">Bachelor S2</SelectItem>
+                      <SelectItem value="BACHELOR_S3">Bachelor S3</SelectItem>
+                      <SelectItem value="BACHELOR_S4">Bachelor S4</SelectItem>
+                      <SelectItem value="BACHELOR_S5">Bachelor S5</SelectItem>
+                      <SelectItem value="BACHELOR_S6">Bachelor S6</SelectItem>
+                      <SelectItem value="MASTER_M1">Master M1</SelectItem>
+                      <SelectItem value="MASTER_M2">Master M2</SelectItem>
+                      <SelectItem value="DOCTORATE_Y1">Doctorate Y1</SelectItem>
+                      <SelectItem value="DOCTORATE_Y2">Doctorate Y2</SelectItem>
+                      <SelectItem value="DOCTORATE_Y3">Doctorate Y3</SelectItem>
+                      <SelectItem value="DOCTORATE_Y4">Doctorate Y4</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Section 4: Profile & Biography */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-primary uppercase tracking-wider">Profile Details</h4>
               <div className="space-y-2">
-                <Label htmlFor="staffRole">Staff Position</Label>
-                <Input
-                  id="staffRole"
-                  placeholder="e.g., Event Coordinator, Content Manager, Technical Lead"
-                  value={editStaffRole}
-                  onChange={(e) => setEditStaffRole(e.target.value)}
+                <Label htmlFor="edit-bio">Biography</Label>
+                <textarea
+                  id="edit-bio"
+                  className="w-full min-h-[100px] p-3 rounded-md bg-secondary/30 border focus:border-primary outline-none text-sm"
+                  placeholder="User biography..."
+                  value={formData.bio}
+                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Specify the staff member's role or position (e.g., Event Coordinator, Content Manager)
-                </p>
               </div>
-            )}
+              <div className="flex items-center justify-between p-3 bg-secondary/20 rounded-lg">
+                <div className="space-y-0.5">
+                  <Label>Public Profile Visibility</Label>
+                  <p className="text-xs text-muted-foreground">Allow user to be found in search</p>
+                </div>
+                <Button 
+                  type="button"
+                  variant={formData.publicProfile ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFormData({ ...formData, publicProfile: !formData.publicProfile })}
+                >
+                  {formData.publicProfile ? "Visible" : "Hidden"}
+                </Button>
+              </div>
+            </div>
+
+            {/* Section 5: Social Links */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-primary uppercase tracking-wider">Social Media Links</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-github">GitHub</Label>
+                  <Input
+                    id="edit-github"
+                    placeholder="username"
+                    value={formData.github}
+                    onChange={(e) => setFormData({ ...formData, github: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-linkedin">LinkedIn</Label>
+                  <Input
+                    id="edit-linkedin"
+                    placeholder="username"
+                    value={formData.linkedin}
+                    onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-twitter">Twitter</Label>
+                  <Input
+                    id="edit-twitter"
+                    placeholder="username"
+                    value={formData.twitter}
+                    onChange={(e) => setFormData({ ...formData, twitter: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditDialog({ open: false, user: null })} disabled={submitting}>
               Cancel
             </Button>
-            <Button onClick={handleUpdateRole} disabled={submitting}>
-              {submitting ? 'Updating...' : 'Update Role'}
+            <Button onClick={handleUpdateUser} disabled={submitting} className="bg-gradient-to-r from-primary to-secondary">
+              {submitting ? 'Saving Changes...' : 'Save All Changes'}
             </Button>
           </DialogFooter>
         </DialogContent>

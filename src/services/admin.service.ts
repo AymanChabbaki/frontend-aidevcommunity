@@ -11,6 +11,11 @@ export const adminService = {
     return response.data;
   },
 
+  async updateUser(id: string, userData: any) {
+    const response = await api.put(`/admin/users/${id}`, userData);
+    return response.data;
+  },
+
   async deleteUser(id: string) {
     const response = await api.delete(`/admin/users/${id}`);
     return response.data;
