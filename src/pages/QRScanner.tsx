@@ -11,6 +11,7 @@ type ScanResult = 'success' | 'error' | 'already' | null;
 interface LastResult {
   name?: string;
   eventTitle?: string;
+  subEventTitle?: string;
   error?: string;
 }
 
@@ -232,8 +233,8 @@ const QRScanner = () => {
                           {lastResult.eventTitle && (
                             <p className="text-sm text-white/70 mt-1">{lastResult.eventTitle}</p>
                           )}
-                          {(lastResult as any).subEventTitle && (
-                            <p className="text-sm font-bold text-blue-300 mt-1">{(lastResult as any).subEventTitle}</p>
+                          {lastResult.subEventTitle && (
+                            <p className="text-sm font-bold text-blue-300 mt-1">{lastResult.subEventTitle}</p>
                           )}
                         </div>
                       ) : scanResult === 'already' ? (
