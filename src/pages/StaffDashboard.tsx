@@ -47,7 +47,9 @@ import {
   Heart,
   Award,
   Trash2,
-  GripVertical
+  GripVertical,
+  Sparkles,
+  Clock
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -129,7 +131,8 @@ const StaffDashboard = () => {
     requiresApproval: false,
     allowGuestRegistration: false,
     eligibleLevels: [] as string[],
-    eligiblePrograms: [] as string[]
+    eligiblePrograms: [] as string[],
+    subEvents: [] as Array<{ title: string; description: string; startAt: string; endAt: string; location: string }>
   });
 
   // Custom registration fields for staff create event
@@ -155,6 +158,28 @@ const StaffDashboard = () => {
   };
   const removeStaffField = (id: string) => {
     setStaffCustomFields(prev => prev.filter(f => f.id !== id));
+  };
+  
+  // Sub-event handlers for staff
+  const addStaffSubEvent = () => {
+    setEventFormData(prev => ({
+      ...prev,
+      subEvents: [...prev.subEvents, { title: '', description: '', startAt: '', endAt: '', location: '' }]
+    }));
+  };
+  
+  const updateStaffSubEvent = (index: number, changes: any) => {
+    setEventFormData(prev => ({
+      ...prev,
+      subEvents: prev.subEvents.map((se, i) => i === index ? { ...se, ...changes } : se)
+    }));
+  };
+  
+  const removeStaffSubEvent = (index: number) => {
+    setEventFormData(prev => ({
+      ...prev,
+      subEvents: prev.subEvents.filter((_, i) => i !== index)
+    }));
   };
 
   // Poll Form State
@@ -1241,6 +1266,91 @@ const StaffDashboard = () => {
               </div>
             </div>
 
+            {/* Agenda (Sub-events) Section */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold">Event Agenda (Sessions/Workshops)</h3>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={addStaffSubEvent}>
+                  <Plus className="h-4 w-4 mr-1" /> Add Session
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Add specific sessions, workshops, or activities for this event.
+              </p>
+
+              {eventFormData.subEvents.length === 0 && (
+                <p className="text-sm text-muted-foreground italic text-center py-2">No specific agenda items added yet.</p>
+              )}
+
+              <div className="space-y-4">
+                {eventFormData.subEvents.map((session, index) => (
+                  <div key={index} className="border rounded-lg p-3 space-y-3 bg-muted/10 relative">
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="icon" 
+                      className="absolute top-2 right-2 text-destructive h-7 w-7"
+                      onClick={() => removeStaffSubEvent(index)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Session Title *</Label>
+                        <Input
+                          placeholder="e.g. Keynote Speech"
+                          value={session.title}
+                          onChange={(e) => updateStaffSubEvent(index, { title: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Location</Label>
+                        <Input
+                          placeholder="e.g. Main Hall"
+                          value={session.location}
+                          onChange={(e) => updateStaffSubEvent(index, { location: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Start Time *</Label>
+                        <Input
+                          type="datetime-local"
+                          value={session.startAt}
+                          onChange={(e) => updateStaffSubEvent(index, { startAt: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">End Time *</Label>
+                        <Input
+                          type="datetime-local"
+                          value={session.endAt}
+                          onChange={(e) => updateStaffSubEvent(index, { endAt: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-[10px] uppercase font-bold text-muted-foreground">Description</Label>
+                      <Textarea
+                        placeholder="Session description..."
+                        value={session.description}
+                        onChange={(e) => updateStaffSubEvent(index, { description: e.target.value })}
+                        rows={1}
+                        className="min-h-[40px]"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Badge Settings */}
             <div className="border rounded-lg p-4 space-y-3">
               <div className="flex items-center gap-2">
@@ -1296,6 +1406,11 @@ const StaffDashboard = () => {
                     ...rest,
                     options: rest.type === 'select' ? optionsInput.split(',').map(o => o.trim()).filter(Boolean) : []
                   })),
+                  subEvents: eventFormData.subEvents.filter(se => se.title.trim()).map(se => ({
+                    ...se,
+                    startAt: new Date(se.startAt).toISOString(),
+                    endAt: new Date(se.endAt).toISOString()
+                  })),
                   useCustomBadge: staffUseCustomBadge,
                 });
                 toast.success('Event created successfully');
@@ -1315,7 +1430,8 @@ const StaffDashboard = () => {
                   requiresApproval: false,
                   allowGuestRegistration: false,
                   eligibleLevels: [],
-                  eligiblePrograms: []
+                  eligiblePrograms: [],
+                  subEvents: []
                 });
                 setStaffCustomFields([]);
                 setStaffUseCustomBadge(false);

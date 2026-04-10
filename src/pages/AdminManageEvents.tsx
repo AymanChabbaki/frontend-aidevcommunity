@@ -42,7 +42,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/hooks/use-toast';
 import { eventService } from '@/services/event.service';
-import { Calendar, MapPin, Users, Edit, Trash2, Search, Plus, Download, Eye, ChevronLeft, ChevronRight, Shield, X, Check, Award, FileText, GripVertical } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Calendar, MapPin, Users, Download, Eye, Check, X, UserCheck, UserX, Shield, Clock, Sparkles, GripVertical, ChevronLeft, ChevronRight, Award, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
 import { formatDateForInput } from '@/lib/utils';
@@ -1176,124 +1176,187 @@ const AdminManageEvents = () => {
           <DialogHeader>
             <DialogTitle>Event Registrations - {registrationsDialog.event?.title}</DialogTitle>
           </DialogHeader>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Registration Date</TableHead>
-                  <TableHead>Check-In Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {registrationsDialog.registrations.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center">
-                      No registrations found
-                    </TableCell>
+          <div className="space-y-6">
+            <div className="relative group overflow-hidden rounded-2xl border border-white/10 bg-[#111115]/50 backdrop-blur-xl shadow-2xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-50" />
+              <Table>
+                <TableHeader className="bg-white/[0.03]">
+                  <TableRow className="hover:bg-transparent border-white/5">
+                    <TableHead className="text-primary font-bold uppercase tracking-[0.2em] text-[10px] py-4">Subject</TableHead>
+                    <TableHead className="text-primary font-bold uppercase tracking-[0.2em] text-[10px]">Credentials</TableHead>
+                    <TableHead className="text-primary font-bold uppercase tracking-[0.2em] text-[10px]">Status</TableHead>
+                    <TableHead className="text-primary font-bold uppercase tracking-[0.2em] text-[10px]">Registration</TableHead>
+                    <TableHead className="text-primary font-bold uppercase tracking-[0.2em] text-[10px]">Check-In</TableHead>
+                    <TableHead className="text-right text-primary font-bold uppercase tracking-[0.2em] text-[10px] pr-6">Commands</TableHead>
                   </TableRow>
-                ) : (
-                  registrationsDialog.registrations.map((reg: any) => (
-                    <TableRow key={reg.id}>
-                      <TableCell className="font-medium">{reg.user?.displayName || reg.user?.name || 'Unknown'}</TableCell>
-                      <TableCell>{reg.user?.email || 'N/A'}</TableCell>
-                      <TableCell>
-                        <Badge variant={reg.status === 'APPROVED' || reg.status === 'REGISTERED' ? 'default' : reg.status === 'PENDING' ? 'secondary' : 'destructive'}>
-                          {reg.status}
-                        </Badge>
+                </TableHeader>
+                <TableBody>
+                  {registrationsDialog.registrations.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-16 text-muted-foreground/50 italic font-light tracking-widest text-sm">
+                        NO DOSSIERS FOUND IN CURRENT SECTOR
                       </TableCell>
-                      <TableCell>{format(new Date(reg.createdAt), 'MMM dd, yyyy HH:mm')}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-semibold text-muted-foreground min-w-[40px]">MAIN:</span>
-                            {reg.checkedInAt ? (
-                              <Badge variant="outline" className="text-[9px] bg-green-50 text-green-700 border-green-200 py-0 h-4">
-                                {format(new Date(reg.checkedInAt), 'HH:mm')}
-                              </Badge>
-                            ) : (
-                              <span className="text-[9px] text-muted-foreground">Pending</span>
+                    </TableRow>
+                  ) : (
+                    registrationsDialog.registrations.map((reg: any) => (
+                      <TableRow key={reg.id} className="border-white/5 hover:bg-white/[0.02] transition-all duration-500 group/row">
+                        <TableCell className="py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 group-hover/row:border-primary/50 transition-colors">
+                              <Users className="h-4 w-4 text-primary" />
+                            </div>
+                            <span className="font-bold text-white/90 group-hover/row:text-primary transition-colors">
+                              {reg.user?.displayName || 'Unknown Subject'}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs font-mono opacity-40 group-hover/row:opacity-100 transition-opacity">
+                          {reg.user?.email || 'N/A'}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={`
+                            ${reg.status === 'APPROVED' || reg.status === 'REGISTERED' ? 'border-green-500/50 text-green-400 bg-green-500/5' : 
+                              reg.status === 'PENDING' ? 'border-amber-500/50 text-amber-400 bg-amber-500/5' : 
+                              'border-red-500/50 text-red-400 bg-red-500/5'}
+                            text-[9px] font-black uppercase tracking-[0.1em] py-0 h-5 px-2
+                          `}>
+                            {reg.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-[10px] tabular-nums opacity-40">
+                          {format(new Date(reg.createdAt), 'yyyy.MM.dd')}<br/>
+                          <span className="text-[9px] text-muted-foreground/50">{format(new Date(reg.createdAt), 'HH:mm:ss')}</span>
+                        </TableCell>
+                        <TableCell>
+                          {reg.checkedInAt ? (
+                            <div className="flex items-center gap-2 text-green-400">
+                              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+                              <span className="text-[10px] font-bold tabular-nums">
+                                {format(new Date(reg.checkedInAt), 'HH:mm:ss')}
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 text-white/10 italic">
+                               <Clock className="w-3 h-3" />
+                               <span className="text-[9px] font-medium uppercase tracking-tighter">Standby</span>
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right pr-6">
+                          <div className="flex justify-end gap-2 translate-x-4 opacity-0 group-hover/row:translate-x-0 group-hover/row:opacity-100 transition-all duration-300">
+                            {reg.status === 'PENDING' && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleApproveRegistration(reg.id)}
+                                  className="h-8 w-8 rounded-lg text-green-400 hover:text-green-300 hover:bg-green-500/10 border border-green-500/0 hover:border-green-500/20"
+                                >
+                                  <Check className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleRejectRegistration(reg.id)}
+                                  className="h-8 w-8 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-red-500/0 hover:border-red-500/20"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </>
                             )}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteRegistration(reg.id)}
+                              className="h-8 w-8 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 border border-white/0 hover:border-red-500/20"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Sessions check-in grid */}
+            {registrationsDialog.event?.subEvents?.length > 0 && registrationsDialog.registrations.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-6">
+                  <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+                  <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-primary/70 flex items-center gap-3">
+                    <Sparkles className="h-3.5 w-3.5 animate-pulse text-primary" /> SESSION SYNC CORE
+                  </h3>
+                  <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {registrationsDialog.event.subEvents.map((se: any) => {
+                    const checkedInCount = registrationsDialog.registrations.filter((reg: any) => 
+                      reg.subEventCheckIns?.some((check: any) => check.subEventId === se.id)
+                    ).length;
+
+                    return (
+                      <div key={se.id} className="relative group overflow-hidden rounded-2xl border border-white/5 bg-[#111115]/40 p-5 hover:border-primary/40 transition-all duration-500 hover:shadow-[0_0_25px_rgba(var(--primary-rgb),0.1)]">
+                        <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-10 transition-all duration-700 pointer-events-none group-hover:scale-125 transform-gpu">
+                          <Calendar className="h-16 w-16" />
+                        </div>
+                        
+                        <div className="relative z-10">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h4 className="font-bold text-base text-white/90 group-hover:text-primary transition-colors leading-tight">{se.title}</h4>
+                              <div className="flex items-center gap-2 mt-1">
+                                <MapPin className="h-3 w-3 text-muted-foreground/60" />
+                                <span className="text-[10px] text-muted-foreground/60 uppercase font-bold tracking-widest">{se.location || 'Nexus Hall'}</span>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-end">
+                              <Badge variant="outline" className="text-[9px] border-primary/30 bg-primary/10 text-primary font-black">
+                                {checkedInCount} ACTIVE
+                              </Badge>
+                              <span className="text-[8px] text-muted-foreground/40 mt-1 uppercase font-bold tracking-widest">Load Meter</span>
+                            </div>
                           </div>
                           
-                          {registrationsDialog.event?.subEvents?.length > 0 && (
-                            <div className="mt-1 flex flex-col gap-1 pt-1 border-t border-dashed">
-                              {registrationsDialog.event.subEvents.map((se: any) => {
-                                const isCheckedIn = reg.subEventCheckIns?.some((sci: any) => sci.subEventId === se.id);
+                          <div className="space-y-2 mt-4 max-h-[160px] overflow-y-auto scrollbar-hide pr-1 border-t border-white/5 pt-4">
+                            {registrationsDialog.registrations
+                              .filter((reg: any) => reg.status === 'APPROVED' || reg.status === 'REGISTERED')
+                              .map((reg: any) => {
+                                const isCheckedIn = reg.subEventCheckIns?.some((check: any) => check.subEventId === se.id);
                                 return (
-                                  <div key={se.id} className="flex items-center justify-between gap-2">
-                                    <span className="text-[9px] truncate max-w-[80px] text-muted-foreground" title={se.title}>{se.title}</span>
+                                  <div key={reg.id} className="flex items-center justify-between gap-3 p-2 rounded-xl hover:bg-white/[0.03] transition-all group/attendee border border-transparent hover:border-white/5">
+                                    <span className="text-[11px] font-bold text-white/60 group-hover/attendee:text-white/90 transition-colors truncate flex-1 tracking-tight">
+                                      {reg.user?.displayName || 'Unknown Subject'}
+                                    </span>
                                     {isCheckedIn ? (
-                                      <Badge variant="outline" className="text-[8px] bg-blue-50 text-blue-700 border-blue-200 py-0 h-3.5">
-                                        SET
-                                      </Badge>
+                                      <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 shadow-[0_0_12px_rgba(34,197,94,0.1)]">
+                                        <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
+                                        <span className="text-[9px] font-black uppercase tracking-tighter">SYNCED</span>
+                                      </div>
                                     ) : (
-                                      <Button 
-                                        variant="ghost" 
-                                        size="icon" 
-                                        className="h-3.5 w-3.5 text-primary hover:bg-primary/10"
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 px-3 text-[9px] font-black uppercase tracking-widest bg-white/[0.03] hover:bg-primary/20 hover:text-primary border border-white/5 hover:border-primary/20 transition-all rounded-lg"
                                         onClick={() => handleSubEventCheckIn(reg.id, se.id)}
-                                        title={`Check in for ${se.title}`}
                                       >
-                                        <Check className="h-2.5 w-2.5" />
+                                        INITIALIZE SYNC
                                       </Button>
                                     )}
                                   </div>
                                 );
                               })}
-                            </div>
-                          )}
+                          </div>
                         </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          {reg.status === 'PENDING' && (
-                            <>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleApproveRegistration(reg.id)}
-                                className="text-green-600 hover:text-green-700"
-                                title="Approve"
-                              >
-                                <Check className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleRejectRegistration(reg.id)}
-                                className="text-red-600 hover:text-red-700"
-                                title="Reject"
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </>
-                          )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteRegistration(reg.id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                            title="Delete"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        {(reg.status === 'APPROVED' || reg.status === 'REGISTERED') && (
-                          <span className="sr-only">Approved</span>
-                        )}
-                        {reg.status === 'REJECTED' && (
-                          <span className="sr-only">Rejected</span>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRegistrationsDialog({ open: false, event: null, registrations: [] })}>
