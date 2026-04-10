@@ -890,8 +890,8 @@ const EventDetail = () => {
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1.5">
                           <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-primary/5 text-primary border border-primary/10">
                             <Clock className="h-3 w-3" />
-                            <span className="text-xs font-bold tabular-nums">
-                              {format(new Date(session.startAt), 'HH:mm')} — {format(new Date(session.endAt), 'HH:mm')}
+                            <span className="text-xs font-bold tabular-nums text-primary/90">
+                              {format(new Date(session.startAt), 'E, MMM dd | HH:mm')} — {format(new Date(session.endAt), 'HH:mm')}
                             </span>
                           </div>
                           {session.location && (

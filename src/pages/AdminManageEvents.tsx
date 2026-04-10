@@ -1172,9 +1172,12 @@ const AdminManageEvents = () => {
       </AlertDialog>
 
       <Dialog open={registrationsDialog.open} onOpenChange={(open) => setRegistrationsDialog({ open, event: null, registrations: [] })}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-[#09090b] text-white border-white/10">
           <DialogHeader>
-            <DialogTitle>Event Registrations - {registrationsDialog.event?.title}</DialogTitle>
+            <DialogTitle className="text-white/90 font-black tracking-tight flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              EVENT DOSSIER: {registrationsDialog.event?.title}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-6">
             <div className="relative group overflow-hidden rounded-2xl border border-white/10 bg-[#111115]/50 backdrop-blur-xl shadow-2xl">
@@ -1358,12 +1361,12 @@ const AdminManageEvents = () => {
               </div>
             )}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRegistrationsDialog({ open: false, event: null, registrations: [] })}>
+          <DialogFooter className="border-t border-white/5 pt-4">
+            <Button variant="outline" onClick={() => setRegistrationsDialog({ open: false, event: null, registrations: [] })} className="border-white/10 text-white hover:bg-white/5">
               Close
             </Button>
             {registrationsDialog.event && (
-              <Button onClick={() => handleExportRegistrations(registrationsDialog.event!.id, registrationsDialog.event!.title)}>
+              <Button onClick={() => handleExportRegistrations(registrationsDialog.event!.id, registrationsDialog.event!.title)} className="bg-primary hover:bg-primary/90 text-white font-bold">
                 <Download className="mr-2 h-4 w-4" />
                 Export to Excel
               </Button>
