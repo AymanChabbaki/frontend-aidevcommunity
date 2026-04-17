@@ -130,6 +130,7 @@ const App = () => {
               <Route path="/podcasts" element={<MainLayout><Podcasts /></MainLayout>} />
               <Route path="/blog" element={<MainLayout><Blog /></MainLayout>} />
               <Route path="/forms" element={<MainLayout><Forms /></MainLayout>} />
+              <Route path="/forms/:id" element={<MainLayout><Forms /></MainLayout>} />
               {/* <Route path="/womens-day" element={<MainLayout><WomensDay /></MainLayout>} /> */}
               <Route path="/eid" element={<MainLayout><EidCelebration /></MainLayout>} />
               

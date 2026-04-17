@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { 
   FileText, 
@@ -25,9 +25,16 @@ import {
   TrendingUp,
   AlertCircle,
   Rocket,
-  Loader2
+  Loader2,
+  Share2,
+  Copy,
+  ChevronRight,
+  ClipboardCheck,
+  Calendar,
+  Layers
 } from 'lucide-react';
 import { formService } from '@/services/form.service';
+import { cn } from '@/lib/utils';
 
 interface FormField {
   id: string;
@@ -55,14 +62,17 @@ interface FormData {
 const Forms = () => {
   const { user, isAuthenticated } = useAuth();
   const { t, language } = useLanguage();
+  const { id } = useParams();
   const navigate = useNavigate();
   const [forms, setForms] = useState<FormData[]>([]);
-  const [selectedForm, setSelectedForm] = useState<string | null>(null);
+  const [selectedForm, setSelectedForm] = useState<string | null>(id || null);
   const [formValues, setFormValues] = useState<Record<string, any>>({});
   const [submittedForms, setSubmittedForms] = useState<string[]>([]);
   const [isEditingSubmission, setIsEditingSubmission] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 300], [0, 50]);
   const y2 = useTransform(scrollY, [0, 300], [0, -30]);
@@ -70,6 +80,17 @@ const Forms = () => {
   useEffect(() => {
     fetchForms();
   }, []);
+
+  useEffect(() => {
+    if (id) {
+      setSelectedForm(id);
+      if (isAuthenticated) {
+        checkAndLoadSubmission(id);
+      }
+    } else {
+      setSelectedForm(null);
+    }
+  }, [id, isAuthenticated]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -99,34 +120,43 @@ const Forms = () => {
     }
   };
 
-  const handleFormSelect = async (formId: string) => {
-    if (!isAuthenticated) {
-      toast.error('Please login to access forms');
-      setTimeout(() => navigate('/login'), 1000);
-      return;
-    }
-    
-    const hasSubmitted = submittedForms.includes(formId);
-    
-    if (hasSubmitted) {
-      // Load existing submission
-      try {
+  const checkAndLoadSubmission = async (formId: string) => {
+    try {
+      const submissions = await formService.getUserSubmissions();
+      const submissionList = submissions.data || [];
+      setSubmittedForms(submissionList);
+      
+      if (submissionList.includes(formId)) {
         const response = await formService.getUserSubmission(formId);
         if (response.data) {
           setFormValues(response.data.answers || {});
           setIsEditingSubmission(true);
         }
-      } catch (error) {
-        console.error('Error fetching user submission:', error);
-        toast.error('Failed to load your submission');
-        return;
+      } else {
+        setFormValues({});
+        setIsEditingSubmission(false);
       }
-    } else {
-      setFormValues({});
-      setIsEditingSubmission(false);
+    } catch (error) {
+      console.error('Error loading submission status:', error);
     }
-    
-    setSelectedForm(formId);
+  };
+
+  const handleFormSelect = (formId: string) => {
+    if (!isAuthenticated) {
+      toast.error('Please login to access forms');
+      setTimeout(() => navigate('/login'), 1000);
+      return;
+    }
+    navigate(`/forms/${formId}`);
+  };
+
+  const handleShare = (e: React.MouseEvent, formId: string) => {
+    e.stopPropagation();
+    const url = `${window.location.origin}/forms/${formId}`;
+    navigator.clipboard.writeText(url);
+    setCopiedId(formId);
+    toast.success('Link copied to clipboard!');
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
   const handleFieldChange = (fieldId: string, value: any) => {
@@ -173,7 +203,7 @@ const Forms = () => {
       }
       
       toast.success(isEditingSubmission ? 'Form updated successfully!' : 'Form submitted successfully!');
-      setSelectedForm(null);
+      navigate('/forms');
       setFormValues({});
       setIsEditingSubmission(false);
       
@@ -203,145 +233,156 @@ const Forms = () => {
     const label = displayLabel || field.label;
     const placeholder = (field as any).placeholder || '';
 
+    const labelElement = (
+      <Label htmlFor={field.id} className="text-lg font-semibold text-slate-200 mb-3 block">
+        {label} {field.required && <span className="text-primary">*</span>}
+      </Label>
+    );
+
     switch (field.type) {
       case 'text':
-        return (
-          <div className="space-y-2">
-            <Label htmlFor={field.id} className="text-base">
-              {label} {field.required && <span className="text-red-500">*</span>}
-            </Label>
-            <Input
-              id={field.id}
-              type="text"
-              value={formValues[field.id] || ''}
-              onChange={(e) => handleFieldChange(field.id, e.target.value)}
-              placeholder={placeholder}
-              className="h-12"
-              required={field.required}
-            />
-          </div>
-        );
-
       case 'email':
         return (
-          <div className="space-y-2">
-            <Label htmlFor={field.id} className="text-base">
-              {label} {field.required && <span className="text-red-500">*</span>}
-            </Label>
-            <Input
-              id={field.id}
-              type="email"
-              value={formValues[field.id] || ''}
-              onChange={(e) => handleFieldChange(field.id, e.target.value)}
-              placeholder={placeholder}
-              className="h-12"
-              required={field.required}
-            />
+          <div className="space-y-3">
+            {labelElement}
+            <div className="relative group/input">
+              <Input
+                id={field.id}
+                type={field.type}
+                value={formValues[field.id] || ''}
+                onChange={(e) => handleFieldChange(field.id, e.target.value)}
+                placeholder={placeholder}
+                className="h-14 bg-white/5 border-white/10 rounded-2xl px-6 focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all duration-300 text-white placeholder:text-slate-600"
+                required={field.required}
+              />
+              <div className="absolute inset-0 rounded-2xl bg-primary/5 opacity-0 group-hover/input:opacity-100 pointer-events-none transition-opacity" />
+            </div>
           </div>
         );
 
       case 'textarea':
         return (
-          <div className="space-y-2">
-            <Label htmlFor={field.id} className="text-base">
-              {label} {field.required && <span className="text-red-500">*</span>}
-            </Label>
-            <Textarea
-              id={field.id}
-              value={formValues[field.id] || ''}
-              onChange={(e) => handleFieldChange(field.id, e.target.value)}
-              placeholder={placeholder}
-              rows={4}
-              required={field.required}
-            />
+          <div className="space-y-3">
+            {labelElement}
+            <div className="relative group/input">
+              <Textarea
+                id={field.id}
+                value={formValues[field.id] || ''}
+                onChange={(e) => handleFieldChange(field.id, e.target.value)}
+                placeholder={placeholder}
+                rows={5}
+                className="bg-white/5 border-white/10 rounded-2xl px-6 py-4 focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all duration-300 text-white placeholder:text-slate-600 resize-none"
+                required={field.required}
+              />
+              <div className="absolute inset-0 rounded-2xl bg-primary/5 opacity-0 group-hover/input:opacity-100 pointer-events-none transition-opacity" />
+            </div>
           </div>
         );
 
       case 'radio':
         return (
-          <div className="space-y-3">
-            <Label className="text-base">
-              {label} {field.required && <span className="text-red-500">*</span>}
-            </Label>
+          <div className="space-y-4">
+            {labelElement}
             <RadioGroup
               value={formValues[field.id] || ''}
               onValueChange={(value) => handleFieldChange(field.id, value)}
+              className="grid gap-3"
             >
               {field.options?.map((option, index) => (
-                <div key={index} className="flex items-center space-x-2">
-                  <RadioGroupItem value={option} id={`${field.id}-${index}`} />
-                  <Label htmlFor={`${field.id}-${index}`} className="cursor-pointer">
-                    {option}
-                  </Label>
-                </div>
+                <Label
+                  key={index}
+                  htmlFor={`${field.id}-${index}`}
+                  className={cn(
+                    "flex items-center space-x-3 p-4 rounded-2xl border transition-all cursor-pointer",
+                    formValues[field.id] === option 
+                      ? "bg-primary/10 border-primary/50 text-white shadow-lg shadow-primary/5" 
+                      : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10"
+                  )}
+                >
+                  <RadioGroupItem value={option} id={`${field.id}-${index}`} className="border-white/20 text-primary" />
+                  <span className="font-medium">{option}</span>
+                </Label>
               ))}
             </RadioGroup>
           </div>
         );
 
       case 'checkbox':
-        // If field has options, render as checkbox group; otherwise single checkbox
         if (field.options && field.options.length > 0) {
           return (
-            <div className="space-y-3">
-              <Label className="text-base">
-                {label} {field.required && <span className="text-red-500">*</span>}
-              </Label>
-              <div className="space-y-2">
-                {field.options.map((option, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`${field.id}-${index}`}
-                      checked={formValues[field.id]?.includes(option) || false}
-                      onCheckedChange={(checked) => {
-                        const currentValues = formValues[field.id] || [];
-                        if (checked) {
-                          handleFieldChange(field.id, [...currentValues, option]);
-                        } else {
-                          handleFieldChange(field.id, currentValues.filter((v: string) => v !== option));
-                        }
-                      }}
-                    />
-                    <Label htmlFor={`${field.id}-${index}`} className="cursor-pointer">
-                      {option}
+            <div className="space-y-4">
+              {labelElement}
+              <div className="grid gap-3">
+                {field.options.map((option, index) => {
+                  const isChecked = formValues[field.id]?.includes(option) || false;
+                  return (
+                    <Label
+                      key={index}
+                      htmlFor={`${field.id}-${index}`}
+                      className={cn(
+                        "flex items-center space-x-3 p-4 rounded-2xl border transition-all cursor-pointer",
+                        isChecked 
+                          ? "bg-primary/10 border-primary/50 text-white shadow-lg shadow-primary/5" 
+                          : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10"
+                      )}
+                    >
+                      <Checkbox
+                        id={`${field.id}-${index}`}
+                        checked={isChecked}
+                        onCheckedChange={(checked) => {
+                          const currentValues = formValues[field.id] || [];
+                          if (checked) {
+                            handleFieldChange(field.id, [...currentValues, option]);
+                          } else {
+                            handleFieldChange(field.id, currentValues.filter((v: string) => v !== option));
+                          }
+                        }}
+                        className="border-white/20 data-[state=checked]:bg-primary"
+                      />
+                      <span className="font-medium">{option}</span>
                     </Label>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           );
         } else {
-          // Single checkbox
+          const isChecked = formValues[field.id] || false;
           return (
-            <div className="flex items-center space-x-2">
+            <Label
+              htmlFor={field.id}
+              className={cn(
+                "flex items-center space-x-3 p-5 rounded-2xl border transition-all cursor-pointer",
+                isChecked 
+                  ? "bg-primary/10 border-primary/50 text-white shadow-lg shadow-primary/5" 
+                  : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10"
+              )}
+            >
               <Checkbox
                 id={field.id}
-                checked={formValues[field.id] || false}
+                checked={isChecked}
                 onCheckedChange={(checked) => handleFieldChange(field.id, checked)}
+                className="border-white/20 data-[state=checked]:bg-primary"
               />
-              <Label htmlFor={field.id} className="cursor-pointer">
-                {label} {field.required && <span className="text-red-500">*</span>}
-              </Label>
-            </div>
+              <span className="text-lg font-semibold">{label}</span>
+            </Label>
           );
         }
 
       case 'select':
         return (
-          <div className="space-y-2">
-            <Label htmlFor={field.id} className="text-base">
-              {label} {field.required && <span className="text-red-500">*</span>}
-            </Label>
+          <div className="space-y-3">
+            {labelElement}
             <Select
               value={formValues[field.id] || ''}
               onValueChange={(value) => handleFieldChange(field.id, value)}
             >
-              <SelectTrigger className="h-12">
-                <SelectValue placeholder={placeholder || "Select an option"} />
+              <SelectTrigger className="h-14 bg-white/5 border-white/10 rounded-2xl px-6 focus:ring-2 focus:ring-primary/20 focus:border-primary/50 text-white">
+                <SelectValue placeholder={placeholder || "Choose an option"} />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-[#0f172a] border-white/10 text-white backdrop-blur-3xl">
                 {field.options?.map((option, index) => (
-                  <SelectItem key={index} value={option}>
+                  <SelectItem key={index} value={option} className="focus:bg-primary/20 focus:text-white">
                     {option}
                   </SelectItem>
                 ))}
@@ -356,292 +397,257 @@ const Forms = () => {
   };
 
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative py-20 -mt-20 overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0 z-0">
-          <img 
-            src="https://res.cloudinary.com/dmznisgxq/image/upload/v1764465520/3fa4678d-fed4-461d-ad92-0dd76ac30826_kb2ybv.jpg" 
-            alt="" 
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/30" />
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/15 to-accent/20" />
-        </div>
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <motion.div
-            style={{ y: y1 }}
-            className="absolute top-20 left-10 opacity-20"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          >
-            <FileText className="h-32 w-32 text-white" />
-          </motion.div>
-          <motion.div
-            style={{ y: y2 }}
-            className="absolute bottom-20 right-10 opacity-20"
-            animate={{ rotate: -360, scale: [1, 1.2, 1] }}
-            transition={{ duration: 15, repeat: Infinity }}
-          >
-            <FileCheck className="h-24 w-24 text-white" />
-          </motion.div>
-          <motion.div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10"
-            animate={{ scale: [1, 1.3, 1], rotate: [0, 180, 360] }}
-            transition={{ duration: 25, repeat: Infinity }}
-          >
-            <Sparkles className="h-96 w-96 text-white" />
-          </motion.div>
-        </div>
+    <div className="min-h-screen bg-[#030712] text-white selection:bg-primary/30">
+      {/* Dynamic Background */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] bg-accent/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '4s' }} />
+      </div>
 
-        <div className="container mx-auto px-4 relative z-10 pt-20">
+      {/* Hero Section */}
+      <section className="relative pt-32 pb-20 overflow-hidden z-10">
+        <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center text-white max-w-4xl mx-auto"
+            transition={{ duration: 0.8 }}
+            className="text-center max-w-4xl mx-auto"
           >
-            <Badge className="mb-6 bg-white/20 text-white border-white/30 text-base px-4 py-2">
-              <FileText className="h-4 w-4 mr-2" />
-              Community Forms
-            </Badge>
-            <h1 className="text-6xl md:text-7xl font-bold mb-6">
-              Share Your
-              <span className="block bg-gradient-to-r from-yellow-300 via-green-300 to-blue-300 bg-clip-text text-transparent">
-                Feedback
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8 text-primary shadow-2xl"
+            >
+              <Sparkles className="h-4 w-4" />
+              <span className="text-sm font-medium tracking-wide">AI DEV COMMUNITY PORTAL</span>
+            </motion.div>
+            
+            <h1 className="text-6xl md:text-8xl font-black mb-8 tracking-tighter leading-[0.9]">
+              VOICE YOUR 
+              <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent block">
+                INNOVATION
               </span>
             </h1>
-            <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed">
-              Help us improve by filling out our community forms
+            
+            <p className="text-xl md:text-2xl text-slate-400 mb-12 max-w-2xl mx-auto font-light leading-relaxed">
+              Help us shape the future of our tech ecosystem through collective feedback and visionary insights.
             </p>
-          </motion.div>
 
-          {/* Stats Cards */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-12"
-          >
-            {[
-              { icon: FileText, label: 'Total Forms', value: totalForms, color: 'from-blue-500 to-cyan-500' },
-              { icon: Rocket, label: 'Active Forms', value: activeForms, color: 'from-purple-500 to-pink-500' },
-              { icon: Users, label: 'Total Responses', value: totalResponses, color: 'from-orange-500 to-red-500' },
-            ].map((stat, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4 + index * 0.1 }}
-                whileHover={{ scale: 1.05, y: -5 }}
-                className="bg-white/10 rounded-2xl p-6 border border-white/20"
-              >
-                <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${stat.color} mb-4`}>
-                  <stat.icon className="h-6 w-6 text-white" />
-                </div>
-                <div className="text-3xl font-bold text-white mb-1">{stat.value}</div>
-                <div className="text-white/70">{stat.label}</div>
-              </motion.div>
-            ))}
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+              {[
+                { label: 'Total Forms', value: totalForms, icon: FileText },
+                { label: 'Responses', value: totalResponses, icon: Users },
+                { label: 'Active Tasks', value: activeForms, icon: Rocket },
+                { label: 'Categories', value: 3, icon: Layers },
+              ].map((stat, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 + i * 0.1 }}
+                  className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-4 text-center group hover:bg-white/10 transition-all cursor-default"
+                >
+                  <stat.icon className="h-5 w-5 mx-auto mb-2 text-primary group-hover:scale-110 transition-transform" />
+                  <div className="text-2xl font-bold text-white">{stat.value}</div>
+                  <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">{stat.label}</div>
+                </motion.div>
+              ))}
+            </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Authentication Alert */}
-      {!isAuthenticated && (
-        <div className="container mx-auto px-4 max-w-4xl -mt-8 relative z-20">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <Alert className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border-orange-500/20">
-              <Lock className="h-5 w-5 text-orange-500" />
-              <AlertDescription className="text-base ml-2">
-                <strong>Login required:</strong> Please{' '}
-                <button
-                  onClick={() => navigate('/login')}
-                  className="font-semibold underline hover:text-primary"
-                >
-                  sign in
-                </button>{' '}
-                to access and submit forms.
-              </AlertDescription>
-            </Alert>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Forms Section */}
-      <div className="container mx-auto px-4 max-w-4xl py-16">
-        {!selectedForm ? (
-          <div className="space-y-8">
-            {forms.map((form, index) => {
-              const displayTitle = language === 'fr' ? form.titleFr : language === 'ar' ? form.titleAr : form.title;
-              const displayDescription = language === 'fr' ? form.descriptionFr : language === 'ar' ? form.descriptionAr : form.description;
-              const hasSubmitted = submittedForms.includes(form.id);
-
-              return (
-                <motion.div
-                  key={form.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ y: -5 }}
-                >
-                  <Card className="p-8 shadow-xl border-2 hover:border-primary/20 transition-all duration-300 relative overflow-hidden">
-                    {/* Gradient Accent */}
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-                    
-                    <div className="flex items-start gap-4 mb-6">
-                      <motion.div
-                        whileHover={{ rotate: 360, scale: 1.1 }}
-                        transition={{ duration: 0.5 }}
-                        className="p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg"
-                      >
-                        <FileText className="h-6 w-6 text-white" />
-                      </motion.div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-2xl font-bold">
-                            {displayTitle || form.title}
-                          </h3>
-                          {hasSubmitted && (
-                            <Badge className="bg-green-500 text-white">
-                              <CheckCircle2 className="h-3 w-3 mr-1" />
-                              Submitted
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-muted-foreground mb-3">
-                          {displayDescription || form.description}
-                        </p>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <FileCheck className="h-4 w-4" />
-                            {form.fields.length} fields
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Users className="h-4 w-4" />
-                            {form._count?.responses || 0} responses
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <Button
-                      onClick={() => handleFormSelect(form.id)}
-                      disabled={!isAuthenticated}
-                      className="w-full gradient-accent h-12 text-base group"
-                    >
-                      {hasSubmitted ? (
-                        <>
-                          <CheckCircle2 className="mr-2 h-5 w-5" />
-                          Edit Submission
-                        </>
-                      ) : !isAuthenticated ? (
-                        <>
-                          <Lock className="mr-2 h-5 w-5" />
-                          Login to Fill Form
-                        </>
-                      ) : (
-                        <>
-                          Fill Form
-                          <Send className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                        </>
-                      )}
-                    </Button>
-                  </Card>
-                </motion.div>
-              );
-            })}
-          </div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            {(() => {
-              const form = forms.find(f => f.id === selectedForm);
-              if (!form) return null;
-
-              const displayTitle = language === 'fr' ? form.titleFr : language === 'ar' ? form.titleAr : form.title;
-              const displayDescription = language === 'fr' ? form.descriptionFr : language === 'ar' ? form.descriptionAr : form.description;
-
-              return (
-                <Card className="p-8 shadow-xl border-2">
-                  <div className="mb-8">
-                    <Button
-                      variant="ghost"
-                      onClick={() => setSelectedForm(null)}
-                      className="mb-4"
-                    >
-                      ← Back to Forms
-                    </Button>
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg">
-                        <FileText className="h-6 w-6 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-3xl font-bold mb-2">{displayTitle || form.title}</h2>
-                        <p className="text-muted-foreground">{displayDescription || form.description}</p>
-                      </div>
-                    </div>
+      {/* Main Content Area */}
+      <section className="relative z-10 pb-32">
+        <div className="container mx-auto px-4">
+          {!selectedForm ? (
+            <div className="max-w-6xl mx-auto">
+              {/* Filter / Header */}
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-1 w-1 bg-gradient-to-b from-primary to-transparent rounded-full" />
+                  <div>
+                    <h2 className="text-3xl font-bold tracking-tight">Available Forms</h2>
+                    <p className="text-slate-500">Explore and contribute to our active projects</p>
                   </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Badge variant="secondary" className="px-4 py-2 bg-white/5 hover:bg-white/10 border-white/10 transition-colors cursor-pointer">All Forms</Badge>
+                  <Badge variant="outline" className="px-4 py-2 border-white/10 hover:border-primary/50 transition-colors cursor-pointer">Archived</Badge>
+                </div>
+              </div>
 
-                  <form onSubmit={(e) => handleSubmit(e, form.id)} className="space-y-6">
-                    {form.fields.map((field, index) => (
+              {/* Grid Layout */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <AnimatePresence mode="popLayout">
+                  {forms.map((form, index) => {
+                    const displayTitle = language === 'fr' ? form.titleFr : language === 'ar' ? form.titleAr : form.title;
+                    const hasSubmitted = submittedForms.includes(form.id);
+
+                    return (
                       <motion.div
-                        key={field.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1 }}
+                        key={form.id}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ duration: 0.4, delay: index * 0.05 }}
+                        layout
                       >
-                        {renderField(field)}
-                      </motion.div>
-                    ))}
+                        <Card 
+                          className="group relative h-full bg-white/5 border-white/10 backdrop-blur-2xl overflow-hidden hover:bg-white/[0.08] hover:border-primary/30 transition-all duration-500 cursor-pointer"
+                          onClick={() => handleFormSelect(form.id)}
+                        >
+                          {/* Top Highlight */}
+                          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                          
+                          <div className="p-8 flex flex-col h-full">
+                            <div className="flex justify-between items-start mb-6">
+                              <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20 text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-500">
+                                <FileText className="h-6 w-6" />
+                              </div>
+                              <div className="flex gap-2">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-9 w-9 rounded-xl bg-white/5 border border-white/10 hover:bg-primary hover:border-primary text-white transition-all"
+                                  onClick={(e) => handleShare(e, form.id)}
+                                >
+                                  {copiedId === form.id ? <ClipboardCheck className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
+                                </Button>
+                              </div>
+                            </div>
 
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: form.fields.length * 0.1 }}
-                      className="flex gap-4 pt-6"
-                    >
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setSelectedForm(null)}
-                        className="flex-1 h-12"
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        type="submit"
-                        className="flex-1 gradient-accent h-12 group"
-                        disabled={submitting}
-                      >
-                        {submitting ? (
-                          <>
-                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                            {isEditingSubmission ? 'Updating...' : 'Submitting...'}
-                          </>
-                        ) : (
-                          <>
-                            {isEditingSubmission ? 'Update Submission' : 'Submit Form'}
-                            <Send className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                          </>
-                        )}
-                      </Button>
-                    </motion.div>
-                  </form>
-                </Card>
-              );
-            })()}
-          </motion.div>
-        )}
-      </div>
+                            <div className="mt-auto">
+                              <div className="flex items-center gap-2 mb-2">
+                                {hasSubmitted && (
+                                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/20 border border-green-500/30 text-[10px] font-bold text-green-400 uppercase tracking-wider">
+                                    <CheckCircle2 className="h-3 w-3" />
+                                    Submitted
+                                  </div>
+                                )}
+                                <div className="px-2 py-0.5 rounded-full bg-primary/20 border border-primary/30 text-[10px] font-bold text-primary uppercase tracking-wider">
+                                  Official
+                                </div>
+                              </div>
+                              
+                              <h3 className="text-2xl font-bold mb-3 tracking-tight group-hover:text-primary transition-colors">
+                                {displayTitle || form.title}
+                              </h3>
+                              
+                              <div className="flex items-center gap-4 text-xs text-slate-500 font-medium">
+                                <span className="flex items-center gap-1.5">
+                                  <Users className="h-3.5 w-3.5" />
+                                  {form._count?.responses || 0}
+                                </span>
+                                <span className="flex items-center gap-1.5">
+                                  <Layers className="h-3.5 w-3.5" />
+                                  {form.fields.length} Fields
+                                </span>
+                                <span className="flex items-center gap-1.5">
+                                  <Calendar className="h-3.5 w-3.5" />
+                                  Active
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Hover Arrow */}
+                            <div className="absolute bottom-8 right-8 text-primary opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all">
+                              <ChevronRight className="h-6 w-6" />
+                            </div>
+                          </div>
+                        </Card>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
+            </div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="max-w-4xl mx-auto"
+            >
+              {(() => {
+                const form = forms.find(f => f.id === selectedForm);
+                if (!form) return null;
+
+                const displayTitle = language === 'fr' ? form.titleFr : language === 'ar' ? form.titleAr : form.title;
+                const displayDescription = language === 'fr' ? form.descriptionFr : language === 'ar' ? form.descriptionAr : form.description;
+
+                return (
+                  <Card className="relative bg-white/5 border-white/10 backdrop-blur-3xl overflow-hidden shadow-2xl">
+                    {/* Header accent */}
+                    <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-secondary to-accent" />
+                    
+                    <div className="p-8 md:p-12">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+                        <div className="flex items-start gap-4">
+                          <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 text-primary">
+                            <FileText className="h-8 w-8" />
+                          </div>
+                          <div>
+                            <h2 className="text-4xl font-extrabold tracking-tight mb-2 text-white">
+                              {displayTitle || form.title}
+                            </h2>
+                            <p className="text-slate-400 text-lg max-w-xl leading-relaxed">
+                              {displayDescription || form.description}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          onClick={() => navigate('/forms')}
+                          className="self-start md:self-center text-slate-400 hover:text-white hover:bg-white/5 gap-2 px-6"
+                        >
+                          Cancel Process
+                        </Button>
+                      </div>
+
+                      <div className="mb-10 h-[1px] bg-white/10" />
+
+                      <form onSubmit={(e) => handleSubmit(e, form.id)} className="space-y-10">
+                        {form.fields.map((field, index) => (
+                          <motion.div
+                            key={field.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className="group"
+                          >
+                            {renderField(field)}
+                          </motion.div>
+                        ))}
+
+                        <div className="pt-10 flex flex-col md:flex-row gap-4">
+                          <Button
+                            type="submit"
+                            className="flex-1 gradient-primary h-14 text-lg font-bold shadow-xl shadow-primary/20 hover:shadow-primary/40 transition-all rounded-2xl gap-3"
+                            disabled={submitting}
+                          >
+                            {submitting ? (
+                              <Loader2 className="h-6 w-6 animate-spin" />
+                            ) : (
+                              <>
+                                {isEditingSubmission ? 'Update My Response' : 'Finalize Submission'}
+                                <Send className="h-5 w-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </form>
+                    </div>
+                  </Card>
+                );
+              })()}
+            </motion.div>
+          )}
+        </div>
+      </section>
     </div>
   );
 };
